@@ -1,0 +1,22 @@
+plugins {
+    id 'java'
+}
+
+group 'io.github.KidOfCubes'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url = uri("https://papermc.io/repo/repository/maven-public/") }
+}
+
+dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+jar {
+    destinationDirectory.set(file("G:\\Testing Version Servers\\1.18.2Paper\\plugins"))
+}

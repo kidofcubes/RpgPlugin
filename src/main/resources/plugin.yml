@@ -1,0 +1,10 @@
+main: io.github.KidOfCubes.RpgPlugin
+name: RpgPlugin
+version: 0.0.1
+description: another rpg really
+api-version: 1.18
+depend: []
+commands:
+  test:
+    description: testingggg one two three
+    usage: /<command>
