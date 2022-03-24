@@ -8,3 +8,6 @@ commands:
   test:
     description: testingggg one two three
     usage: /<command>
+  cast:
+    description: Cast a ability
+    usage: /<command>

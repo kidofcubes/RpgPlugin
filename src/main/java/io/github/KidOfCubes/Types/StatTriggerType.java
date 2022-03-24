@@ -6,5 +6,7 @@ public enum StatTriggerType {
     onAttack,
     onHold,
     onEquipped,
-    onTick
+    onTick,
+    onActivate,
+    onSpawn
 }

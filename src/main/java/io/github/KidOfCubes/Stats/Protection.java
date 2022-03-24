@@ -1,7 +1,5 @@
 package io.github.KidOfCubes.Stats;
 
-import static io.github.KidOfCubes.RpgPlugin.*;
-
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Types.StatTriggerType;
@@ -9,21 +7,23 @@ import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-public class Sharpness extends Stat {
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
-    public Sharpness(int level, RpgElement statParent) {
-        super(level, statParent);
-        description = "Increaces raw damage by 1 heart per level";
-        triggerType = StatTriggerType.onAttack;
+public class Protection extends Stat {
+
+    public Protection(int level, RpgElement parent) {
+        super(level,parent);
+        description = "Decreaces raw damage taken by 1.5 hearts per level";
+        triggerType = StatTriggerType.onDamage;
         statType = StatType.stat;
     }
 
     @Override
     protected void run(RpgElement statParent, RpgElement statActivator, int level, Event event) {
-        logger.info("sharpness activated");
+        logger.info("protection activated");
         if(event!=null) {
             if (event instanceof EntityDamageByEntityEvent damageEvent) {
-                damageEvent.setDamage(damageEvent.getDamage() + (level * 2f));
+                damageEvent.setDamage(damageEvent.getDamage() - (level * 1.5f));
             }
         }
     }
