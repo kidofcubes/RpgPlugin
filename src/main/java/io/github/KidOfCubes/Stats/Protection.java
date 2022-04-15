@@ -6,6 +6,7 @@ import io.github.KidOfCubes.Types.StatTriggerType;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
 
@@ -20,10 +21,11 @@ public class Protection extends Stat {
 
     @Override
     protected void run(RpgElement statParent, RpgElement statActivator, int level, Event event) {
-        logger.info("protection activated");
+        logger.info("protection activated with level "+level);
         if(event!=null) {
-            if (event instanceof EntityDamageByEntityEvent damageEvent) {
-                damageEvent.setDamage(damageEvent.getDamage() - (level * 1.5f));
+            if (event instanceof EntityDamageEvent damageEvent) {
+            logger.info("protection reduced damage "+damageEvent.getDamage());
+            damageEvent.setDamage(damageEvent.getDamage() - (level * 1.5f));
             }
         }
     }

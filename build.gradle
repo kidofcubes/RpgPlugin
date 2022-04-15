@@ -6,7 +6,7 @@ group 'io.github.KidOfCubes'
 version '1.0-SNAPSHOT'
 
 repositories {
-    mavenCentral()
+    //mavenCentral()
     maven { url = uri("https://papermc.io/repo/repository/maven-public/") }
 }
 

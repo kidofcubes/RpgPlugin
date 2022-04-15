@@ -14,6 +14,9 @@ public class RpgElement {
     public String name;
     public int level;
     public Map<StatTriggerType, List<Stat>> stats = new HashMap<>();
+    public float mana; //todo implement mana deez nuts
+    public RpgEntity parent;
+
 
     public void addStat(Stat stat){
         if(!stats.containsKey(stat.triggerType)){
@@ -77,7 +80,7 @@ public class RpgElement {
         }
         return rpgElement;
     }
-    static class RpgElementJsonContainer{
+    public static class RpgElementJsonContainer{
         public String name;
         public int level;
         public String[][] stats;

@@ -36,7 +36,7 @@ public class SummonTotem extends Stat {
             ArmorStand armorStand = (ArmorStand) caster.livingEntity.getWorld().spawnEntity(caster.livingEntity.getLocation().add(0,1,0), EntityType.ARMOR_STAND);
             //armorStand.setGravity(false);
             armorStand.setVelocity(caster.livingEntity.getLocation().getDirection().multiply(2.5));
-            RpgEntity totem = new RpgEntity(armorStand,true);
+            RpgEntity totem = new RpgEntity(armorStand,caster,true);
             new BukkitRunnable() {
 
                 @Override

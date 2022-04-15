@@ -2,7 +2,7 @@ package io.github.KidOfCubes;
 
 import com.google.gson.Gson;
 import io.github.KidOfCubes.Commands.Cast;
-import io.github.KidOfCubes.Managers.DamageManager;
+import io.github.KidOfCubes.Managers.HealthManager;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.Testing.Test;
 import org.bukkit.NamespacedKey;
@@ -25,7 +25,7 @@ public class RpgPlugin extends JavaPlugin {
 
         EntityManager.init();
 
-        getServer().getPluginManager().registerEvents(new DamageManager(), this);
+        getServer().getPluginManager().registerEvents(new HealthManager(), this);
         getServer().getPluginManager().registerEvents(new EntityManager(), this);
 
         this.getCommand("test").setExecutor(new Test());

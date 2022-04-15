@@ -54,13 +54,12 @@ public class DamagingAura extends Stat {
 
             Collection<LivingEntity> nearby = runLocation.getNearbyLivingEntities(radius);
             RpgEntity owner = null;
-            if(statParent instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(caller instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            if(statParent instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(owner==null) return;
-
             for (LivingEntity entity : nearby) {
-                if(!owner.allies.contains(EntityManager.getRpgEntity(entity))){
-                    entity.damage(10,owner.livingEntity);
+                if(owner.isTarget(EntityManager.getRpgEntity(entity))){
+                    entity.damage(10, owner.livingEntity);
                 }
             }
         }
@@ -68,9 +67,9 @@ public class DamagingAura extends Stat {
             particleRing(Particle.REDSTONE, particleColor,runLocation,particlesInRing,(countTick/pulseTime)*radius);
         }
 
+        countTick++;
         if(countTick>=pulseInterval){
             countTick = 0;
         }
-        countTick++;
     }
 }

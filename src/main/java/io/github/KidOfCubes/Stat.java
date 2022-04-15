@@ -21,7 +21,7 @@ public abstract class Stat {
         this.sameThread = useSameThread;*/
     }
 
-
+    
     public String getName(){
         return this.getClass().getSimpleName();
     }

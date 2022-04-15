@@ -1,6 +1,7 @@
 package io.github.KidOfCubes;
 
 import io.github.KidOfCubes.Managers.EntityManager;
+import io.github.KidOfCubes.Managers.HealthManager;
 import io.github.KidOfCubes.Types.StatTriggerType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
@@ -14,8 +15,8 @@ import static io.github.KidOfCubes.Managers.EntityManager.TempRpgEntities;
 
 public class RpgEntity extends RpgElement{
     public LivingEntity livingEntity;
-    public List<RpgEntity> targets = new ArrayList<>();
-    public List<RpgEntity> allies  = new ArrayList<>();
+    private List<RpgEntity> targets = new ArrayList<>();
+    private List<RpgEntity> allies  = new ArrayList<>();
 
     public RpgEntity(LivingEntity livingEntity){
         this.livingEntity = livingEntity;
@@ -29,11 +30,27 @@ public class RpgEntity extends RpgElement{
             TempRpgEntities.put(livingEntity.getUniqueId(),this);
         }
     }
-    public RpgEntity(LivingEntity livingEntity, RpgEntity from){
-        this(livingEntity);
-        targets = from.targets;
-        allies = from.allies;
+    public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity){
+        this(livingEntity,tempEntity);
+        if(parent!=null) {
+            this.parent = parent;
+        }
     }
+    public RpgEntity(LivingEntity livingEntity, RpgElement from){
+        this(livingEntity);
+        stats = from.stats;
+        level = from.level;
+        name = from.name;
+        if(from instanceof RpgEntity rpgEntity) {
+            targets = rpgEntity.targets;
+            allies = rpgEntity.allies;
+        }
+    }
+
+    public void damage(float amount, RpgEntity attacker){
+        HealthManager.changeHealthBy(attacker, this, -amount);
+    }
+
     /*public RpgEntity(LivingEntity livingEntity, int level){
         this.livingEntity = livingEntity;
         allies.add(this);
@@ -42,6 +59,30 @@ public class RpgEntity extends RpgElement{
 
     public void addTarget(RpgEntity target){
         targets.add(target);
+    }
+
+    public boolean isAlly(RpgEntity entity){
+        if(entity!=this) {
+            if (parent != null) {
+                return parent.isAlly(entity);
+            } else {
+                return allies.contains(entity);
+            }
+        }else{
+            return true;
+        }
+    }
+
+    public boolean isTarget(RpgEntity entity){
+        if(entity!=this) {
+            if (parent != null) {
+                return parent.isTarget(entity);
+            } else {
+                return targets.contains(entity);
+            }
+        }else{
+            return false;
+        }
     }
 
     public void attemptActivateStats(StatTriggerType type, Event event){

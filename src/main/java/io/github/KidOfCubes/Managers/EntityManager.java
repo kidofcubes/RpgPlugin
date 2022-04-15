@@ -1,5 +1,6 @@
 package io.github.KidOfCubes.Managers;
 
+import io.github.KidOfCubes.Events.EntityHealByEntityEvent;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgPlugin;
 import io.github.KidOfCubes.Types.StatTriggerType;
@@ -8,7 +9,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Dictionary;
@@ -53,7 +56,7 @@ public class EntityManager implements Listener {
             return RpgEntities.get(livingEntity.getUniqueId());
         }else{
             if(livingEntity.getPersistentDataContainer().has(key)){
-                RpgEntity newEntity = new RpgEntity(livingEntity, (RpgEntity) RpgEntity.fromJson(livingEntity.getPersistentDataContainer().get(key,PersistentDataType.STRING)));
+                RpgEntity newEntity = new RpgEntity(livingEntity, RpgEntity.fromJson(livingEntity.getPersistentDataContainer().get(key,PersistentDataType.STRING)));
 
                 return newEntity;
             }
@@ -69,6 +72,29 @@ public class EntityManager implements Listener {
             RpgEntity victim = getRpgEntity(_victim);
             RpgEntity attacker = getRpgEntity(_attacker);
             attacker.attemptActivateStats(StatTriggerType.onAttack,event);
+            victim.attemptActivateStats(StatTriggerType.onDamage,event);
+        }
+    }
+    @EventHandler
+    public void onHeal(EntityRegainHealthEvent e){
+        if(e instanceof EntityHealByEntityEvent event){
+            if(event.getEntity() instanceof LivingEntity _victim){
+                RpgEntity victim = getRpgEntity(_victim);
+                RpgEntity attacker = getRpgEntity(event.getHealer());
+                attacker.attemptActivateStats(StatTriggerType.onHeal,event);
+                victim.attemptActivateStats(StatTriggerType.onHealed,event);
+            }
+        }else{
+            if(e.getEntity() instanceof LivingEntity _victim) {
+                RpgEntity victim = getRpgEntity(_victim);
+                victim.attemptActivateStats(StatTriggerType.onHealed, e);
+            }
+        }
+    }
+    @EventHandler
+    public void onDamage(EntityDamageEvent event){
+        if(event.getEntity() instanceof LivingEntity _victim && !(event instanceof EntityDamageByEntityEvent)){
+            RpgEntity victim = getRpgEntity(_victim);
             victim.attemptActivateStats(StatTriggerType.onDamage,event);
         }
     }

@@ -53,14 +53,14 @@ public class HealingAura extends Stat {
             }
             Collection<LivingEntity> nearby = runLocation.getNearbyLivingEntities(radius);
             RpgEntity owner = null;
-            if(statParent instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(caller instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            if(statParent instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(owner==null) return;
 
 
 
             for (LivingEntity entity : nearby) {
-                if(owner.allies.contains(EntityManager.getRpgEntity(entity))){
+                if(owner.isAlly(EntityManager.getRpgEntity(entity))){
                     entity.damage(entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()/10,owner.livingEntity);
                 }
             }
@@ -68,11 +68,10 @@ public class HealingAura extends Stat {
         if(countTick<=pulseTime){
             particleRing(Particle.REDSTONE,particleColor,runLocation,particlesInRing,(countTick/pulseTime)*radius);
         }
-        logger.info("count tick is now "+countTick);
+        countTick++;
 
         if(countTick>=pulseInterval){
             countTick = 0;
         }
-        countTick++;
     }
 }
