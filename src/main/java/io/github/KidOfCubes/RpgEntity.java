@@ -1,7 +1,7 @@
 package io.github.KidOfCubes;
 
-import io.github.KidOfCubes.Managers.EntityManager;
-import io.github.KidOfCubes.Managers.HealthManager;
+import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
+import io.github.KidOfCubes.Events.RpgEntityHealByEntityEvent;
 import io.github.KidOfCubes.Types.StatTriggerType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
@@ -15,12 +15,13 @@ import static io.github.KidOfCubes.Managers.EntityManager.TempRpgEntities;
 
 public class RpgEntity extends RpgElement{
     public LivingEntity livingEntity;
+    private double health;
+    private double maxHealth;
     private List<RpgEntity> targets = new ArrayList<>();
     private List<RpgEntity> allies  = new ArrayList<>();
 
     public RpgEntity(LivingEntity livingEntity){
         this.livingEntity = livingEntity;
-        EntityManager.RpgEntities.put(livingEntity.getUniqueId(),this);
         allies.add(this);
         level = 0;
     }
@@ -46,9 +47,19 @@ public class RpgEntity extends RpgElement{
             allies = rpgEntity.allies;
         }
     }
-
-    public void damage(float amount, RpgEntity attacker){
-        HealthManager.changeHealthBy(attacker, this, -amount);
+    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL
+        RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
+        event.callEvent();
+        return event;
+    }
+    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL
+        RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
+        event.callEvent();
+        return event;
+    }
+    public void heal(double amount, RpgEntity attacker){
+        RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, attacker);
+        event.callEvent();
     }
 
     /*public RpgEntity(LivingEntity livingEntity, int level){
