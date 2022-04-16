@@ -13,7 +13,7 @@ public class Sharpness extends Stat {
 
     public Sharpness(int level, RpgElement statParent) {
         super(level, statParent);
-        description = "Increaces raw damage by 1 heart per level";
+        description = "Increaces damage by 1 heart per level";
         triggerType = StatTriggerType.onAttack;
         statType = StatType.stat;
     }
