@@ -51,7 +51,7 @@ public class RpgItem extends RpgElement{
         container.level = level;
         List<String> statsList = new ArrayList<>();
         List<Integer> levelsList = new ArrayList<>();
-        for (Stat tempStat : getAllStats()){
+        for (Stat tempStat : getStats()){
             statsList.add(tempStat.getClass().getSimpleName());
             levelsList.add(tempStat.level);
         }
@@ -60,7 +60,7 @@ public class RpgItem extends RpgElement{
         itemMeta.getPersistentDataContainer().set(key,PersistentDataType.STRING,gson.toJson(container));
 
         List<Component> lore = new ArrayList<>();
-        for (Stat tempStat : getAllStats()){
+        for (Stat tempStat : getStats()){
             lore.add(Component.text(ChatColor.GREEN+tempStat.getClass().getSimpleName()+" "+toRoman(tempStat.level)));
         }
         itemMeta.lore(lore);

@@ -5,12 +5,16 @@ import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.Arrays;
+
 public abstract class Stat {
     public static String description;
     public int level;
     public RpgElement statParent;
-    public static StatTriggerType triggerType;
+    public static StatTriggerType triggerType=StatTriggerType.onActivate;
+    public static String[] triggerStrings;
     public static StatType statType;
+    public static int runPriority=0;
 
     public static boolean sameThread = true;
 
@@ -21,11 +25,26 @@ public abstract class Stat {
         this.sameThread = useSameThread;*/
     }
 
-    
+
     public String getName(){
         return this.getClass().getSimpleName();
     }
 
+    public String getDescription() {
+        return description;
+    }
+    public int getRunPriority(){
+        return  runPriority;
+    }
+    public StatTriggerType getTriggerType() {
+        return triggerType;
+    }
+    public StatType getStatType() {
+        return statType;
+    }
+    public boolean inTriggerStrings(String triggerString) {
+        return Arrays.asList(triggerStrings).contains(triggerString)||triggerString.equalsIgnoreCase(getName());
+    }
 
     public void trigger(RpgElement statParent, RpgElement caller, Event event){
         trigger(statParent,caller,-1,event);

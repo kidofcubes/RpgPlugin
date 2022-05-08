@@ -5,6 +5,9 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
 
     //region Event stuff
@@ -23,6 +26,10 @@ public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
+        return HANDLERS;
+    }
+
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
     //endregion

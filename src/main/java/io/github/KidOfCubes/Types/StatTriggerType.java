@@ -3,12 +3,13 @@ package io.github.KidOfCubes.Types;
 public enum StatTriggerType {
     onDamage,
     onHeal,
-    onUseAbility,
+    //onUseAbility,
     onAttack,
     onHealed,
     onHold,
     onEquipped,
     onTick,
     onActivate,
-    onSpawn
+    onSpawn,
+    onAny
 }

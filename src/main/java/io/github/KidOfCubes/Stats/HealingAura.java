@@ -1,6 +1,6 @@
 package io.github.KidOfCubes.Stats;
 
-import com.destroystokyo.paper.ParticleBuilder;
+import io.github.KidOfCubes.Events.RpgEntityHealByEntityEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.RpgEntity;
@@ -10,15 +10,12 @@ import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 
 import java.util.Collection;
-import java.util.List;
 
 import static io.github.KidOfCubes.ParticleHelper.particleRing;
-import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class HealingAura extends Stat {
 
@@ -55,13 +52,16 @@ public class HealingAura extends Stat {
             RpgEntity owner = null;
             if(caller instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(statParent instanceof RpgEntity rpgEntity) owner = rpgEntity;
-            if(owner==null) return;
+            //if(owner==null) return;
 
 
 
             for (LivingEntity entity : nearby) {
                 if(owner.isAlly(EntityManager.getRpgEntity(entity))){
-                    entity.damage(entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()/10,owner.livingEntity);
+                    RpgEntityHealByEntityEvent healEvent = EntityManager.getRpgEntity(entity).heal(level, owner, false);
+                    owner.attemptActivateStats(StatTriggerType.onHeal, healEvent);
+                    healEvent.setChange(healEvent.getChange()/5);
+                    healEvent.callEvent();
                 }
             }
         }

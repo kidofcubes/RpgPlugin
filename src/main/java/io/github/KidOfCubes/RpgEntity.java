@@ -12,17 +12,17 @@ import java.util.*;
 
 import static io.github.KidOfCubes.ExtraFunctions.isEmpty;
 import static io.github.KidOfCubes.Managers.EntityManager.TempRpgEntities;
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class RpgEntity extends RpgElement{
     public LivingEntity livingEntity;
     private double health;
     private double maxHealth;
-    private List<RpgEntity> targets = new ArrayList<>();
-    private List<RpgEntity> allies  = new ArrayList<>();
+    private List<UUID> targets = new ArrayList<>();
+    private List<UUID> allies  = new ArrayList<>();
 
     public RpgEntity(LivingEntity livingEntity){
         this.livingEntity = livingEntity;
-        allies.add(this);
         level = 0;
     }
     public RpgEntity(LivingEntity livingEntity, boolean tempEntity){
@@ -47,19 +47,25 @@ public class RpgEntity extends RpgElement{
             allies = rpgEntity.allies;
         }
     }
-    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL
+    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker){ //AMOUNT IS FOR BASE AMOUNT
         RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
         event.callEvent();
         return event;
     }
-    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL
+    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
         RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
+        if(call) event.callEvent();
+        return event;
+    }
+    public RpgEntityHealByEntityEvent heal(double amount, RpgEntity healer){
+        RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, healer);
         event.callEvent();
         return event;
     }
-    public void heal(double amount, RpgEntity attacker){
-        RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, attacker);
-        event.callEvent();
+    public RpgEntityHealByEntityEvent heal(double amount, RpgEntity healer, boolean call){
+        RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, healer);
+        if(call) event.callEvent();
+        return event;
     }
 
     /*public RpgEntity(LivingEntity livingEntity, int level){
@@ -69,7 +75,10 @@ public class RpgEntity extends RpgElement{
     }*/
 
     public void addTarget(RpgEntity target){
-        targets.add(target);
+        logger.info(livingEntity.getName()+ "added a target "+target.livingEntity.getName());
+        logger.info(livingEntity.getName()+ "added a target "+target.livingEntity.getName());
+        logger.info(livingEntity.getName()+ "added a target "+target.livingEntity.getName());
+        targets.add(target.livingEntity.getUniqueId());
     }
 
     public boolean isAlly(RpgEntity entity){
@@ -77,7 +86,7 @@ public class RpgEntity extends RpgElement{
             if (parent != null) {
                 return parent.isAlly(entity);
             } else {
-                return allies.contains(entity);
+                return allies.contains(entity.livingEntity.getUniqueId());
             }
         }else{
             return true;
@@ -87,9 +96,11 @@ public class RpgEntity extends RpgElement{
     public boolean isTarget(RpgEntity entity){
         if(entity!=this) {
             if (parent != null) {
-                return parent.isTarget(entity);
+                logger.info("parent "+parent.livingEntity.getName()+" says is target"+parent.isTarget(entity)+" and i think "+targets.contains(entity.livingEntity.getUniqueId())+" and the length of my targets is "+targets.size());
+                return parent.isTarget(entity)||targets.contains(entity.livingEntity.getUniqueId());
             } else {
-                return targets.contains(entity);
+                logger.info("i think "+targets.contains(entity.livingEntity.getUniqueId())+" and the length of my targets is "+targets.size());
+                return targets.contains(entity.livingEntity.getUniqueId());
             }
         }else{
             return false;
@@ -108,6 +119,8 @@ public class RpgEntity extends RpgElement{
                 ItemStack item = livingEntity.getEquipment().getItem(slot);
                 if(!isEmpty(item)){
                     RpgItem temp = new RpgItem(item);
+                    if(type!=StatTriggerType.onTick) logger.info("YOU HAVE A ITEM "+item.getItemMeta().displayName());
+
                     if(temp.stats.containsKey(type)) {
                         for (Stat stat :
                                 temp.stats.get(type)) {
@@ -122,7 +135,7 @@ public class RpgEntity extends RpgElement{
     @Override
     public List<Stat> getEffectiveStats(){
         List<Stat> list = new ArrayList<>();
-        list.addAll(getAllStats());
+        list.addAll(getStats());
         if(livingEntity.getEquipment()!=null) {
             for (EquipmentSlot slot : EquipmentSlot.values()) {
                 ItemStack item = livingEntity.getEquipment().getItem(slot);

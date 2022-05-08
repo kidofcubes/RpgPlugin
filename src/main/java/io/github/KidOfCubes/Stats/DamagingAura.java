@@ -1,6 +1,7 @@
 package io.github.KidOfCubes.Stats;
 
 import com.destroystokyo.paper.ParticleBuilder;
+import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.RpgEntity;
@@ -50,16 +51,20 @@ public class DamagingAura extends Stat {
                     return;
                 }
             }
-            logger.info("runlocaiton is "+runLocation);
 
             Collection<LivingEntity> nearby = runLocation.getNearbyLivingEntities(radius);
             RpgEntity owner = null;
-            if(caller instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(statParent instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            if(caller instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            logger.info("DAMAGING AURA THE OWNER NAME IS "+owner.livingEntity.name());
             if(owner==null) return;
             for (LivingEntity entity : nearby) {
+                logger.info("entitynearby is "+entity.getName());
                 if(owner.isTarget(EntityManager.getRpgEntity(entity))){
-                    entity.damage(10, owner.livingEntity);
+                    RpgEntityDamageByEntityEvent damageEvent = EntityManager.getRpgEntity(entity).damage(level, owner, false);
+                    owner.attemptActivateStats(StatTriggerType.onAttack, damageEvent);
+                    damageEvent.setDamage(damageEvent.getDamage()/10);
+                    damageEvent.callEvent();
                 }
             }
         }

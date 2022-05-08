@@ -1,5 +1,6 @@
 package io.github.KidOfCubes.Managers;
 
+import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgPlugin;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static io.github.KidOfCubes.RpgPlugin.key;
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class EntityManager implements Listener {
 
@@ -30,6 +32,9 @@ public class EntityManager implements Listener {
     public static void init(){
         Bukkit.getScheduler().runTaskTimer(RpgPlugin.plugin, () -> {
             for (RpgEntity rpgEntity : RpgEntities.values()) {
+                rpgEntity.attemptActivateStats(StatTriggerType.onTick,null);
+            }
+            for (RpgEntity rpgEntity : TempRpgEntities.values()) {
                 rpgEntity.attemptActivateStats(StatTriggerType.onTick,null);
             }
         }, 20,1);
@@ -55,37 +60,54 @@ public class EntityManager implements Listener {
         }else{
             if(livingEntity.getPersistentDataContainer().has(key)){
                 RpgEntity newEntity = new RpgEntity(livingEntity, RpgEntity.fromJson(livingEntity.getPersistentDataContainer().get(key,PersistentDataType.STRING)));
-
+                RpgEntities.put(livingEntity.getUniqueId(),newEntity);
                 return newEntity;
             }
             RpgEntity newEntity = new RpgEntity(livingEntity);
-            EntityManager.RpgEntities.put(livingEntity.getUniqueId(),newEntity);
+            RpgEntities.put(livingEntity.getUniqueId(),newEntity);
             return newEntity;
+        }
+    }
+    public static RpgEntity getRpgEntity(UUID uuid){
+        if(RpgEntities.containsKey(uuid)){
+            return RpgEntities.get(uuid);
+        }else{
+            if(Bukkit.getEntity(uuid) instanceof LivingEntity livingEntity) {
+                if (livingEntity.getPersistentDataContainer().has(key)) {
+                    RpgEntity newEntity = new RpgEntity(livingEntity, RpgEntity.fromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING)));
+                    RpgEntities.put(livingEntity.getUniqueId(), newEntity);
+                    return newEntity;
+                }
+                RpgEntity newEntity = new RpgEntity(livingEntity);
+                RpgEntities.put(livingEntity.getUniqueId(), newEntity);
+                return newEntity;
+            }else{
+                throw new IllegalArgumentException("UUID "+uuid+" was either not a livingentity or was invalid");
+            }
         }
     }
 
 
     @EventHandler
-    public void onDamageByEntity(EntityDamageByEntityEvent event){
-        if(event.getDamager() instanceof LivingEntity _attacker){
-            RpgEntity attacker = getRpgEntity(_attacker);
-            attacker.attemptActivateStats(StatTriggerType.onAttack,event);
-        }
+    public void onDamageByEntity(RpgEntityDamageByEntityEvent event){
+        event.getAttacker().attemptActivateStats(StatTriggerType.onAttack,event);
     }
 
     @EventHandler
     public void onDamage(RpgEntityDamageEvent event){
-        if(event.getEntity() instanceof LivingEntity _victim){
-            RpgEntity victim = getRpgEntity(_victim);
-            victim.attemptActivateStats(StatTriggerType.onDamage,event);
-        }
+        logger.info("RPG ENTITY DAMAGE EVENT HAPPENED");
+        event.getEntity().attemptActivateStats(StatTriggerType.onDamage,event);
     }
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event){
         if(RpgEntities.containsKey(event.getEntity().getUniqueId())){
             RpgEntities.remove(event.getEntity().getUniqueId());
         }
+        if(TempRpgEntities.containsKey(event.getEntity().getUniqueId())){
+            TempRpgEntities.remove(event.getEntity().getUniqueId());
+        }
     }
+
 
 
 

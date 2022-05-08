@@ -11,3 +11,6 @@ commands:
   cast:
     description: Cast a ability
     usage: /<command>
+  statedit:
+    description: Edit your stats
+    usage: /<command> remove|add|list StatName StatLevel

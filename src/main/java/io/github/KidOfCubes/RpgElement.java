@@ -3,28 +3,27 @@ package io.github.KidOfCubes;
 import io.github.KidOfCubes.Types.StatTriggerType;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static io.github.KidOfCubes.RpgPlugin.gson;
 
 public class RpgElement {
     public String name;
     public int level;
-    public Map<StatTriggerType, List<Stat>> stats = new HashMap<>();
+    protected Map<StatTriggerType, List<Stat>> stats = new HashMap<>();
     public float mana; //todo implement mana deez nuts
     public RpgEntity parent;
 
 
     public void addStat(Stat stat){
-        if(!stats.containsKey(stat.triggerType)){
-            stats.put(stat.triggerType, new ArrayList<>());
+        if(!stats.containsKey(stat.getTriggerType())){
+            stats.put(stat.getTriggerType(), new ArrayList<>());
         }
-        stats.get(stat.triggerType).add(stat);
+        stats.get(stat.getTriggerType()).add(stat);
+
+        stats.get(stat.getTriggerType()).sort((stat1, stat2) -> stat2.getRunPriority() - stat1.getRunPriority());
     }
-    public List<Stat> getAllStats(){
+    public List<Stat> getStats(){
         List<Stat> statList = new ArrayList<>();
         for (List<Stat> tempList : stats.values()) {
             statList.addAll(tempList);
@@ -32,7 +31,10 @@ public class RpgElement {
         return statList;
     }
     public List<Stat> getEffectiveStats(){
-        return getAllStats();
+        return getStats();
+    }
+    public void runStats(RpgElement caller){
+        List<Stat> statsSorted = getEffectiveStats();
     }
     public boolean hasStat(String name){
         for (Stat stat :
@@ -52,11 +54,16 @@ public class RpgElement {
         return null;
     }
 
+
+    public void activateStat(String name){
+        
+    }
+
     public String toJson(){
         RpgElementJsonContainer container = new RpgElementJsonContainer();
         container.name = name;
         container.level = level;
-        List<Stat> allStats = getAllStats();
+        List<Stat> allStats = getStats();
         container.stats = new String[allStats.size()][];
         for (int i = 0; i < allStats.size(); i++) {
             container.stats[i] = new String[] {allStats.get(i).getName(),allStats.get(i).level+""};

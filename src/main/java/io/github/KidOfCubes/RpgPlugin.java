@@ -2,8 +2,11 @@ package io.github.KidOfCubes;
 
 import com.google.gson.Gson;
 import io.github.KidOfCubes.Commands.Cast;
-import io.github.KidOfCubes.Managers.HealthManager;
+import io.github.KidOfCubes.Commands.StatEdit;
 import io.github.KidOfCubes.Managers.EntityManager;
+import io.github.KidOfCubes.Managers.EventManager;
+import io.github.KidOfCubes.Managers.ItemManager;
+import io.github.KidOfCubes.Managers.StatManager;
 import io.github.KidOfCubes.Testing.Test;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,9 +28,14 @@ public class RpgPlugin extends JavaPlugin {
 
         EntityManager.init();
 
-        getServer().getPluginManager().registerEvents(new HealthManager(), this);
-        getServer().getPluginManager().registerEvents(new EntityManager(), this);
+        //getServer().getPluginManager().registerEvents(new ItemManager(), this);
+        //getServer().getPluginManager().registerEvents(new StatManager(), this);
+        EntityManager entityManager = new EntityManager();
+        getServer().getPluginManager().registerEvents(entityManager, plugin);
+        EventManager eventManager = new EventManager();
+        getServer().getPluginManager().registerEvents(eventManager, plugin);
 
+        this.getCommand("statedit").setExecutor(new StatEdit());
         this.getCommand("test").setExecutor(new Test());
         this.getCommand("cast").setExecutor(new Cast());
 

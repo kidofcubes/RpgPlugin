@@ -12,7 +12,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -22,11 +21,13 @@ import static io.github.KidOfCubes.RpgPlugin.plugin;
 
 public class SummonTotem extends Stat {
 
-    public SummonTotem(int level, RpgElement parent) {
-        super(level, parent);
-        description = "SUMMONS THE TOTEM NOT FROM WYNNCRAFT";
-        triggerType = StatTriggerType.onActivate;
-        statType = StatType.stat;
+
+    public static StatTriggerType triggerType = StatTriggerType.onActivate;
+    public static String description = "SUMMONS THE TOTEM NOT FROM WYNNCRAFT";
+    public static StatType statType = StatType.stat;
+
+    public SummonTotem(int level, RpgElement statParent) {
+        super(level, statParent);
     }
 
     @Override
@@ -37,6 +38,7 @@ public class SummonTotem extends Stat {
             //armorStand.setGravity(false);
             armorStand.setVelocity(caster.livingEntity.getLocation().getDirection().multiply(2.5));
             RpgEntity totem = new RpgEntity(armorStand,caster,true);
+
             new BukkitRunnable() {
 
                 @Override

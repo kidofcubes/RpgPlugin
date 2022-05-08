@@ -2,12 +2,12 @@ package io.github.KidOfCubes.Stats;
 
 import static io.github.KidOfCubes.RpgPlugin.*;
 
+import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Types.StatTriggerType;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class Sharpness extends Stat {
 
@@ -22,7 +22,7 @@ public class Sharpness extends Stat {
     protected void run(RpgElement statParent, RpgElement statActivator, int level, Event event) {
         logger.info("sharpness activated");
         if(event!=null) {
-            if (event instanceof EntityDamageByEntityEvent damageEvent) {
+            if (event instanceof RpgEntityDamageByEntityEvent damageEvent) {
                 damageEvent.setDamage(damageEvent.getDamage() + (level * 2f));
             }
         }
