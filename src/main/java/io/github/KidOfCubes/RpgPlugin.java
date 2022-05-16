@@ -7,6 +7,9 @@ import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.Managers.EventManager;
 import io.github.KidOfCubes.Managers.ItemManager;
 import io.github.KidOfCubes.Managers.StatManager;
+import io.github.KidOfCubes.Stats.DamagingAura;
+import io.github.KidOfCubes.Stats.HealingAura;
+import io.github.KidOfCubes.Stats.SummonTotem;
 import io.github.KidOfCubes.Testing.Test;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,6 +41,10 @@ public class RpgPlugin extends JavaPlugin {
         this.getCommand("statedit").setExecutor(new StatEdit());
         this.getCommand("test").setExecutor(new Test());
         this.getCommand("cast").setExecutor(new Cast());
+
+        SummonTotem.register(this);
+        DamagingAura.register(this);
+        HealingAura.register(this);
 
     }
 

@@ -1,6 +1,12 @@
 package io.github.KidOfCubes;
 
-import io.github.KidOfCubes.Types.StatTriggerType;
+
+
+import io.github.KidOfCubes.Events.RpgActivateStatEvent;
+import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
+import io.github.KidOfCubes.Events.RpgEntityHealByEntityEvent;
+import io.github.KidOfCubes.Events.RpgEntityHealthChangeEvent;
+import org.bukkit.event.Event;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -10,25 +16,26 @@ import static io.github.KidOfCubes.RpgPlugin.gson;
 public class RpgElement {
     public String name;
     public int level;
-    protected Map<StatTriggerType, List<Stat>> stats = new HashMap<>();
+    protected List<Stat> stats = new ArrayList<>();
     public float mana; //todo implement mana deez nuts
     public RpgEntity parent;
 
 
     public void addStat(Stat stat){
-        if(!stats.containsKey(stat.getTriggerType())){
+/*        if(!stats.containsKey(stat.getTriggerType())){
             stats.put(stat.getTriggerType(), new ArrayList<>());
-        }
-        stats.get(stat.getTriggerType()).add(stat);
+        }*/
+        stats.add(stat);
 
-        stats.get(stat.getTriggerType()).sort((stat1, stat2) -> stat2.getRunPriority() - stat1.getRunPriority());
+
     }
     public List<Stat> getStats(){
-        List<Stat> statList = new ArrayList<>();
+        return stats;
+/*        List<Stat> statList = new ArrayList<>();
         for (List<Stat> tempList : stats.values()) {
             statList.addAll(tempList);
         }
-        return statList;
+        return statList;*/
     }
     public List<Stat> getEffectiveStats(){
         return getStats();
@@ -56,7 +63,23 @@ public class RpgElement {
 
 
     public void activateStat(String name){
-        
+        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent(this,this,name);
+        activateStatEvent.callEvent();
+    }
+
+    public void eventActivateStats(Event event){
+        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
+        if(event instanceof RpgEntityHealthChangeEvent rpgEntityHealthChangeEvent){
+            activateStatEvent.setTarget(rpgEntityHealthChangeEvent.getEntity());
+            activateStatEvent.setParent(rpgEntityHealthChangeEvent.getEntity());
+        }
+        if(event instanceof RpgEntityDamageByEntityEvent rpgEntityDamageByEntityEvent){
+            activateStatEvent.setCaster(rpgEntityDamageByEntityEvent.getAttacker());
+        }
+        if(event instanceof RpgEntityHealByEntityEvent rpgEntityHealByEntityEvent){
+            activateStatEvent.setCaster(rpgEntityHealByEntityEvent.getHealer());
+        }
+        activateStatEvent.callEvent();
     }
 
     public String toJson(){
@@ -64,32 +87,34 @@ public class RpgElement {
         container.name = name;
         container.level = level;
         List<Stat> allStats = getStats();
-        container.stats = new String[allStats.size()][];
+        container.stats = new HashMap<String,Integer>();
         for (int i = 0; i < allStats.size(); i++) {
-            container.stats[i] = new String[] {allStats.get(i).getName(),allStats.get(i).level+""};
+            container.stats.put(allStats.get(i).getName(),allStats.get(i).level);
         }
         return gson.toJson(container);
     }
     public static RpgElement fromJson(String json){
         RpgElement rpgElement = new RpgElement();
+        rpgElement.loadFromJson(json);
+        return rpgElement;
+    }
+    void loadFromJson(String json){
         RpgElementJsonContainer container = gson.fromJson(json,RpgElementJsonContainer.class);
-        rpgElement.level = container.level;
-        rpgElement.name = container.name;
-
-        for (int i = 0; i < container.stats.length; i++) {
+        level = container.level;
+        name = container.name;
+        for(Map.Entry<String,Integer> statProperties : container.stats.entrySet()){
             try {
-                Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats."+container.stats[i][0]).asSubclass(Stat.class);
-                Stat realStat = (Stat)stat.getConstructors()[0].newInstance(Integer.parseInt(container.stats[i][1]),rpgElement);
-                rpgElement.addStat(realStat);
+                Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats."+statProperties.getKey()).asSubclass(Stat.class);
+                Stat realStat = (Stat)stat.getConstructors()[0].newInstance(statProperties.getValue());
+                addStat(realStat);
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
         }
-        return rpgElement;
     }
     public static class RpgElementJsonContainer{
         public String name;
         public int level;
-        public String[][] stats;
+        public Map<String,Integer> stats;
     }
 }

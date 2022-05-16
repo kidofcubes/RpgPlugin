@@ -27,16 +27,7 @@ public class RpgItem extends RpgElement{
                 String data = itemMeta
                         .getPersistentDataContainer()
                         .get(key, PersistentDataType.STRING);
-                RpgItemJsonContainer temp = RpgPlugin.gson.fromJson(data,RpgItemJsonContainer.class);
-                for (int i = 0; i < temp.stats.length; i++) {
-                    try {
-                        Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats."+temp.stats[i]).asSubclass(Stat.class);
-                        Stat realStat = (Stat)stat.getConstructors()[0].newInstance(temp.statlevels[i],this);
-                        addStat(realStat);
-                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                }
+                loadFromJson(data);
 
             }
         }else{
@@ -46,18 +37,7 @@ public class RpgItem extends RpgElement{
     public ItemStack toItemStack(){
         ItemStack itemStack = new ItemStack(item);
         ItemMeta itemMeta = itemStack.getItemMeta();
-        RpgItemJsonContainer container = new RpgItemJsonContainer();
-        container.name = name;
-        container.level = level;
-        List<String> statsList = new ArrayList<>();
-        List<Integer> levelsList = new ArrayList<>();
-        for (Stat tempStat : getStats()){
-            statsList.add(tempStat.getClass().getSimpleName());
-            levelsList.add(tempStat.level);
-        }
-        container.stats = statsList.toArray(new String[0]);
-        container.statlevels = levelsList.toArray(new Integer[0]);
-        itemMeta.getPersistentDataContainer().set(key,PersistentDataType.STRING,gson.toJson(container));
+        itemMeta.getPersistentDataContainer().set(key,PersistentDataType.STRING,toJson());
 
         List<Component> lore = new ArrayList<>();
         for (Stat tempStat : getStats()){

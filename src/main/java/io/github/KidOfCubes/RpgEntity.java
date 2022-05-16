@@ -1,8 +1,6 @@
 package io.github.KidOfCubes;
 
-import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
-import io.github.KidOfCubes.Events.RpgEntityHealByEntityEvent;
-import io.github.KidOfCubes.Types.StatTriggerType;
+import io.github.KidOfCubes.Events.*;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
@@ -48,9 +46,7 @@ public class RpgEntity extends RpgElement{
         }
     }
     public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker){ //AMOUNT IS FOR BASE AMOUNT
-        RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
-        event.callEvent();
-        return event;
+        return damage(amount,attacker,true);
     }
     public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
         RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
@@ -58,9 +54,7 @@ public class RpgEntity extends RpgElement{
         return event;
     }
     public RpgEntityHealByEntityEvent heal(double amount, RpgEntity healer){
-        RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, healer);
-        event.callEvent();
-        return event;
+        return heal(amount, healer,  true);
     }
     public RpgEntityHealByEntityEvent heal(double amount, RpgEntity healer, boolean call){
         RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, healer);
@@ -107,30 +101,6 @@ public class RpgEntity extends RpgElement{
         }
     }
 
-    public void attemptActivateStats(StatTriggerType type, Event event){
-        if(stats.containsKey(type)) {
-            for (Stat stat :
-                    stats.get(type)) {
-                stat.trigger(null,this, event);
-            }
-        }
-        if(livingEntity.getEquipment()!=null) {
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                ItemStack item = livingEntity.getEquipment().getItem(slot);
-                if(!isEmpty(item)){
-                    RpgItem temp = new RpgItem(item);
-                    if(type!=StatTriggerType.onTick) logger.info("YOU HAVE A ITEM "+item.getItemMeta().displayName());
-
-                    if(temp.stats.containsKey(type)) {
-                        for (Stat stat :
-                                temp.stats.get(type)) {
-                            stat.trigger(null, this, event);
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     @Override
     public List<Stat> getEffectiveStats(){

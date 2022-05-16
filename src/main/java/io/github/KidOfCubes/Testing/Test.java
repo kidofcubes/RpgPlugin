@@ -5,7 +5,6 @@ import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgItem;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Stats.Sharpness;
-import io.github.KidOfCubes.Types.StatTriggerType;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;

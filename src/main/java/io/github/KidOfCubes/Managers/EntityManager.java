@@ -4,7 +4,6 @@ import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgPlugin;
-import io.github.KidOfCubes.Types.StatTriggerType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -32,10 +31,10 @@ public class EntityManager implements Listener {
     public static void init(){
         Bukkit.getScheduler().runTaskTimer(RpgPlugin.plugin, () -> {
             for (RpgEntity rpgEntity : RpgEntities.values()) {
-                rpgEntity.attemptActivateStats(StatTriggerType.onTick,null);
+                rpgEntity.activateStat("RPGTICK");
             }
             for (RpgEntity rpgEntity : TempRpgEntities.values()) {
-                rpgEntity.attemptActivateStats(StatTriggerType.onTick,null);
+                rpgEntity.activateStat("RPGTICK");
             }
         }, 20,1);
     }
@@ -90,13 +89,13 @@ public class EntityManager implements Listener {
 
     @EventHandler
     public void onDamageByEntity(RpgEntityDamageByEntityEvent event){
-        event.getAttacker().attemptActivateStats(StatTriggerType.onAttack,event);
+        event.getAttacker().eventActivateStats(event);
     }
 
     @EventHandler
     public void onDamage(RpgEntityDamageEvent event){
         logger.info("RPG ENTITY DAMAGE EVENT HAPPENED");
-        event.getEntity().attemptActivateStats(StatTriggerType.onDamage,event);
+        event.getEntity().eventActivateStats(event);
     }
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event){

@@ -1,11 +1,11 @@
 package io.github.KidOfCubes.Stats;
 
+import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgPlugin;
 import io.github.KidOfCubes.Stat;
-import io.github.KidOfCubes.Types.StatTriggerType;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.ArmorStand;
@@ -22,18 +22,17 @@ import static io.github.KidOfCubes.RpgPlugin.plugin;
 public class SummonTotem extends Stat {
 
 
-    public static StatTriggerType triggerType = StatTriggerType.onActivate;
     public static String description = "SUMMONS THE TOTEM NOT FROM WYNNCRAFT";
     public static StatType statType = StatType.stat;
 
-    public SummonTotem(int level, RpgElement statParent) {
-        super(level, statParent);
+    public SummonTotem(int level) {
+        super(level);
     }
 
     @Override
-    protected void run(RpgElement statParent, RpgElement statActivator, int level, Event event) {
+    protected void run(RpgActivateStatEvent event) {
         logger.info("totem activated");
-        if(statActivator instanceof RpgEntity caster){
+        if(event.getCaster() instanceof RpgEntity caster){
             ArmorStand armorStand = (ArmorStand) caster.livingEntity.getWorld().spawnEntity(caster.livingEntity.getLocation().add(0,1,0), EntityType.ARMOR_STAND);
             //armorStand.setGravity(false);
             armorStand.setVelocity(caster.livingEntity.getLocation().getDirection().multiply(2.5));
@@ -44,8 +43,8 @@ public class SummonTotem extends Stat {
                 @Override
                 public void run() {
                     if(armorStand.isOnGround()){
-                        totem.addStat(new DamagingAura(level,totem));
-                        totem.addStat(new HealingAura(level,totem));
+                        totem.addStat(new DamagingAura(level));
+                        totem.addStat(new HealingAura(level));
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
                             armorStand.setHealth(0);
                         }, level*5*20);

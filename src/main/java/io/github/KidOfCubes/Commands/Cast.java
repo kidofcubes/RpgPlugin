@@ -14,13 +14,10 @@ public class Cast implements CommandExecutor {
         if (sender instanceof LivingEntity livingEntity) {
             if(args.length>0) {
                 RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
-                Stat hisStat = rpgEntity.getStat(args[0]);
-                if (hisStat!=null){
-                    hisStat.trigger(null, rpgEntity, null);
-                    return true;
-                }
+                rpgEntity.activateStat(args[0]);
+                return true;
             }
-            return false;
+            return true;
         }else{
             sender.sendMessage("Can only be ran by a livingentity");
             return false;

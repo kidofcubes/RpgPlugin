@@ -2,7 +2,6 @@ package io.github.KidOfCubes.Managers;
 
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgItem;
-import io.github.KidOfCubes.Types.StatTriggerType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

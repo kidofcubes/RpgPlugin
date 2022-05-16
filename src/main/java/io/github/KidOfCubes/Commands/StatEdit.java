@@ -3,6 +3,7 @@ package io.github.KidOfCubes.Commands;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgItem;
+import io.github.KidOfCubes.RpgPlugin;
 import io.github.KidOfCubes.Stat;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -19,6 +20,7 @@ public class StatEdit implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof LivingEntity livingEntity) {
             if(args.length>=3) { //stat add sharpness 5
+                RpgPlugin.logger.info("args0 is "+args[0]);
                 switch (args[0]){
                     case "add":
                         try {
@@ -26,12 +28,12 @@ public class StatEdit implements CommandExecutor {
 
                             if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
                                 RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
-                                Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[2]), rpgEntity);
+                                Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[2]));
                                 rpgEntity.addStat(realStat);
                                 livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
                             }else{
                                 RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
-                                Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[2]), rpgItem);
+                                Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[2]));
                                 rpgItem.addStat(realStat);
                                 livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
                                 livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());
