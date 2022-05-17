@@ -14,8 +14,9 @@ public class Protection extends Stat {
 
     public static String description = "Decreaces raw damage taken by 1.5 hearts per level";
     public static StatType statType = StatType.stat;
-    public Protection(int level) {
-        super(level);
+
+    public Protection(int level, RpgElement statOwner) {
+        super(level, statOwner);
     }
 
     @Override

@@ -63,15 +63,20 @@ public class RpgElement {
 
 
     public void activateStat(String name){
-        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent(this,this,name);
-        activateStatEvent.callEvent();
+        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
+        for (Stat stat: getEffectiveStats()) {
+            if(stat.getName().equalsIgnoreCase(name)){
+                activateStatEvent.addTriggerStat(stat);
+            }
+        }
+        activateStatEvent.callEvent(this);
     }
 
     public void eventActivateStats(Event event){
         RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
         if(event instanceof RpgEntityHealthChangeEvent rpgEntityHealthChangeEvent){
             activateStatEvent.setTarget(rpgEntityHealthChangeEvent.getEntity());
-            activateStatEvent.setParent(rpgEntityHealthChangeEvent.getEntity());
+            //activateStatEvent.setParent(rpgEntityHealthChangeEvent.getEntity());
         }
         if(event instanceof RpgEntityDamageByEntityEvent rpgEntityDamageByEntityEvent){
             activateStatEvent.setCaster(rpgEntityDamageByEntityEvent.getAttacker());
@@ -79,7 +84,7 @@ public class RpgElement {
         if(event instanceof RpgEntityHealByEntityEvent rpgEntityHealByEntityEvent){
             activateStatEvent.setCaster(rpgEntityHealByEntityEvent.getHealer());
         }
-        activateStatEvent.callEvent();
+        activateStatEvent.callEvent(this);
     }
 
     public String toJson(){

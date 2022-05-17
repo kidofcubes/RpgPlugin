@@ -36,8 +36,9 @@ public class DamagingAura extends Stat {
     float pulseTime = 10;
     int particlesInRing = 32;
     Color particleColor = Color.fromRGB(255,64,64);
-    public DamagingAura(int level) {
-        super(level);
+
+    public DamagingAura(int level, RpgElement statOwner) {
+        super(level, statOwner);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class DamagingAura extends Stat {
 
         if(countTick==0){
 
-            if(event.getParent() instanceof RpgEntity rpgEntity){
+            if(statOwner instanceof RpgEntity rpgEntity){
                 runLocation = rpgEntity.livingEntity.getLocation();
             }else{
                 if(event.getCaster() instanceof RpgEntity rpgEntity){
@@ -58,7 +59,7 @@ public class DamagingAura extends Stat {
 
             Collection<LivingEntity> nearby = runLocation.getNearbyLivingEntities(radius);
             RpgEntity owner = null;
-            if(event.getParent() instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            if(statOwner instanceof RpgEntity rpgEntity) owner = rpgEntity;
             if(event.getCaster() instanceof RpgEntity rpgEntity) owner = rpgEntity;
             logger.info("DAMAGING AURA THE OWNER NAME IS "+owner.livingEntity.name());
             if(owner==null) return;

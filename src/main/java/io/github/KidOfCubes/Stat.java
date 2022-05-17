@@ -16,19 +16,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public abstract class Stat implements EventExecutor, Listener{
+public abstract class Stat{
 
-    public static Plugin plugin;
 
 
     public static String description;
 
-    public static List<String> triggerStrings = new ArrayList<String>();
     public static StatType statType;
-    public static final EventPriority runPriority=EventPriority.NORMAL;
-    public static final StatRequireType requirement = StatRequireType.Parent;
     public int level;
-
+    public RpgElement statOwner;
     public static boolean sameThread = true;
 
 
@@ -43,63 +39,21 @@ public abstract class Stat implements EventExecutor, Listener{
     public StatType getStatType() {
         return statType;
     }
-    public boolean inTriggerStrings(String triggerString) {
-        return triggerStrings.contains("ANY")||(triggerStrings).contains(triggerString)||triggerString.equalsIgnoreCase(getName());
-    }
-    public static void register(Plugin _plugin){
-        plugin = _plugin;
-    }
-    @Override
-    public void execute(@NotNull Listener listener, @NotNull Event event) throws EventException {
-        if(event instanceof RpgActivateStatEvent rpgActivateStatEvent){
-            onActivateStat(rpgActivateStatEvent);
-        }
-    }
 
-    public Stat(int level){
+    public Stat(int level, RpgElement statOwner){
         this.level = level;
-        if(plugin!=null) {
-            RpgActivateStatEvent.getHandlerList().register(new RegisteredListener(this, this, runPriority, plugin, false));
-        }
+        this.statOwner = statOwner;
     }
 
 
 
 
+    public boolean activateConditions(RpgActivateStatEvent event){
+        return event.getTriggerStats().contains(this);
+    }
 
-
-
-
-    @EventHandler
-    public void onActivateStat(RpgActivateStatEvent event){
-        if(inTriggerStrings(event.getTriggerString())){
-            if(sameThread) {
-                if(requirement==StatRequireType.Parent){
-                    if(event.getParent().hasStat(event.getTriggerString())){
-                        run(event);
-                    }
-                }else{
-                    if(event.getTarget().hasStat(event.getTriggerString())){
-                        run(event);
-                    }
-                }
-            }else{
-                Thread thread = new Thread(() -> {
-
-                    if(requirement==StatRequireType.Parent){
-                        if(event.getParent().hasStat(event.getTriggerString())){
-                            run(event);
-                        }
-                    }else{
-                        if(event.getTarget().hasStat(event.getTriggerString())){
-                            run(event);
-                        }
-                    }
-                });
-
-                thread.start();
-            }
-        }
+    public void trigger(RpgActivateStatEvent event){
+        run(event);
     }
 
     protected abstract void run(RpgActivateStatEvent event);

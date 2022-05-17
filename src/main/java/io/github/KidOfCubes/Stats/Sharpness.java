@@ -13,8 +13,9 @@ public class Sharpness extends Stat {
 
     static String description = "Increaces damage by 1 heart per level";
     static StatType statType = StatType.stat;
-    public Sharpness(int level) {
-        super(level);
+
+    public Sharpness(int level, RpgElement statOwner) {
+        super(level, statOwner);
     }
 
     @Override

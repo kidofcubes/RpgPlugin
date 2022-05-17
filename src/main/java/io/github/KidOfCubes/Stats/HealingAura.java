@@ -32,16 +32,17 @@ public class HealingAura extends Stat {
     Color particleColor = Color.fromRGB(64,255,64);
     public static List<String> triggerStrings = new ArrayList<String>(){{add("RPGTICK");}};
 
-    public HealingAura(int level) {
-        super(level);
+    public HealingAura(int level, RpgElement statOwner) {
+        super(level, statOwner);
     }
+
 
     @Override
     protected void run(RpgActivateStatEvent event) {
 
         if(countTick==0){
 
-            if(event.getParent() instanceof RpgEntity rpgEntity){
+            if(statOwner instanceof RpgEntity rpgEntity){
                 runLocation = rpgEntity.livingEntity.getLocation();
             }else{
                 if(event.getCaster() instanceof RpgEntity rpgEntity){
@@ -53,7 +54,7 @@ public class HealingAura extends Stat {
             Collection<LivingEntity> nearby = runLocation.getNearbyLivingEntities(radius);
             RpgEntity owner = null;
             if(event.getCaster() instanceof RpgEntity rpgEntity) owner = rpgEntity;
-            if(event.getParent() instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            if(statOwner instanceof RpgEntity rpgEntity) owner = rpgEntity;
             //if(owner==null) return;
 
 
