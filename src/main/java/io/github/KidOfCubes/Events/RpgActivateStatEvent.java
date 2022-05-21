@@ -10,11 +10,13 @@ import org.bukkit.event.HandlerList;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.github.KidOfCubes.RpgPlugin.logger;
+
 public class RpgActivateStatEvent {
 
 
     private RpgElement caster;
-    //private RpgElement parent;
+    private RpgElement parent;
     private RpgElement target;
 
     private Event triggerEvent;
@@ -32,10 +34,10 @@ public class RpgActivateStatEvent {
         return this;
     }
 
-//    public RpgActivateStatEvent parent(RpgElement parent){
-//        setParent(parent);
-//        return this;
-//    }
+    public RpgActivateStatEvent parent(RpgElement parent){
+        setParent(parent);
+        return this;
+    }
 
     public RpgActivateStatEvent target(RpgElement target){
         setTarget(target);
@@ -52,14 +54,24 @@ public class RpgActivateStatEvent {
         return this;
     }
 
-    public RpgActivateStatEvent callEvent(RpgElement parent){
-        //setParent(parent);
+    public RpgActivateStatEvent callEvent(RpgElement _parent){
+        setParent(_parent);
+        return callEvent();
+    }
+    public RpgActivateStatEvent callEvent(){
+
+        double startTime = System.nanoTime();
         List<Stat> statsToCall = parent.getEffectiveStats(); //sorted in priority order
         for (Stat stat :
                 statsToCall) {
             if(stat.activateConditions(this)){
                 stat.trigger(this);
             }
+        }
+        long endTime = System.nanoTime();
+        double duration = (endTime - startTime)/1000000.0;
+        if(statsToCall.size()>0) {
+            logger.info("callEvent tag took "+duration);
         }
         return this;
     }
@@ -82,13 +94,13 @@ public class RpgActivateStatEvent {
         this.caster = caster;
     }
 
-//    public RpgElement getParent() {
-//        return parent;
-//    }
-//
-//    public void setParent(RpgElement parent) {
-//        this.parent = parent;
-//    }
+    public RpgElement getParent() {
+        return parent;
+    }
+
+    public void setParent(RpgElement parent) {
+        this.parent = parent;
+    }
 
     public RpgElement getTarget() {
         return target;

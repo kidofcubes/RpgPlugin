@@ -15,6 +15,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public abstract class Stat{
 
@@ -24,7 +27,6 @@ public abstract class Stat{
 
     public static StatType statType;
     public int level;
-    public RpgElement statOwner;
     public static boolean sameThread = true;
 
 
@@ -40,21 +42,44 @@ public abstract class Stat{
         return statType;
     }
 
-    public Stat(int level, RpgElement statOwner){
+    public Stat(int level){
         this.level = level;
-        this.statOwner = statOwner;
+    }
+
+    public static Stat fromText(String name, int level) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats."+name).asSubclass(Stat.class);
+        return (Stat)stat.getConstructors()[0].newInstance(level);
     }
 
 
 
 
-    public boolean activateConditions(RpgActivateStatEvent event){
-        return event.getTriggerStats().contains(this);
-    }
+    public abstract boolean activateConditions(RpgActivateStatEvent event);
 
     public void trigger(RpgActivateStatEvent event){
         run(event);
     }
 
     protected abstract void run(RpgActivateStatEvent event);
+
+    @Override
+    public boolean equals(Object other){
+        if (other == null) {
+            return false;
+        }
+
+        if (other.getClass() != this.getClass()) {
+            return false;
+        }
+
+        final Stat otherStat = (Stat) other;
+        if (level!=otherStat.level) {
+            return false;
+        }
+        if (!Objects.equals(getName(), otherStat.getName())) {
+            logger.info("false");
+            return false;
+        }
+        return true;
+    }
 }

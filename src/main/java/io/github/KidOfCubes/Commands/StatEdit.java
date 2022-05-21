@@ -28,12 +28,12 @@ public class StatEdit implements CommandExecutor {
 
                             if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
                                 RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
-                                Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[2]));
+                                Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
                                 rpgEntity.addStat(realStat);
                                 livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
                             }else{
                                 RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
-                                Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[2]));
+                                Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
                                 rpgItem.addStat(realStat);
                                 livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
                                 livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());

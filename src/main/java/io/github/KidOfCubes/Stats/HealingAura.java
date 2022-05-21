@@ -1,7 +1,7 @@
 package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
-import io.github.KidOfCubes.Events.RpgEntityHealByEntityEvent;
+import io.github.KidOfCubes.Events.RpgTickEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.RpgEntity;
@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static io.github.KidOfCubes.ParticleHelper.particleRing;
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class HealingAura extends Stat {
 
@@ -28,21 +29,24 @@ public class HealingAura extends Stat {
     float radius = 10;
     float pulseInterval = 40;
     float pulseTime = 30;
-    int particlesInRing = 32;
+    int particlesInRing = 1;
     Color particleColor = Color.fromRGB(64,255,64);
-    public static List<String> triggerStrings = new ArrayList<String>(){{add("RPGTICK");}};
 
-    public HealingAura(int level, RpgElement statOwner) {
-        super(level, statOwner);
+    public HealingAura(int level) {
+        super(level);
     }
 
 
+    @Override
+    public boolean activateConditions(RpgActivateStatEvent event) {
+        return event.getTriggerEvent() instanceof RpgTickEvent;
+    }
     @Override
     protected void run(RpgActivateStatEvent event) {
 
         if(countTick==0){
 
-            if(statOwner instanceof RpgEntity rpgEntity){
+            if(event.getParent() instanceof RpgEntity rpgEntity){
                 runLocation = rpgEntity.livingEntity.getLocation();
             }else{
                 if(event.getCaster() instanceof RpgEntity rpgEntity){
@@ -54,13 +58,16 @@ public class HealingAura extends Stat {
             Collection<LivingEntity> nearby = runLocation.getNearbyLivingEntities(radius);
             RpgEntity owner = null;
             if(event.getCaster() instanceof RpgEntity rpgEntity) owner = rpgEntity;
-            if(statOwner instanceof RpgEntity rpgEntity) owner = rpgEntity;
+            if(event.getParent() instanceof RpgEntity rpgEntity) owner = rpgEntity;
             //if(owner==null) return;
 
 
 
             for (LivingEntity entity : nearby) {
-                if(owner.isAlly(EntityManager.getRpgEntity(entity))){
+                RpgEntity target = EntityManager.getRpgEntity(entity);
+                if(owner.isAlly(target)){
+                    target.heal(level/2f,event.getParent());
+
 //                    RpgEntityHealByEntityEvent healEvent = EntityManager.getRpgEntity(entity).heal(level, owner, false);
 //                    owner.attemptActivateStats(StatTriggerType.onHeal, healEvent);
 //                    healEvent.setChange(healEvent.getChange()/5);

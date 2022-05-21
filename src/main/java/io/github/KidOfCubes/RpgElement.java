@@ -4,7 +4,7 @@ package io.github.KidOfCubes;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
-import io.github.KidOfCubes.Events.RpgEntityHealByEntityEvent;
+import io.github.KidOfCubes.Events.RpgEntityHealByElementEvent;
 import io.github.KidOfCubes.Events.RpgEntityHealthChangeEvent;
 import org.bukkit.event.Event;
 
@@ -12,12 +12,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static io.github.KidOfCubes.RpgPlugin.gson;
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class RpgElement {
     public String name;
     public int level;
     protected List<Stat> stats = new ArrayList<>();
-    public float mana; //todo implement mana deez nuts
+    public float mana; //todo implement mana
     public RpgEntity parent;
 
 
@@ -63,16 +64,17 @@ public class RpgElement {
 
 
     public void activateStat(String name){
-        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
+        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent().caster(this);
         for (Stat stat: getEffectiveStats()) {
             if(stat.getName().equalsIgnoreCase(name)){
+                logger.info("I HAVE A STAT "+ stat.getName() + " OF LEVEL "+stat.level);
                 activateStatEvent.addTriggerStat(stat);
             }
         }
         activateStatEvent.callEvent(this);
     }
 
-    public void eventActivateStats(Event event){
+    public void activateStat(Event event){
         RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
         if(event instanceof RpgEntityHealthChangeEvent rpgEntityHealthChangeEvent){
             activateStatEvent.setTarget(rpgEntityHealthChangeEvent.getEntity());
@@ -81,9 +83,10 @@ public class RpgElement {
         if(event instanceof RpgEntityDamageByEntityEvent rpgEntityDamageByEntityEvent){
             activateStatEvent.setCaster(rpgEntityDamageByEntityEvent.getAttacker());
         }
-        if(event instanceof RpgEntityHealByEntityEvent rpgEntityHealByEntityEvent){
+        if(event instanceof RpgEntityHealByElementEvent rpgEntityHealByEntityEvent){
             activateStatEvent.setCaster(rpgEntityHealByEntityEvent.getHealer());
         }
+        activateStatEvent.setTriggerEvent(event);
         activateStatEvent.callEvent(this);
     }
 
@@ -109,9 +112,7 @@ public class RpgElement {
         name = container.name;
         for(Map.Entry<String,Integer> statProperties : container.stats.entrySet()){
             try {
-                Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats."+statProperties.getKey()).asSubclass(Stat.class);
-                Stat realStat = (Stat)stat.getConstructors()[0].newInstance(statProperties.getValue());
-                addStat(realStat);
+                addStat(Stat.fromText(statProperties.getKey(),statProperties.getValue()));
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }
@@ -121,5 +122,36 @@ public class RpgElement {
         public String name;
         public int level;
         public Map<String,Integer> stats;
+    }
+
+    @Override
+    public boolean equals(Object other){ //use uuid system later not work gud
+        if(other==null){
+            return false;
+        }
+        if(other instanceof RpgElement otherRpgElement){
+            if(!otherRpgElement.name.equalsIgnoreCase(name)){
+                return false;
+            }
+            if(otherRpgElement.level != level){
+                return false;
+            }
+            if(otherRpgElement.mana != mana){
+                return false;
+            }
+            List<Stat> otherEffectiveStats = otherRpgElement.getEffectiveStats();
+            List<Stat> myEffectiveStats = getEffectiveStats();
+            if(otherEffectiveStats.size()!=myEffectiveStats.size()){
+                return false;
+            }
+            for (int i = 0; i < otherEffectiveStats.size(); i++) {
+                if(!otherEffectiveStats.get(i).equals(myEffectiveStats.get(i))){
+                    return false;
+                }
+            }
+            return true;
+        }else{
+            return false;
+        }
     }
 }

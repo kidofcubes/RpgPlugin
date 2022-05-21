@@ -25,10 +25,15 @@ public class SummonTotem extends Stat {
     public static String description = "SUMMONS THE TOTEM NOT FROM WYNNCRAFT";
     public static StatType statType = StatType.stat;
 
-    public SummonTotem(int level, RpgElement statOwner) {
-        super(level, statOwner);
+    public SummonTotem(int level) {
+        super(level);
     }
 
+
+    @Override
+    public boolean activateConditions(RpgActivateStatEvent event) {
+        return event.getTriggerStats().contains(this);
+    }
 
     @Override
     protected void run(RpgActivateStatEvent event) {
@@ -44,8 +49,8 @@ public class SummonTotem extends Stat {
                 @Override
                 public void run() {
                     if(armorStand.isOnGround()){
-                        totem.addStat(new DamagingAura(level,totem));
-                        totem.addStat(new HealingAura(level,totem));
+                        totem.addStat(new DamagingAura(level));
+                        totem.addStat(new HealingAura(level));
                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
                             armorStand.setHealth(0);
                         }, level*5*20);

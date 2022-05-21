@@ -29,7 +29,7 @@ public class RpgPlugin extends JavaPlugin {
         plugin = this;
         logger.info("RpgPlugin Starting");
 
-        EntityManager.init();
+        EventManager.init();
 
         //getServer().getPluginManager().registerEvents(new ItemManager(), this);
         //getServer().getPluginManager().registerEvents(new StatManager(), this);
@@ -42,9 +42,6 @@ public class RpgPlugin extends JavaPlugin {
         this.getCommand("test").setExecutor(new Test());
         this.getCommand("cast").setExecutor(new Cast());
 
-        SummonTotem.register(this);
-        DamagingAura.register(this);
-        HealingAura.register(this);
 
     }
 

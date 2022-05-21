@@ -27,6 +27,7 @@ public class RpgEntity extends RpgElement{
         this(livingEntity);
         if(tempEntity) {
             TempRpgEntities.put(livingEntity.getUniqueId(),this);
+            logger.info("TEMPENTITIES: "+TempRpgEntities.size());
         }
     }
     public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity){
@@ -45,19 +46,19 @@ public class RpgEntity extends RpgElement{
             allies = rpgEntity.allies;
         }
     }
-    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker){ //AMOUNT IS FOR BASE AMOUNT
+    public RpgEntityDamageByEntityEvent damage(double amount, RpgElement attacker){ //AMOUNT IS FOR BASE AMOUNT
         return damage(amount,attacker,true);
     }
-    public RpgEntityDamageByEntityEvent damage(double amount, RpgEntity attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
+    public RpgEntityDamageByEntityEvent damage(double amount, RpgElement attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
         RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
         if(call) event.callEvent();
         return event;
     }
-    public RpgEntityHealByEntityEvent heal(double amount, RpgEntity healer){
+    public RpgEntityHealByElementEvent heal(double amount, RpgElement healer){
         return heal(amount, healer,  true);
     }
-    public RpgEntityHealByEntityEvent heal(double amount, RpgEntity healer, boolean call){
-        RpgEntityHealByEntityEvent event = new RpgEntityHealByEntityEvent(this,amount, healer);
+    public RpgEntityHealByElementEvent heal(double amount, RpgElement healer, boolean call){
+        RpgEntityHealByElementEvent event = new RpgEntityHealByElementEvent(this,amount, healer);
         if(call) event.callEvent();
         return event;
     }
@@ -69,9 +70,6 @@ public class RpgEntity extends RpgElement{
     }*/
 
     public void addTarget(RpgEntity target){
-        logger.info(livingEntity.getName()+ "added a target "+target.livingEntity.getName());
-        logger.info(livingEntity.getName()+ "added a target "+target.livingEntity.getName());
-        logger.info(livingEntity.getName()+ "added a target "+target.livingEntity.getName());
         targets.add(target.livingEntity.getUniqueId());
     }
 
@@ -90,10 +88,8 @@ public class RpgEntity extends RpgElement{
     public boolean isTarget(RpgEntity entity){
         if(entity!=this) {
             if (parent != null) {
-                logger.info("parent "+parent.livingEntity.getName()+" says is target"+parent.isTarget(entity)+" and i think "+targets.contains(entity.livingEntity.getUniqueId())+" and the length of my targets is "+targets.size());
                 return parent.isTarget(entity)||targets.contains(entity.livingEntity.getUniqueId());
             } else {
-                logger.info("i think "+targets.contains(entity.livingEntity.getUniqueId())+" and the length of my targets is "+targets.size());
                 return targets.contains(entity.livingEntity.getUniqueId());
             }
         }else{
@@ -102,26 +98,33 @@ public class RpgEntity extends RpgElement{
     }
 
 
+    List<Stat> effectiveStatsCache = new ArrayList<>();
+    long effectiveStatsLastUpdate = 0;
     @Override
     public List<Stat> getEffectiveStats(){
-        List<Stat> list = new ArrayList<>();
-        list.addAll(getStats());
-        if(livingEntity.getEquipment()!=null) {
-            for (EquipmentSlot slot : EquipmentSlot.values()) {
-                ItemStack item = livingEntity.getEquipment().getItem(slot);
-                if(!isEmpty(item)){
-                    RpgItem temp = new RpgItem(item);
-                    list.addAll(temp.getEffectiveStats());
+        long now = System.currentTimeMillis();
+        if(now-effectiveStatsLastUpdate>1000) {
+            effectiveStatsLastUpdate = now;
+            List<Stat> list = new ArrayList<>(getStats());
+            if (livingEntity.getEquipment() != null) {
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    ItemStack item = livingEntity.getEquipment().getItem(slot);
+                    if (!isEmpty(item)) {
+                        RpgItem temp = new RpgItem(item);
+                        list.addAll(temp.getEffectiveStats());
+                    }
                 }
             }
-        }
-        Map<String,Stat> levels = new HashMap<>();
-        for (Stat stat : list) {
-            levels.putIfAbsent(stat.getName(),stat);
-            if(levels.get(stat.getName()).level<stat.level){
-                levels.put(stat.getName(),stat);
+            Map<String, Stat> levels = new HashMap<>();
+            for (Stat stat : list) {
+                levels.putIfAbsent(stat.getName(), stat);
+                if (levels.get(stat.getName()).level < stat.level) {
+                    levels.put(stat.getName(), stat);
+                }
             }
+            effectiveStatsCache = levels.values().stream().toList();
         }
-        return levels.values().stream().toList();
+        return effectiveStatsCache;
+
     }
 }
