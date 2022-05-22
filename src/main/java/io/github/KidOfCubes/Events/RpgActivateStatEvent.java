@@ -12,7 +12,7 @@ import java.util.List;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
 
-public class RpgActivateStatEvent {
+public class RpgActivateStatEvent extends Event implements Cancellable{
 
 
     private RpgElement caster;
@@ -54,11 +54,11 @@ public class RpgActivateStatEvent {
         return this;
     }
 
-    public RpgActivateStatEvent callEvent(RpgElement _parent){
+/*    public RpgActivateStatEvent callEvent(RpgElement _parent){
         setParent(_parent);
         return callEvent();
-    }
-    public RpgActivateStatEvent callEvent(){
+    }*/
+/*    public RpgActivateStatEvent callEvent(){
 
         double startTime = System.nanoTime();
         List<Stat> statsToCall = parent.getEffectiveStats(); //sorted in priority order
@@ -74,7 +74,7 @@ public class RpgActivateStatEvent {
             logger.info("callEvent tag took "+duration);
         }
         return this;
-    }
+    }*/
 
 
     //region gettersetters
@@ -126,4 +126,29 @@ public class RpgActivateStatEvent {
         this.directOnly = directOnly;
     }
     //endregion
+
+    //region Event stuff
+    private static final HandlerList HANDLERS = new HandlerList();
+    private boolean canceled = false;
+
+    @Override
+    public boolean isCancelled() {
+        return this.canceled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.canceled = cancel;
+    }
+
+    @Override
+    public HandlerList getHandlers() {
+        return HANDLERS;
+    }
+
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
+    }
+    //endregion
+
 }

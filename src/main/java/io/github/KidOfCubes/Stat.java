@@ -1,33 +1,26 @@
 package io.github.KidOfCubes;
 
-import io.github.KidOfCubes.Events.RpgActivateStatEvent;
-import io.github.KidOfCubes.Types.StatRequireType;
+
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.*;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.EventExecutor;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredListener;
-import org.jetbrains.annotations.NotNull;
-
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
 
-public abstract class Stat{
+public abstract class Stat implements Listener {
 
 
 
     public static String description;
 
     public static StatType statType;
+
     public int level;
-    public static boolean sameThread = true;
+
+    //public static List<RpgElement> elementsWithStat = new ArrayList<RpgElement>();
+
+    //override stats run slower i suppose?
 
 
 
@@ -54,13 +47,14 @@ public abstract class Stat{
 
 
 
-    public abstract boolean activateConditions(RpgActivateStatEvent event);
+    public void trigger(Event event){
 
-    public void trigger(RpgActivateStatEvent event){
         run(event);
     }
+    public abstract void run(Event event);
+    public abstract RpgElement elementToStatCheck(Event event);
 
-    protected abstract void run(RpgActivateStatEvent event);
+
 
     @Override
     public boolean equals(Object other){

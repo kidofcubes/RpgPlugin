@@ -1,3 +1,4 @@
+/*
 package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
@@ -31,4 +32,4 @@ public class Protection extends Stat {
             damageEvent.setDamage(damageEvent.getDamage() - (level * 1.5f));
         }
     }
-}
+}*/

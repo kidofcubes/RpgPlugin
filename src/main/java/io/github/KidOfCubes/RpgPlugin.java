@@ -7,10 +7,8 @@ import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.Managers.EventManager;
 import io.github.KidOfCubes.Managers.ItemManager;
 import io.github.KidOfCubes.Managers.StatManager;
-import io.github.KidOfCubes.Stats.DamagingAura;
-import io.github.KidOfCubes.Stats.HealingAura;
-import io.github.KidOfCubes.Stats.SummonTotem;
 import io.github.KidOfCubes.Testing.Test;
+import io.github.KidOfCubes.Testing.TestSharpness;
 import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -29,14 +27,17 @@ public class RpgPlugin extends JavaPlugin {
         plugin = this;
         logger.info("RpgPlugin Starting");
 
-        EventManager.init();
 
         //getServer().getPluginManager().registerEvents(new ItemManager(), this);
         //getServer().getPluginManager().registerEvents(new StatManager(), this);
+        StatManager statManager = new StatManager();
+        statManager.init();
         EntityManager entityManager = new EntityManager();
         getServer().getPluginManager().registerEvents(entityManager, plugin);
         EventManager eventManager = new EventManager();
+        eventManager.init();
         getServer().getPluginManager().registerEvents(eventManager, plugin);
+        getServer().getPluginManager().registerEvents(new TestSharpness(), plugin);
 
         this.getCommand("statedit").setExecutor(new StatEdit());
         this.getCommand("test").setExecutor(new Test());

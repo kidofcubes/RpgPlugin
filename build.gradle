@@ -3,12 +3,14 @@ plugins {
     id 'java'
     id("io.papermc.paperweight.userdev") version "1.3.6"
     id("xyz.jpenilla.run-paper") version "1.0.6" // Adds runServer and runMojangMappedServer tasks for testing
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group 'io.github.KidOfCubes'
 version '1.0-SNAPSHOT'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     gradlePluginPortal()
     maven { url = uri("https://papermc.io/repo/repository/maven-public/") }
@@ -18,6 +20,7 @@ repositories {
 dependencies {
     paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.18.2-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT")
+    implementation 'io.github.classgraph:classgraph:4.8.146'
 
 }
 
@@ -43,5 +46,12 @@ tasks {
         // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
         // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
         //outputJar.set(layout.buildDirectory.file("G:\\Testing Version Servers\\1.18.2Paper\\plugins\\RpgPlugin-${project.version}.jar"))
+    }
+    shadowJar {
+        // helper function to relocate a package into our package
+        //fun reloc(pkg: String) = relocate(pkg, "io.papermc.paperweight.testplugin.dependency.$pkg")
+
+        // relocate cloud and it's transitive dependencies
+        relocate("io.github.classgraph","io.github.KidOfCubes.dependencies.io.github.classgraph")
     }
 }

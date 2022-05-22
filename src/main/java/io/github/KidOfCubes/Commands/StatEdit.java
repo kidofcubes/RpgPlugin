@@ -49,26 +49,26 @@ public class StatEdit implements CommandExecutor {
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
                             RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
 
-                            List<Stat> stats = rpgEntity.getStats();
+                            List<String> stats = rpgEntity.getStats();
                             for (int i = stats.size()-1; i >= 0; i--) {
-                                if(stats.get(i).getName().equalsIgnoreCase(args[1])){
-                                    if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
-                                        livingEntity.sendMessage("REMOVED A "+stats.get(i).getName()+" "+stats.get(i).level);
+                                if(stats.get(i).equalsIgnoreCase(args[1])){
+                                    //if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
+                                        livingEntity.sendMessage("REMOVED A "+stats.get(i)+" "/*+stats.get(i).level*/);
                                         stats.remove(i);
-                                    }
+                                    //}
                                 }
                             }
 
                         }else{
                             RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
 
-                            List<Stat> stats = rpgItem.getStats();
+                            List<String> stats = rpgItem.getStats();
                             for (int i = stats.size()-1; i >= 0; i--) {
-                                if(stats.get(i).getName().equalsIgnoreCase(args[1])){
-                                    if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
-                                        livingEntity.sendMessage("REMOVED A "+stats.get(i).getName()+" "+stats.get(i).level);
+                                if(stats.get(i).equalsIgnoreCase(args[1])){
+                                    //if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
+                                        livingEntity.sendMessage("REMOVED A "+stats.get(i)+" "/*+stats.get(i).level*/);
                                         stats.remove(i);
-                                    }
+                                    //}
                                 }
                             }
                         }
@@ -78,17 +78,17 @@ public class StatEdit implements CommandExecutor {
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
                             RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
 
-                            List<Stat> stats = rpgEntity.getEffectiveStats();
-                            for(Stat stat : stats){
-                                livingEntity.sendMessage("YOU HAVE A "+stat.getName()+" "+stat.level);
+                            List<String> stats = rpgEntity.getEffectiveStats();
+                            for(String stat : stats){
+                                livingEntity.sendMessage("YOU HAVE A "+stat+" "/*+stat.level*/);
                             }
 
                         }else{
                             RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
 
-                            List<Stat> stats = rpgItem.getStats();
-                            for(Stat stat : stats){
-                                livingEntity.sendMessage("YOU HAVE A "+stat.getName()+" "+stat.level);
+                            List<String> stats = rpgItem.getStats();
+                            for(String stat : stats){
+                                livingEntity.sendMessage("YOU HAVE A "+stat+" "/*+stat.level*/);
                             }
                         }
                         break;

@@ -1,6 +1,5 @@
 package io.github.KidOfCubes.Managers;
 
-import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.Events.RpgTickEvent;
 import io.github.KidOfCubes.RpgEntity;
@@ -43,7 +42,7 @@ public class EntityManager implements Listener {
 
 
 
-    @EventHandler
+/*    @EventHandler
     public void onTick(RpgTickEvent tickEvent){
         for (RpgEntity rpgEntity : RpgEntities.values()) {
             rpgEntity.activateStat(tickEvent);
@@ -51,7 +50,7 @@ public class EntityManager implements Listener {
         for (RpgEntity rpgEntity : TempRpgEntities.values()) {
             rpgEntity.activateStat(tickEvent);
         }
-    }
+    }*/
 
     public static void close(){
         for (RpgEntity rpgEntity :
@@ -101,17 +100,17 @@ public class EntityManager implements Listener {
     }
 
 
-    @EventHandler
+/*    @EventHandler
     public void onDamageByEntity(RpgEntityDamageByEntityEvent event){
         if(event.getAttacker() instanceof RpgEntity entity){
             entity.addTarget(event.getEntity());
         }
         event.getAttacker().activateStat(event);
-    }
+    }*/
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onDamage(RpgEntityDamageEvent event){
-        event.getEntity().activateStat(event);
+        //event.getEntity().activateStat(event);
 
     }
     @EventHandler(priority = EventPriority.MONITOR)
