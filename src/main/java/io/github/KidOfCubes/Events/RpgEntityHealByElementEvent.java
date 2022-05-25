@@ -11,6 +11,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class RpgEntityHealByElementEvent extends RpgEntityHealEvent {
+
     public RpgEntityHealByElementEvent(RpgEntity victim, double change, RpgElement healer) {
         super(victim, change);
         this.healer = healer;

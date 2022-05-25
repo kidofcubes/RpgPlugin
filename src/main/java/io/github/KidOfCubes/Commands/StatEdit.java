@@ -23,23 +23,20 @@ public class StatEdit implements CommandExecutor {
                 RpgPlugin.logger.info("args0 is "+args[0]);
                 switch (args[0]){
                     case "add":
-                        try {
-                            Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats." + args[1]).asSubclass(Stat.class);
 
-                            if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
-                                RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
-                                Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
-                                rpgEntity.addStat(realStat);
-                                livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
-                            }else{
-                                RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
-                                Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
-                                rpgItem.addStat(realStat);
-                                livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
-                                livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());
-                            }
-                        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                            e.printStackTrace();
+                        if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
+                            RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
+                            //Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
+                            String name = Stat.fromText(args[1]).getName();
+                            rpgEntity.addStat(name);
+                            livingEntity.sendMessage("ADDED A "+name+" "/*+realStat.level*/);
+                        }else{
+                            RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
+                            //Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
+                            String name = Stat.fromText(args[1]).getName();
+                            rpgItem.addStat(name);
+                            livingEntity.sendMessage("ADDED A "+name+" "/*+realStat.level*/);
+                            livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());
                         }
                         break;
 
@@ -49,26 +46,26 @@ public class StatEdit implements CommandExecutor {
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
                             RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
 
-                            List<Stat> stats = rpgEntity.getStats();
+                            List<String> stats = rpgEntity.getStats();
                             for (int i = stats.size()-1; i >= 0; i--) {
-                                if(stats.get(i).getName().equalsIgnoreCase(args[1])){
-                                    if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
-                                        livingEntity.sendMessage("REMOVED A "+stats.get(i).getName()+" "+stats.get(i).level);
+                                if(stats.get(i).equalsIgnoreCase(args[1])){
+                                    //if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
+                                        livingEntity.sendMessage("REMOVED A "+stats.get(i)+" "/*+stats.get(i).level*/);
                                         stats.remove(i);
-                                    }
+                                    //}
                                 }
                             }
 
                         }else{
                             RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
 
-                            List<Stat> stats = rpgItem.getStats();
+                            List<String> stats = rpgItem.getStats();
                             for (int i = stats.size()-1; i >= 0; i--) {
-                                if(stats.get(i).getName().equalsIgnoreCase(args[1])){
-                                    if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
-                                        livingEntity.sendMessage("REMOVED A "+stats.get(i).getName()+" "+stats.get(i).level);
+                                if(stats.get(i).equalsIgnoreCase(args[1])){
+                                    //if(args[2]=="-1"||Integer.parseInt(args[2])==stats.get(i).level){
+                                        livingEntity.sendMessage("REMOVED A "+stats.get(i)+" "/*+stats.get(i).level*/);
                                         stats.remove(i);
-                                    }
+                                    //}
                                 }
                             }
                         }
@@ -78,17 +75,17 @@ public class StatEdit implements CommandExecutor {
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
                             RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
 
-                            List<Stat> stats = rpgEntity.getEffectiveStats();
-                            for(Stat stat : stats){
-                                livingEntity.sendMessage("YOU HAVE A "+stat.getName()+" "+stat.level);
+                            List<String> stats = rpgEntity.getEffectiveStats();
+                            for(String stat : stats){
+                                livingEntity.sendMessage("YOU HAVE A "+stat+" "/*+stat.level*/);
                             }
 
                         }else{
                             RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
 
-                            List<Stat> stats = rpgItem.getStats();
-                            for(Stat stat : stats){
-                                livingEntity.sendMessage("YOU HAVE A "+stat.getName()+" "+stat.level);
+                            List<String> stats = rpgItem.getStats();
+                            for(String stat : stats){
+                                livingEntity.sendMessage("YOU HAVE A "+stat+" "/*+stat.level*/);
                             }
                         }
                         break;

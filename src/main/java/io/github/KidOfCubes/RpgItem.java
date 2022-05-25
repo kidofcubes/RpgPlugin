@@ -2,6 +2,7 @@ package io.github.KidOfCubes;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.inventory.ItemStack;
@@ -40,8 +41,8 @@ public class RpgItem extends RpgElement{
         itemMeta.getPersistentDataContainer().set(key,PersistentDataType.STRING,toJson());
 
         List<Component> lore = new ArrayList<>();
-        for (Stat tempStat : getStats()){
-            lore.add(Component.text(ChatColor.GREEN+tempStat.getClass().getSimpleName()+" "+toRoman(tempStat.level)));
+        for (String tempStat : getStats()){
+            lore.add(Component.text(tempStat.getClass().getSimpleName()+" "+toRoman(/*tempStat.level*/1)).color(TextColor.color(0,255,0)));
         }
         itemMeta.lore(lore);
 
@@ -52,7 +53,7 @@ public class RpgItem extends RpgElement{
 
         return itemStack;
     }
-    class RpgItemJsonContainer{
+    static class RpgItemJsonContainer{
         public String name;
         public int level;
         public String[] stats;

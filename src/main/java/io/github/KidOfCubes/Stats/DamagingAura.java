@@ -1,3 +1,4 @@
+/*
 package io.github.KidOfCubes.Stats;
 
 import com.destroystokyo.paper.ParticleBuilder;
@@ -83,3 +84,4 @@ public class DamagingAura extends Stat {
         }
     }
 }
+*/

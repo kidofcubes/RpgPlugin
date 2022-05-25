@@ -46,11 +46,14 @@ public class RpgEntity extends RpgElement{
             allies = rpgEntity.allies;
         }
     }
-    public RpgEntityDamageByEntityEvent damage(double amount, RpgElement attacker){ //AMOUNT IS FOR BASE AMOUNT
-        return damage(amount,attacker,true);
+    public void damage(double amount){ //AMOUNT IS FOR BASE AMOUNT
+        RpgEntityDamageEvent event = new RpgEntityDamageEvent(this,amount);
+        event.callEvent();
+        livingEntity.damage(event.getDamage());
     }
-    public RpgEntityDamageByEntityEvent damage(double amount, RpgElement attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
-        RpgEntityDamageByEntityEvent event = new RpgEntityDamageByEntityEvent(this,amount, attacker);
+
+    public RpgEntityDamageEvent damage(double amount, RpgElement attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
+        RpgEntityDamageEvent event = new RpgEntityDamageEvent(this,amount, attacker);
         if(call) event.callEvent();
         return event;
     }
@@ -98,31 +101,33 @@ public class RpgEntity extends RpgElement{
     }
 
 
-    List<Stat> effectiveStatsCache = new ArrayList<>();
+    List<String> effectiveStatsCache = new ArrayList<>();
     long effectiveStatsLastUpdate = 0;
     @Override
-    public List<Stat> getEffectiveStats(){
+    public List<String> getEffectiveStats(){
         long now = System.currentTimeMillis();
         if(now-effectiveStatsLastUpdate>1000) {
             effectiveStatsLastUpdate = now;
-            List<Stat> list = new ArrayList<>(getStats());
+            List<String> list = new ArrayList<>(getStats());
             if (livingEntity.getEquipment() != null) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     ItemStack item = livingEntity.getEquipment().getItem(slot);
                     if (!isEmpty(item)) {
                         RpgItem temp = new RpgItem(item);
+                        logger.info("length of effective stats is "+temp.getEffectiveStats().size());
                         list.addAll(temp.getEffectiveStats());
                     }
                 }
             }
-            Map<String, Stat> levels = new HashMap<>();
-            for (Stat stat : list) {
-                levels.putIfAbsent(stat.getName(), stat);
-                if (levels.get(stat.getName()).level < stat.level) {
+            Map<String, Integer> levels = new HashMap<>();
+            for (String stat : list) {
+                logger.info("i have a stat "+stat);
+                levels.putIfAbsent(stat, -1);
+/*                if (levels.get(stat.getName()).level < stat.level) {
                     levels.put(stat.getName(), stat);
-                }
+                }*/
             }
-            effectiveStatsCache = levels.values().stream().toList();
+            effectiveStatsCache = levels.keySet().stream().toList();
         }
         return effectiveStatsCache;
 

@@ -1,3 +1,4 @@
+/*
 package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
@@ -28,3 +29,4 @@ public class BaseDamage extends Stat {
         }
     }
 }
+*/

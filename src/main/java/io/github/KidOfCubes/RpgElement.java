@@ -3,7 +3,7 @@ package io.github.KidOfCubes;
 
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
-import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
+import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.Events.RpgEntityHealByElementEvent;
 import io.github.KidOfCubes.Events.RpgEntityHealthChangeEvent;
 import org.bukkit.event.Event;
@@ -17,7 +17,7 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public class RpgElement {
     public String name;
     public int level;
-    protected List<Stat> stats = new ArrayList<>();
+    protected List<String> stats = new ArrayList<>();
     public float mana; //todo implement mana
     public RpgEntity parent;
 
@@ -26,11 +26,20 @@ public class RpgElement {
 /*        if(!stats.containsKey(stat.getTriggerType())){
             stats.put(stat.getTriggerType(), new ArrayList<>());
         }*/
+        stats.add(stat.getName());
+
+
+    }
+
+    public void addStat(String stat){
+/*        if(!stats.containsKey(stat.getTriggerType())){
+            stats.put(stat.getTriggerType(), new ArrayList<>());
+        }*/
         stats.add(stat);
 
 
     }
-    public List<Stat> getStats(){
+    public List<String> getStats(){
         return stats;
 /*        List<Stat> statList = new ArrayList<>();
         for (List<Stat> tempList : stats.values()) {
@@ -38,43 +47,53 @@ public class RpgElement {
         }
         return statList;*/
     }
-    public List<Stat> getEffectiveStats(){
+    public List<String> getEffectiveStats(){
         return getStats();
     }
     public void runStats(RpgElement caller){
-        List<Stat> statsSorted = getEffectiveStats();
+        List<String> statsSorted = getEffectiveStats();
     }
     public boolean hasStat(String name){
+        return getEffectiveStats().contains(name);
+/*        if(stats.contains(name)){
+
+        }
         for (Stat stat :
                 getEffectiveStats()) {
             if (stat.getName().equalsIgnoreCase(name)) {
                 return true;
             }
         }
-        return false;
+        return false;*/
     }
-    public Stat getStat(String name){
+/*    public Stat getStat(String name){
         for (Stat stat : getEffectiveStats()) {
             if(stat.getName().equalsIgnoreCase(name)){
                 return stat;
             }
         }
         return null;
+    }*/
+
+
+    public void attack(double amount, RpgEntity victim){
+        RpgEntityDamageEvent event = new RpgEntityDamageEvent(victim,amount,this);
+        event.callEvent();
+        victim.livingEntity.damage(event.getDamage());
     }
 
-
-    public void activateStat(String name){
-        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent().caster(this);
+    public void activateStat(String name){ //todo fix
+/*        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent().caster(this);
         for (Stat stat: getEffectiveStats()) {
             if(stat.getName().equalsIgnoreCase(name)){
                 logger.info("I HAVE A STAT "+ stat.getName() + " OF LEVEL "+stat.level);
                 activateStatEvent.addTriggerStat(stat);
             }
         }
-        activateStatEvent.callEvent(this);
+        activateStatEvent.callEvent(this);*/
     }
 
-    public void activateStat(Event event){
+/*    public void activateStat(Event event){
         RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
         if(event instanceof RpgEntityHealthChangeEvent rpgEntityHealthChangeEvent){
             activateStatEvent.setTarget(rpgEntityHealthChangeEvent.getEntity());
@@ -88,16 +107,16 @@ public class RpgElement {
         }
         activateStatEvent.setTriggerEvent(event);
         activateStatEvent.callEvent(this);
-    }
+    }*/
 
     public String toJson(){
         RpgElementJsonContainer container = new RpgElementJsonContainer();
         container.name = name;
         container.level = level;
-        List<Stat> allStats = getStats();
+        List<String> allStats = getStats();
         container.stats = new HashMap<String,Integer>();
         for (int i = 0; i < allStats.size(); i++) {
-            container.stats.put(allStats.get(i).getName(),allStats.get(i).level);
+            container.stats.put(allStats.get(i),/*allStats.get(i).level*/-1);
         }
         return gson.toJson(container);
     }
@@ -111,11 +130,7 @@ public class RpgElement {
         level = container.level;
         name = container.name;
         for(Map.Entry<String,Integer> statProperties : container.stats.entrySet()){
-            try {
-                addStat(Stat.fromText(statProperties.getKey(),statProperties.getValue()));
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
+            addStat(statProperties.getKey());
         }
     }
     public static class RpgElementJsonContainer{
@@ -139,8 +154,8 @@ public class RpgElement {
             if(otherRpgElement.mana != mana){
                 return false;
             }
-            List<Stat> otherEffectiveStats = otherRpgElement.getEffectiveStats();
-            List<Stat> myEffectiveStats = getEffectiveStats();
+            List<String> otherEffectiveStats = otherRpgElement.getEffectiveStats();
+            List<String> myEffectiveStats = getEffectiveStats();
             if(otherEffectiveStats.size()!=myEffectiveStats.size()){
                 return false;
             }
