@@ -1,6 +1,7 @@
 package io.github.KidOfCubes;
 
 
+import io.github.KidOfCubes.Managers.StatManager;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.*;
 import java.lang.reflect.InvocationTargetException;
@@ -11,6 +12,8 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public abstract class Stat implements Listener {
 
 
+    private boolean initalized=false;
+    private Stat instance;
 
     public static String description;
 
@@ -22,10 +25,12 @@ public abstract class Stat implements Listener {
 
     //override stats run slower i suppose?
 
+    public Stat(){
 
+    }
 
     public String getName(){
-        return this.getClass().getSimpleName();
+        return this.getClass().getName();
     }
 
     public String getDescription() {
@@ -35,20 +40,19 @@ public abstract class Stat implements Listener {
         return statType;
     }
 
-    public Stat(int level){
-        this.level = level;
-    }
-
-    public static Stat fromText(String name, int level) throws ClassNotFoundException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats."+name).asSubclass(Stat.class);
-        return (Stat)stat.getConstructors()[0].newInstance(level);
+    public static Class<? extends Stat> fromText(String name){
+        for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
+            if(stat.getSimpleName().equalsIgnoreCase(name)){
+                return stat;
+            }
+        }
+        return null;
     }
 
 
 
 
     public void trigger(Event event){
-
         run(event);
     }
     public abstract void run(Event event);

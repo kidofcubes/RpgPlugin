@@ -9,10 +9,10 @@ import org.jetbrains.annotations.NotNull;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
 
-public class RpgEntityDamageEvent extends RpgEntityHealthChangeEvent{
-    public static HandlerList getHandlerList() {
+public final class RpgEntityDamageEvent extends RpgEntityHealthChangeEvent{
+/*    public HandlerList getHandlerList() {
         return HANDLERS;
-    }
+    }*/
     public RpgEntityDamageEvent(RpgEntity victim, double damage) {
         super(victim, -damage);
     }

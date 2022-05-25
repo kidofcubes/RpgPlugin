@@ -9,6 +9,8 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.entity.EntityDamageByBlockEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
@@ -22,38 +24,7 @@ public class Test implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender instanceof LivingEntity livingEntity){
-            if(args.length==2) {
-                RpgEntity rpgEntity = getRpgEntity(livingEntity);
-
-                //rpgEntity.addStat(new Sharpness(10, rpgEntity));
-                RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
-
-
-                Class<? extends Stat> stat = null;
-                try {
-                    stat = Class.forName("io.github.KidOfCubes.Stats." + args[0]).asSubclass(Stat.class);
-                    Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[1]), rpgItem);
-                    rpgItem.addStat(realStat);
-                    livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());
-                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            }else{
-                if(args.length>=3){
-
-                    RpgEntity rpgEntity = getRpgEntity(livingEntity);
-
-
-                    Class<? extends Stat> stat = null;
-                    try {
-                        stat = Class.forName("io.github.KidOfCubes.Stats." + args[0]).asSubclass(Stat.class);
-                        Stat realStat = (Stat) stat.getConstructors()[0].newInstance(Integer.parseInt(args[1]), rpgEntity);
-                        rpgEntity.addStat(realStat);
-                    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
+            new EntityDamageByBlockEvent(livingEntity.getTargetBlock(100),livingEntity, EntityDamageEvent.DamageCause.CUSTOM,1).callEvent();
 
 
 

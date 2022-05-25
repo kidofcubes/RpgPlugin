@@ -23,23 +23,20 @@ public class StatEdit implements CommandExecutor {
                 RpgPlugin.logger.info("args0 is "+args[0]);
                 switch (args[0]){
                     case "add":
-                        try {
-                            Class<? extends Stat> stat = Class.forName("io.github.KidOfCubes.Stats." + args[1]).asSubclass(Stat.class);
 
-                            if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
-                                RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
-                                Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
-                                rpgEntity.addStat(realStat);
-                                livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
-                            }else{
-                                RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
-                                Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
-                                rpgItem.addStat(realStat);
-                                livingEntity.sendMessage("ADDED A "+realStat.getName()+" "+realStat.level);
-                                livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());
-                            }
-                        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                            e.printStackTrace();
+                        if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
+                            RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
+                            //Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
+                            String name = Stat.fromText(args[1]).getName();
+                            rpgEntity.addStat(name);
+                            livingEntity.sendMessage("ADDED A "+name+" "/*+realStat.level*/);
+                        }else{
+                            RpgItem rpgItem = new RpgItem(livingEntity.getEquipment().getItemInMainHand());
+                            //Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
+                            String name = Stat.fromText(args[1]).getName();
+                            rpgItem.addStat(name);
+                            livingEntity.sendMessage("ADDED A "+name+" "/*+realStat.level*/);
+                            livingEntity.getEquipment().setItemInMainHand(rpgItem.toItemStack());
                         }
                         break;
 

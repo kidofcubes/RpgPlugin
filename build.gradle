@@ -31,6 +31,16 @@ java {
 jar {
     destinationDirectory.set(file("G:\\Testing Version Servers\\1.18.2Paper\\plugins"))
 }
+
+task copyToPlugins {
+    group 'testServer'
+    doLast {
+        copy {
+            from ("build/libs/RpgPlugin-1.0-SNAPSHOT.jar")
+            into ("G:\\Testing Version Servers\\1.18.2Paper\\plugins")
+        }
+    }
+}
 tasks {
     assemble {
         dependsOn(reobfJar)
@@ -46,7 +56,9 @@ tasks {
         // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
         // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
         //outputJar.set(layout.buildDirectory.file("G:\\Testing Version Servers\\1.18.2Paper\\plugins\\RpgPlugin-${project.version}.jar"))
+
     }
+
     shadowJar {
         // helper function to relocate a package into our package
         //fun reloc(pkg: String) = relocate(pkg, "io.papermc.paperweight.testplugin.dependency.$pkg")
@@ -55,3 +67,4 @@ tasks {
         relocate("io.github.classgraph","io.github.KidOfCubes.dependencies.io.github.classgraph")
     }
 }
+reobfJar.finalizedBy copyToPlugins

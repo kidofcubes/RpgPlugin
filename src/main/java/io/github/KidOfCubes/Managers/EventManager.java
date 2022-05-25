@@ -11,14 +11,16 @@ import org.bukkit.event.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredListener;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
+import static io.github.KidOfCubes.RpgPlugin.plugin;
 
 
 public class EventManager implements Listener {
 
-
+    private final static PluginManager pluginManager = plugin.getServer().getPluginManager();
     public void init(){
         Bukkit.getScheduler().runTaskTimer(RpgPlugin.plugin, () -> {
             //new RpgTickEvent().callEvent();
@@ -56,7 +58,7 @@ public class EventManager implements Listener {
                         customEvent = new RpgEntityDamageEvent(EntityManager.getRpgEntity(entity), event.getDamage());
                     }
                     long startTime = System.nanoTime();
-                    customEvent.callEvent();
+                    pluginManager.callEvent(customEvent);
                     long endTime = System.nanoTime();
                     logger.info("setting damage to "+customEvent.getDamage() + " took time "+((endTime-startTime)/1000000.0));
                     event.setDamage(customEvent.getDamage());
@@ -65,14 +67,14 @@ public class EventManager implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler
     public void onEntityHeal(EntityRegainHealthEvent event) {
-        if (event.getEntity() instanceof LivingEntity entity) {//todo check if map normal heals
+        if (event.getEntity() instanceof LivingEntity entity) {//todo check if map normal heals to custom
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.CUSTOM) { //TRIGGERED BY NORMAL
 
                 //START THE CUSTOM PROCESS
                 RpgEntityHealEvent customEvent = new RpgEntityHealEvent(EntityManager.getRpgEntity(entity), event.getAmount());
-                customEvent.callEvent();
+                pluginManager.callEvent(customEvent);
                 event.setAmount(customEvent.getChange());
             }
         }

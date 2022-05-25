@@ -3,15 +3,22 @@ package io.github.KidOfCubes;
 import com.google.gson.Gson;
 import io.github.KidOfCubes.Commands.Cast;
 import io.github.KidOfCubes.Commands.StatEdit;
+import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.Managers.EventManager;
 import io.github.KidOfCubes.Managers.ItemManager;
 import io.github.KidOfCubes.Managers.StatManager;
+import io.github.KidOfCubes.Stats.Sharpness;
 import io.github.KidOfCubes.Testing.Test;
 import io.github.KidOfCubes.Testing.TestSharpness;
 import org.bukkit.NamespacedKey;
+import org.bukkit.event.Event;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class RpgPlugin extends JavaPlugin {
@@ -27,11 +34,10 @@ public class RpgPlugin extends JavaPlugin {
         plugin = this;
         logger.info("RpgPlugin Starting");
 
-
         //getServer().getPluginManager().registerEvents(new ItemManager(), this);
         //getServer().getPluginManager().registerEvents(new StatManager(), this);
+        StatManager.register(new Sharpness(), List.of(RpgEntityDamageEvent.class));
         StatManager statManager = new StatManager();
-        statManager.init();
         EntityManager entityManager = new EntityManager();
         getServer().getPluginManager().registerEvents(entityManager, plugin);
         EventManager eventManager = new EventManager();

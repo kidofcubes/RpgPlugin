@@ -16,11 +16,6 @@ public class Sharpness extends Stat {
     static String description = "Increaces damage by 1 heart per level";
 
 
-    public Sharpness(int level) {
-        super(level);
-    }
-
-
 
     @Override
     public RpgElement elementToStatCheck(Event event) {
@@ -28,13 +23,14 @@ public class Sharpness extends Stat {
     }
 
 
+
     @Override
-    @EventHandler
-    @StatHandler(listenEvent = RpgEntityDamageEvent.class)
+    //@StatHandler(listenEvent = RpgEntityDamageEvent.class)
     public void run(Event event) { //non static is faster
-        if(event instanceof RpgEntityDamageEvent damageEvent) {
-            logger.info("sharpness activated with level "/*+level*/);
-            damageEvent.setDamage(damageEvent.getDamage() + (/*level * */2f));
-        }
+        ((RpgEntityDamageEvent)event).setDamage(((RpgEntityDamageEvent)event).getDamage() + (/*level * */200f));
+/*        if(event instanceof RpgEntityDamageEvent damageEvent) {
+            logger.info("sharpness activated with level "*//*+level*//*);
+            damageEvent.setDamage(damageEvent.getDamage() + (*//*level * *//*200f));
+        }*/
     }
 }

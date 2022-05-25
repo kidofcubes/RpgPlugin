@@ -30,6 +30,15 @@ public class RpgElement {
 
 
     }
+
+    public void addStat(String stat){
+/*        if(!stats.containsKey(stat.getTriggerType())){
+            stats.put(stat.getTriggerType(), new ArrayList<>());
+        }*/
+        stats.add(stat);
+
+
+    }
     public List<String> getStats(){
         return stats;
 /*        List<Stat> statList = new ArrayList<>();
@@ -121,11 +130,7 @@ public class RpgElement {
         level = container.level;
         name = container.name;
         for(Map.Entry<String,Integer> statProperties : container.stats.entrySet()){
-            try {
-                addStat(Stat.fromText(statProperties.getKey(),statProperties.getValue()));
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
+            addStat(statProperties.getKey());
         }
     }
     public static class RpgElementJsonContainer{

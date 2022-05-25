@@ -11,7 +11,8 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
 
     //region Event stuff
-    public static final HandlerList HANDLERS = new HandlerList();
+
+    private static final HandlerList handlers = new HandlerList();
     private boolean canceled = false;
 
     @Override
@@ -26,11 +27,12 @@ public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
 
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
+        return handlers;
     }
 
+
     public static HandlerList getHandlerList() {
-        return HANDLERS;
+        return handlers;
     }
     //endregion
 
