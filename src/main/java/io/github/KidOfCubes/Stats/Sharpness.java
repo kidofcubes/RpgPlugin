@@ -3,6 +3,7 @@ package io.github.KidOfCubes.Stats;
 import static io.github.KidOfCubes.RpgPlugin.*;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
+import io.github.KidOfCubes.Events.RpgEntityDamageByElementEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.Stat;
@@ -19,14 +20,15 @@ public class Sharpness extends Stat {
 
     @Override
     public RpgElement elementToStatCheck(Event event) {
-        return ((RpgEntityDamageEvent)event).getCause();
+        return ((RpgEntityDamageByElementEvent)event).getCause();
     }
 
 
 
     @Override
     //@StatHandler(listenEvent = RpgEntityDamageEvent.class)
-    public void run(Event event) { //non static is faster
+    public void run(Event event) {
+        logger.info("SHARPNESSED AAAA");
         ((RpgEntityDamageEvent)event).setDamage(((RpgEntityDamageEvent)event).getDamage() + (/*level * */200f));
 /*        if(event instanceof RpgEntityDamageEvent damageEvent) {
             logger.info("sharpness activated with level "*//*+level*//*);

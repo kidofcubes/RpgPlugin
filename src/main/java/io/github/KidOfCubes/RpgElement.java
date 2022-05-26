@@ -2,10 +2,7 @@ package io.github.KidOfCubes;
 
 
 
-import io.github.KidOfCubes.Events.RpgActivateStatEvent;
-import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
-import io.github.KidOfCubes.Events.RpgEntityHealByElementEvent;
-import io.github.KidOfCubes.Events.RpgEntityHealthChangeEvent;
+import io.github.KidOfCubes.Events.*;
 import org.bukkit.event.Event;
 
 import java.lang.reflect.InvocationTargetException;
@@ -77,7 +74,7 @@ public class RpgElement {
 
 
     public void attack(double amount, RpgEntity victim){
-        RpgEntityDamageEvent event = new RpgEntityDamageEvent(victim,amount,this);
+        RpgEntityDamageEvent event = new RpgEntityDamageByElementEvent(victim,amount,this);
         event.callEvent();
         victim.livingEntity.damage(event.getDamage());
     }

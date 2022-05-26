@@ -10,6 +10,8 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
 
+    //figure out good way
+
     //region Event stuff
 
     private static final HandlerList handlers = new HandlerList();
@@ -36,18 +38,13 @@ public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
     }
     //endregion
 
-    public RpgEntityHealthChangeEvent(RpgEntity entity, double change){
-        this(entity,change,null);
-    }
-    public RpgEntityHealthChangeEvent(RpgEntity entity, double change, RpgElement cause){
+    public RpgEntityHealthChangeEvent(RpgEntity entity, double amount){
         this.entity = entity;
-        this.change = change;
-        this.cause = cause;
+        this.amount = amount;
     }
 
     private RpgEntity entity;
-    private double change=0;
-    private RpgElement cause;
+    private double amount =0;
 
     public RpgEntity getEntity() {
         return entity;
@@ -57,22 +54,12 @@ public class RpgEntityHealthChangeEvent extends Event implements Cancellable {
         this.entity = entity;
     }
 
-    public double getChange() {
-        return change;
+    public double getAmount() {
+        return amount;
     }
 
-    public void setChange(double change) {
-        this.change = change;
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 
-    public RpgElement getCause() {
-        if(cause instanceof RpgEntity rpgEntity){
-            logger.info("cause reason was "+rpgEntity.livingEntity.name());
-        }
-        return cause;
-    }
-
-    public void setCause(RpgElement cause) {
-        this.cause = cause;
-    }
 }

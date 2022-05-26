@@ -61,11 +61,13 @@ public class StatRegisteredListener extends RegisteredListener
 
         //logger.info("the event aais a instance of "+event.getEventName());
 
+        logger.info("GOT A EVENT ON REGISTERED LISTENER "+event.getEventName());
         long startTime = System.nanoTime();
         for (int i = 0; i < listenEvents.size(); i++) {
-            if(event.getClass().isInstance(listenEvents.get(i))) {
-                //logger.info("IT WORKKED ON "+listenEvents[i].getName());
+            logger.info("checking if listenEvents equal to event "+listenEvents.get(i).getName());
+            if(/*event.getClass().isInstance(listenEvents.get(i))||*/listenEvents.get(i).isAssignableFrom(event.getClass())) {
                 RpgElement toCheck = stat.elementToStatCheck(event);
+                logger.info("IT WORKKED ON "+listenEvents.get(i).getName()+" "+(toCheck!=null));
                 if (toCheck != null) {
                     if (toCheck.hasStat(stat.getName())) {
                         logger.info("checking stat took " + ((System.nanoTime() - startTime) / 1000000.0));

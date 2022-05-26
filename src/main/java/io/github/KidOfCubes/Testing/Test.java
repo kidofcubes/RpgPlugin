@@ -24,6 +24,7 @@ public class Test implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(sender instanceof LivingEntity livingEntity){
+            EntityManager.getRpgEntity(livingEntity).heal(5);
             new EntityDamageByBlockEvent(livingEntity.getTargetBlock(100),livingEntity, EntityDamageEvent.DamageCause.CUSTOM,1).callEvent();
 
 

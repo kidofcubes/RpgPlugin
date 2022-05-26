@@ -10,20 +10,21 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.jetbrains.annotations.NotNull;
 
-public class RpgEntityHealByElementEvent extends RpgEntityHealEvent {
+public class RpgEntityHealByElementEvent extends RpgEntityHealEvent {//custom causeenum later?
 
-    public RpgEntityHealByElementEvent(RpgEntity victim, double change, RpgElement healer) {
-        super(victim, change);
-        this.healer = healer;
+    @NotNull
+    private RpgElement cause;
+
+    public RpgEntityHealByElementEvent(@NotNull RpgEntity entity, double change, @NotNull RpgElement cause) {
+        super(entity, change);
+        setCause(cause);
     }
 
-    private RpgElement healer;
 
-
-    public RpgElement getHealer(){
-        return healer;
+    public @NotNull RpgElement getCause(){
+        return cause;
     }
-    public void setHealer(RpgElement healer){
-        this.healer = healer;
+    public void setCause(@NotNull RpgElement cause){
+        this.cause = cause;
     }
 }

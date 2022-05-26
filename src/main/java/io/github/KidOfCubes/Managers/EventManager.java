@@ -1,18 +1,14 @@
 package io.github.KidOfCubes.Managers;
 
 import io.github.KidOfCubes.Events.*;
-import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgPlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredListener;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
 import static io.github.KidOfCubes.RpgPlugin.plugin;
@@ -53,7 +49,7 @@ public class EventManager implements Listener {
                     //START THE CUSTOM PROCESS
                     RpgEntityDamageEvent customEvent;
                     if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) { //RpgEntityDamageByEntityEvent
-                        customEvent = new RpgEntityDamageEvent(EntityManager.getRpgEntity(entity), event.getDamage(), EntityManager.getRpgEntity(damager));
+                        customEvent = new RpgEntityDamageByElementEvent(EntityManager.getRpgEntity(entity), event.getDamage(), EntityManager.getRpgEntity(damager));
                     } else { //RpgEntityDamageEvent
                         customEvent = new RpgEntityDamageEvent(EntityManager.getRpgEntity(entity), event.getDamage());
                     }
@@ -73,9 +69,11 @@ public class EventManager implements Listener {
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.CUSTOM) { //TRIGGERED BY NORMAL
 
                 //START THE CUSTOM PROCESS
-                RpgEntityHealEvent customEvent = new RpgEntityHealEvent(EntityManager.getRpgEntity(entity), event.getAmount());
+
+                //event = new RpgEntityHealEvent(event);
+                RpgEntityHealEvent customEvent = new RpgEntityHealEvent(EntityManager.getRpgEntity(entity),event.getAmount());
                 pluginManager.callEvent(customEvent);
-                event.setAmount(customEvent.getChange());
+                event.setAmount(customEvent.getAmount());
             }
         }
     }

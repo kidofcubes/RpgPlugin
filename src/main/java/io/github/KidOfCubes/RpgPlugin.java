@@ -3,11 +3,14 @@ package io.github.KidOfCubes;
 import com.google.gson.Gson;
 import io.github.KidOfCubes.Commands.Cast;
 import io.github.KidOfCubes.Commands.StatEdit;
+import io.github.KidOfCubes.Events.RpgEntityDamageByElementEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
+import io.github.KidOfCubes.Events.RpgEntityHealEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.Managers.EventManager;
 import io.github.KidOfCubes.Managers.ItemManager;
 import io.github.KidOfCubes.Managers.StatManager;
+import io.github.KidOfCubes.Stats.HealingTest;
 import io.github.KidOfCubes.Stats.Sharpness;
 import io.github.KidOfCubes.Testing.Test;
 import io.github.KidOfCubes.Testing.TestSharpness;
@@ -36,7 +39,8 @@ public class RpgPlugin extends JavaPlugin {
 
         //getServer().getPluginManager().registerEvents(new ItemManager(), this);
         //getServer().getPluginManager().registerEvents(new StatManager(), this);
-        StatManager.register(new Sharpness(), List.of(RpgEntityDamageEvent.class));
+        StatManager.register(new Sharpness(), List.of(RpgEntityDamageByElementEvent.class));
+        StatManager.register(new HealingTest(), List.of(RpgEntityHealEvent.class));
         StatManager statManager = new StatManager();
         EntityManager entityManager = new EntityManager();
         getServer().getPluginManager().registerEvents(entityManager, plugin);

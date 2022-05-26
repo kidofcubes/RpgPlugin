@@ -42,6 +42,7 @@ public abstract class Stat implements Listener {
 
     public static Class<? extends Stat> fromText(String name){
         for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
+            logger.info("checking if "+stat.getSimpleName() + " the same as "+name);
             if(stat.getSimpleName().equalsIgnoreCase(name)){
                 return stat;
             }
@@ -55,8 +56,8 @@ public abstract class Stat implements Listener {
     public void trigger(Event event){
         run(event);
     }
-    public abstract void run(Event event);
     public abstract RpgElement elementToStatCheck(Event event);
+    public abstract void run(Event event);
 
 
 

@@ -2,9 +2,10 @@ package io.github.KidOfCubes;
 
 import io.github.KidOfCubes.Events.*;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.Event;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -52,17 +53,23 @@ public class RpgEntity extends RpgElement{
         livingEntity.damage(event.getDamage());
     }
 
-    public RpgEntityDamageEvent damage(double amount, RpgElement attacker, boolean call){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
-        RpgEntityDamageEvent event = new RpgEntityDamageEvent(this,amount, attacker);
-        if(call) event.callEvent();
+    public RpgEntityDamageEvent damage(double amount, RpgElement attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
+        RpgEntityDamageEvent event = new RpgEntityDamageByElementEvent(this,amount, attacker);
+        event.callEvent();
+        livingEntity.damage(event.getDamage());
         return event;
     }
-    public RpgEntityHealByElementEvent heal(double amount, RpgElement healer){
-        return heal(amount, healer,  true);
+    public RpgEntityHealEvent heal(double amount){
+        RpgEntityHealEvent event = new RpgEntityHealEvent(this, amount);
+        event.callEvent();
+        livingEntity.setHealth(livingEntity.getHealth()+event.getAmount());
+        return event;
     }
-    public RpgEntityHealByElementEvent heal(double amount, RpgElement healer, boolean call){
-        RpgEntityHealByElementEvent event = new RpgEntityHealByElementEvent(this,amount, healer);
-        if(call) event.callEvent();
+    public RpgEntityHealByElementEvent heal(double amount, @NotNull RpgElement healer){
+
+        RpgEntityHealByElementEvent event = new RpgEntityHealByElementEvent(this, amount, healer);
+        event.callEvent();
+        livingEntity.setHealth(livingEntity.getHealth()+event.getAmount());
         return event;
     }
 
