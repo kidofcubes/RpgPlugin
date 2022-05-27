@@ -7,7 +7,7 @@ import io.github.KidOfCubes.Events.RpgEntityDamageByElementEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.Stat;
-import io.github.KidOfCubes.Types.StatHandler;
+import io.github.KidOfCubes.Types.DamageType;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -28,8 +28,7 @@ public class Sharpness extends Stat {
     @Override
     //@StatHandler(listenEvent = RpgEntityDamageEvent.class)
     public void run(Event event) {
-        logger.info("SHARPNESSED AAAA");
-        ((RpgEntityDamageEvent)event).setDamage(((RpgEntityDamageEvent)event).getDamage() + (/*level * */200f));
+        ((RpgEntityDamageEvent)event).addDamage(DamageType.Physical,100);
 /*        if(event instanceof RpgEntityDamageEvent damageEvent) {
             logger.info("sharpness activated with level "*//*+level*//*);
             damageEvent.setDamage(damageEvent.getDamage() + (*//*level * *//*200f));

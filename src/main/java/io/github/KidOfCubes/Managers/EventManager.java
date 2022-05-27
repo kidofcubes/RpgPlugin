@@ -2,6 +2,7 @@ package io.github.KidOfCubes.Managers;
 
 import io.github.KidOfCubes.Events.*;
 import io.github.KidOfCubes.RpgPlugin;
+import io.github.KidOfCubes.Types.DamageType;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.*;
@@ -49,19 +50,20 @@ public class EventManager implements Listener {
                     //START THE CUSTOM PROCESS
                     RpgEntityDamageEvent customEvent;
                     if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) { //RpgEntityDamageByEntityEvent
-                        customEvent = new RpgEntityDamageByElementEvent(EntityManager.getRpgEntity(entity), event.getDamage(), EntityManager.getRpgEntity(damager));
+                        customEvent = new RpgEntityDamageByElementEvent(EntityManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage(), EntityManager.getRpgEntity(damager));
                     } else { //RpgEntityDamageEvent
-                        customEvent = new RpgEntityDamageEvent(EntityManager.getRpgEntity(entity), event.getDamage());
+                        customEvent = new RpgEntityDamageEvent(EntityManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage());
                     }
                     long startTime = System.nanoTime();
                     pluginManager.callEvent(customEvent);
                     long endTime = System.nanoTime();
-                    logger.info("setting damage to "+customEvent.getDamage() + " took time "+((endTime-startTime)/1000000.0));
-                    event.setDamage(customEvent.getDamage());
+                    //logger.info("setting damage to "+customEvent.getTotalDamage() + " took time "+((endTime-startTime)/1000000.0));
+                    event.setDamage(customEvent.getTotalDamage());
                 }
             }
         }
     }
+
 
     @EventHandler
     public void onEntityHeal(EntityRegainHealthEvent event) {

@@ -1,6 +1,7 @@
 package io.github.KidOfCubes;
 
 import io.github.KidOfCubes.Events.*;
+import io.github.KidOfCubes.Types.DamageType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -47,16 +48,16 @@ public class RpgEntity extends RpgElement{
             allies = rpgEntity.allies;
         }
     }
-    public void damage(double amount){ //AMOUNT IS FOR BASE AMOUNT
-        RpgEntityDamageEvent event = new RpgEntityDamageEvent(this,amount);
+    public void damage(DamageType type, double amount){ //AMOUNT IS FOR BASE AMOUNT
+        RpgEntityDamageEvent event = new RpgEntityDamageEvent(this, type,amount);
         event.callEvent();
-        livingEntity.damage(event.getDamage());
+        livingEntity.damage(event.getTotalDamage());
     }
 
-    public RpgEntityDamageEvent damage(double amount, RpgElement attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
-        RpgEntityDamageEvent event = new RpgEntityDamageByElementEvent(this,amount, attacker);
+    public RpgEntityDamageEvent damage(DamageType type, double amount, RpgElement attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
+        RpgEntityDamageEvent event = new RpgEntityDamageByElementEvent(this,type,amount, attacker);
         event.callEvent();
-        livingEntity.damage(event.getDamage());
+        livingEntity.damage(event.getTotalDamage());
         return event;
     }
     public RpgEntityHealEvent heal(double amount){

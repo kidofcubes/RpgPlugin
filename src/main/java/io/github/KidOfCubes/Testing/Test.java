@@ -5,13 +5,19 @@ import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgItem;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Stats.Sharpness;
+import net.minecraft.world.entity.EntityType;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Blaze;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Snowman;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -22,32 +28,22 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public class Test implements CommandExecutor {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
         if(sender instanceof LivingEntity livingEntity){
-            EntityManager.getRpgEntity(livingEntity).heal(5);
-            new EntityDamageByBlockEvent(livingEntity.getTargetBlock(100),livingEntity, EntityDamageEvent.DamageCause.CUSTOM,1).callEvent();
-
-
-
-
-/*            long startTime = System.currentTimeMillis();
-            for (int i = 0; i < 100000; i++) {
-                rpgItem.toItemStack();
+            if(args[0].equalsIgnoreCase("0")){
+                Location location = livingEntity.getLocation();
+                World world = location.getWorld();
+                for (int i = 0; i < 1000; i++) {
+                    world.spawn(location, Snowman.class);
+                }
             }
-            long endTime = System.currentTimeMillis();
-
-            long duration = (endTime - startTime);
-            logger.info("doing 100000 took "+duration);
-            ItemStack temp = rpgItem.toItemStack();
-            long startTime2 = System.currentTimeMillis();
-            for (int i = 0; i < 100000; i++) {
-                livingEntity.getEquipment().setItemInOffHand(temp);
+            if(args[0].equalsIgnoreCase("1")){
+                Location location = livingEntity.getLocation();
+                World world = location.getWorld();
+                for (int i = 0; i < 1000; i++) {
+                    world.spawn(location, Blaze.class);
+                }
             }
-            long endTime2 = System.currentTimeMillis();
-
-            long duration2 = (endTime2 - startTime2);
-            logger.info("doing 100000 took "+duration2);*/
-            //livingEntity.getEquipment().setItemInOffHand(rpgItem.toItemStack());
         }
         return true;
     }

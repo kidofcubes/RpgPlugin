@@ -6,6 +6,8 @@ import io.github.KidOfCubes.Stat;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,12 +17,14 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public class RpgActivateStatEvent extends Event implements Cancellable{
 
 
+    @Nullable
     private RpgElement caster;
+    @NotNull
     private RpgElement parent;
+    @Nullable
     private RpgElement target;
 
-    private Event triggerEvent;
-    public List<RpgElement> spawnedElements = new ArrayList<>();
+
     private List<Stat> triggerStats = new ArrayList<>();
     private boolean directOnly = false;
 
@@ -44,69 +48,35 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
         return this;
     }
 
-    public RpgActivateStatEvent event(Event event){
-        setTriggerEvent(event);
-        return this;
-    }
-
     public RpgActivateStatEvent directOnly(boolean directOnly){
         setDirectOnly(directOnly);
         return this;
     }
 
-/*    public RpgActivateStatEvent callEvent(RpgElement _parent){
-        setParent(_parent);
-        return callEvent();
-    }*/
-/*    public RpgActivateStatEvent callEvent(){
-
-        double startTime = System.nanoTime();
-        List<Stat> statsToCall = parent.getEffectiveStats(); //sorted in priority order
-        for (Stat stat :
-                statsToCall) {
-            if(stat.activateConditions(this)){
-                stat.trigger(this);
-            }
-        }
-        long endTime = System.nanoTime();
-        double duration = (endTime - startTime)/1000000.0;
-        if(statsToCall.size()>0) {
-            logger.info("callEvent tag took "+duration);
-        }
-        return this;
-    }*/
-
 
     //region gettersetters
-    public Event getTriggerEvent() {
-        return triggerEvent;
-    }
 
-    public void setTriggerEvent(Event triggerEvent) {
-        this.triggerEvent = triggerEvent;
-    }
-
-    public RpgElement getCaster() {
+    public @Nullable RpgElement getCaster() {
         return caster;
     }
 
-    public void setCaster(RpgElement caster) {
+    public void setCaster(@Nullable RpgElement caster) {
         this.caster = caster;
     }
 
-    public RpgElement getParent() {
+    public @NotNull RpgElement getParent() {
         return parent;
     }
 
-    public void setParent(RpgElement parent) {
+    public void setParent(@NotNull RpgElement parent) {
         this.parent = parent;
     }
 
-    public RpgElement getTarget() {
+    public @Nullable RpgElement getTarget() {
         return target;
     }
 
-    public void setTarget(RpgElement target) {
+    public void setTarget(@Nullable RpgElement target) {
         this.target = target;
     }
 
@@ -142,7 +112,7 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public @NotNull HandlerList getHandlers() {
         return HANDLERS;
     }
 
