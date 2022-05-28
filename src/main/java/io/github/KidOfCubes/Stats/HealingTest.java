@@ -16,7 +16,7 @@ public class HealingTest extends Stat {
 
     @Override
     public void run(Event event) {
-        logger.info("HEAL TEST");
+        //logger.info("HEAL TEST");
         ((RpgEntityHealEvent)event).setAmount(((RpgEntityHealEvent) event).getAmount()+5);
     }
 

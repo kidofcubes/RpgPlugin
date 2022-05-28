@@ -3,6 +3,7 @@ package io.github.KidOfCubes.Managers;
 import io.github.KidOfCubes.Events.RpgEntityDamageByObjectEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.RpgEntity;
+import io.github.KidOfCubes.Types.EntityRelation;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerLevel;
@@ -81,7 +82,7 @@ public class EntityManager implements Listener {
         if(event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent){
             if(rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker){
                 logger.info("ADDED TARGET "+event.getEntity().livingEntity.name());
-                attacker.addTarget(event.getEntity().getUUID());
+                attacker.setRelation(event.getEntity().getUUID(), EntityRelation.Enemy);
             }
         }
 /*                ArmorStand test = (ArmorStand) livingEntity.getWorld().spawnEntity(

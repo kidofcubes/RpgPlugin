@@ -44,7 +44,7 @@ public class RpgManager implements Listener {
     }
 
     public static void garbageCollect(){
-        allElements.entrySet().removeIf(entry -> entry.getValue().exists());
+        allElements.entrySet().removeIf(entry -> !entry.getValue().exists());
     }
 
     public static void saveAll(){
@@ -91,5 +91,14 @@ public class RpgManager implements Listener {
         RpgEntity newEntity = new RpgEntity(livingEntity,true);
         addTempRpgObject(livingEntity.getUniqueId(),newEntity);
         return newEntity;
+    }
+    public static boolean checkExists(UUID uuid){
+        for (UUID checkUUID: allElements.keySet()) {
+            if(checkUUID.equals(uuid)){
+                return allElements.get(checkUUID).exists();
+            }
+        }
+        return false;
+
     }
 }

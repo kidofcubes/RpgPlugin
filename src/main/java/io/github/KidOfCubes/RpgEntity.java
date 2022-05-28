@@ -1,7 +1,9 @@
 package io.github.KidOfCubes;
 
 import io.github.KidOfCubes.Events.*;
+import io.github.KidOfCubes.Managers.RpgManager;
 import io.github.KidOfCubes.Types.DamageType;
+import io.github.KidOfCubes.Types.EntityRelation;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -17,13 +19,15 @@ public class RpgEntity extends RpgObject {
     public LivingEntity livingEntity;
     private double health;
     private double maxHealth;
-    private final List<UUID> attackedBy = new ArrayList<>();
-    private final List<UUID> targets = new ArrayList<>();
-    private final List<UUID> allies  = new ArrayList<>();
+    private final Map<EntityRelation,List<UUID>> relations = new HashMap<>();
 
     public RpgEntity(LivingEntity livingEntity){
         this.livingEntity = livingEntity;
         setUUID(livingEntity.getUniqueId());
+        for (EntityRelation relation :
+                EntityRelation.values()) {
+            relations.put(relation,new ArrayList<>());
+        }
         level = 0;
     }
     public RpgEntity(LivingEntity livingEntity, boolean tempEntity){
@@ -35,7 +39,9 @@ public class RpgEntity extends RpgObject {
         if(parent!=null) {
             this.parent = parent;
         }
+
     }
+
     public RpgEntity(LivingEntity livingEntity, RpgObject from){
         this(livingEntity);
         stats = from.stats;
@@ -72,64 +78,43 @@ public class RpgEntity extends RpgObject {
         return event;
     }
 
-    /*public RpgEntity(LivingEntity livingEntity, int level){
-        this.livingEntity = livingEntity;
-        allies.add(this);
-        this.level = level;
-    }*/
 
-
-
-    public void addAlly(UUID target){
-        allies.add(target);
-    }
-    public void addAttackedBy(UUID target){
-        attackedBy.add(target);
-    }
-    public void addTarget(UUID target){
-        targets.add(target);
-    }
-
-    public boolean isAlly(UUID entity){
-        if(entity!=getUUID()) {
-            if (parent != null) {
-                return parent.isAlly(entity);
-            } else {
-                return allies.contains(entity);
+    private void cleanRelations(){
+        for (Map.Entry<EntityRelation,List<UUID>> entry : relations.entrySet()) {
+            List<UUID> list = entry.getValue();
+            for (int i = list.size()-1; i > -1; i--) {
+                if(!RpgManager.checkExists(list.get(i))) list.remove(i);
             }
-        }else{
-            return true;
         }
     }
 
-    public boolean isAttackedBy(UUID entity){
-        if(entity!=getUUID()) {
-            if (parent != null) {
-                return parent.isAttackedBy(entity);
-            } else {
-                return attackedBy.contains(entity);
-            }
-        }else{
-            return false;
+    public void setRelation(UUID uuid, EntityRelation relation){
+        for (Map.Entry<EntityRelation,List<UUID>> entry : relations.entrySet()) {
+            entry.getValue().remove(uuid);
+        }
+        if(relation!=EntityRelation.Neutral){
+            relations.get(relation).add(uuid);
         }
     }
-
-    public boolean isTarget(UUID entity){
-        if(entity!=getUUID()) {
-            if (parent != null) {
-                return parent.isTarget(entity)||targets.contains(entity);
-            } else {
-                return targets.contains(entity);
+    public EntityRelation getRelation(UUID uuid){
+        cleanRelations();
+        for (Map.Entry<EntityRelation,List<UUID>> entry : relations.entrySet()) {
+            if(entry.getValue().contains(uuid)){
+                return entry.getKey();
             }
-        }else{
-            return false;
         }
+        return EntityRelation.Neutral;
     }
 
     //@Nullable
     public UUID currentTarget(){
-        if(targets.size()!=0){
-            return targets.get(targets.size()-1);
+        if(relations.get(EntityRelation.Enemy).size()!=0){
+            cleanRelations();
+            if(relations.get(EntityRelation.Enemy).size()!=0) {
+                return relations.get(EntityRelation.Enemy).get(relations.get(EntityRelation.Enemy).size() - 1);
+            }else{
+                return null;
+            }
         }else{
             return null;
         }
@@ -169,6 +154,6 @@ public class RpgEntity extends RpgObject {
 
     @Override
     public boolean exists() {
-        return livingEntity.isValid()&&!livingEntity.isDead();
+        return livingEntity.isValid()&&!livingEntity.isDead()&&livingEntity.getHealth()>0;
     }
 }
