@@ -1,16 +1,14 @@
 package io.github.KidOfCubes.Events;
 
-import io.github.KidOfCubes.RpgElement;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.Types.DamageType;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class RpgEntityDamageEvent extends Event implements Cancellable {
 
@@ -41,12 +39,12 @@ public class RpgEntityDamageEvent extends Event implements Cancellable {
     //endregion
 
 
-    public RpgEntityDamageEvent(RpgEntity entity, DamageType type, double amount){
+    public RpgEntityDamageEvent(@NotNull RpgEntity entity,@NotNull DamageType type, double amount){
         this.entity = entity;
         initDamage();
         setDamage(type,amount);
     }
-    public RpgEntityDamageEvent(RpgEntity entity, Map<DamageType,Double> amount){
+    public RpgEntityDamageEvent(@NotNull RpgEntity entity,@NotNull Map<DamageType,Double> amount){
         this.entity = entity;
         initDamage();
         for (Map.Entry<DamageType,Double> pair : amount.entrySet()) {

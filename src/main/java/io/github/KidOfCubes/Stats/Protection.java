@@ -3,7 +3,7 @@ package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
-import io.github.KidOfCubes.RpgElement;
+import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;

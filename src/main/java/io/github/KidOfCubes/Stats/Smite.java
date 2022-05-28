@@ -1,7 +1,7 @@
 package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
-import io.github.KidOfCubes.RpgElement;
+import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Types.DamageType;
@@ -9,7 +9,7 @@ import org.bukkit.event.Event;
 
 public class Smite extends Stat {
     @Override
-    public RpgElement elementToStatCheck(Event event) {
+    public RpgObject elementToStatCheck(Event event) {
         return ((RpgActivateStatEvent)event).getParent();
     }
 

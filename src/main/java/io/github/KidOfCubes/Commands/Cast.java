@@ -2,6 +2,7 @@ package io.github.KidOfCubes.Commands;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
+import io.github.KidOfCubes.Managers.RpgManager;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.Stat;
 import org.bukkit.command.Command;
@@ -14,10 +15,10 @@ public class Cast implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof LivingEntity livingEntity) {
             if(args.length>0) {
-                RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
+                RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
                 RpgActivateStatEvent event = rpgEntity.getActivateStatEvent(args[0]);
                 if(args.length>1){
-                    event.target(rpgEntity.currentTarget());
+                    event.target(RpgManager.getRpgObject(rpgEntity.currentTarget()));
                 }
                 event.callEvent();
                 return true;

@@ -1,8 +1,6 @@
 package io.github.KidOfCubes.Events;
 
-import io.github.KidOfCubes.RpgElement;
-import io.github.KidOfCubes.RpgEntity;
-import io.github.KidOfCubes.Stat;
+import io.github.KidOfCubes.RpgObject;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -12,21 +10,19 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.github.KidOfCubes.RpgPlugin.logger;
-
 public class RpgActivateStatEvent extends Event implements Cancellable{
 
 
 
-    private RpgElement caster;
-    private RpgElement parent;
-    private RpgElement target;
+    private RpgObject caster;
+    private RpgObject parent;
+    private RpgObject target;
 
 
     private List<String> triggerStats = new ArrayList<>();
     private boolean directOnly = false;
 
-/*    public RpgActivateStatEvent(RpgElement parent){
+/*    public RpgActivateStatEvent(RpgObject parent){
         this.parent = parent;
     }*/
 
@@ -35,17 +31,17 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
         return this;
     }
 
-    public RpgActivateStatEvent caster(RpgElement caster){
+    public RpgActivateStatEvent caster(RpgObject caster){
         setCaster(caster);
         return this;
     }
 
-    public RpgActivateStatEvent parent(RpgElement parent){
+    public RpgActivateStatEvent parent(RpgObject parent){
         setParent(parent);
         return this;
     }
 
-    public RpgActivateStatEvent target(RpgElement target){
+    public RpgActivateStatEvent target(RpgObject target){
         setTarget(target);
         return this;
     }
@@ -71,27 +67,27 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
 
     //region getter setters
 
-    public @Nullable RpgElement getCaster() {
+    public @Nullable RpgObject getCaster() {
         return caster;
     }
 
-    public void setCaster(@Nullable RpgElement caster) {
+    public void setCaster(@Nullable RpgObject caster) {
         this.caster = caster;
     }
 
-    public @NotNull RpgElement getParent() {
+    public @NotNull RpgObject getParent() {
         return parent;
     }
 
-    public void setParent(@NotNull RpgElement parent) {
+    public void setParent(@NotNull RpgObject parent) {
         this.parent = parent;
     }
 
-    public @Nullable RpgElement getTarget() {
+    public @Nullable RpgObject getTarget() {
         return target;
     }
 
-    public void setTarget(@Nullable RpgElement target) {
+    public void setTarget(@Nullable RpgObject target) {
         this.target = target;
     }
 

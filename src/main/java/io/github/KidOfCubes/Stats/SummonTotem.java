@@ -3,7 +3,7 @@ package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
-import io.github.KidOfCubes.RpgElement;
+import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgPlugin;
 import io.github.KidOfCubes.Stat;

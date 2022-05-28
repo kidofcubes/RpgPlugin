@@ -14,16 +14,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Blaze;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Snowman;
-import org.bukkit.event.entity.EntityDamageByBlockEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-
-import java.lang.reflect.InvocationTargetException;
-
-import static io.github.KidOfCubes.Managers.EntityManager.RpgEntities;
-import static io.github.KidOfCubes.Managers.EntityManager.getRpgEntity;
-import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class Test implements CommandExecutor {
 

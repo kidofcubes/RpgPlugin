@@ -1,12 +1,8 @@
 package io.github.KidOfCubes.Managers;
 
-import io.github.KidOfCubes.Events.RpgEntityDamageByElementEvent;
+import io.github.KidOfCubes.Events.RpgEntityDamageByObjectEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
-import io.github.KidOfCubes.Events.RpgTickEvent;
 import io.github.KidOfCubes.RpgEntity;
-import io.github.KidOfCubes.RpgPlugin;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextColor;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerLevel;
@@ -23,10 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
@@ -38,8 +31,8 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public class EntityManager implements Listener {
 
 
-    public static Map<UUID, RpgEntity> RpgEntities = new HashMap<>();
-    public static Map<UUID, RpgEntity> TempRpgEntities = new HashMap<>();
+    //public static Map<UUID, RpgEntity> RpgEntities = new HashMap<>();
+    //public static Map<UUID, RpgEntity> TempRpgEntities = new HashMap<>();
 
 
 
@@ -54,51 +47,20 @@ public class EntityManager implements Listener {
     }*/
 
     public static void close(){
-        for (RpgEntity rpgEntity :
-                TempRpgEntities.values()) {
-            rpgEntity.livingEntity.remove();
-            RpgEntities.remove(rpgEntity.livingEntity.getUniqueId());
-        }
-        for (RpgEntity rpgEntity :
+//        for (RpgEntity rpgEntity :
+//                TempRpgEntities.values()) {
+//            rpgEntity.livingEntity.remove();
+//            RpgEntities.remove(rpgEntity.livingEntity.getUniqueId());
+//        }
+/*        for (RpgEntity rpgEntity :
                 RpgEntities.values()) {
             rpgEntity.livingEntity.getPersistentDataContainer().set(key, PersistentDataType.STRING,rpgEntity.toJson());
-        }
+        }*/
 
     }
 
 
-    public static RpgEntity getRpgEntity(LivingEntity livingEntity){
-        if(RpgEntities.containsKey(livingEntity.getUniqueId())){
-            return RpgEntities.get(livingEntity.getUniqueId());
-        }else{
-            if(livingEntity.getPersistentDataContainer().has(key)){
-                RpgEntity newEntity = new RpgEntity(livingEntity, RpgEntity.fromJson(livingEntity.getPersistentDataContainer().get(key,PersistentDataType.STRING)));
-                RpgEntities.put(livingEntity.getUniqueId(),newEntity);
-                return newEntity;
-            }
-            RpgEntity newEntity = new RpgEntity(livingEntity);
-            RpgEntities.put(livingEntity.getUniqueId(),newEntity);
-            return newEntity;
-        }
-    }
-    public static RpgEntity getRpgEntity(UUID uuid){
-        if(RpgEntities.containsKey(uuid)){
-            return RpgEntities.get(uuid);
-        }else{
-            if(Bukkit.getEntity(uuid) instanceof LivingEntity livingEntity) {
-                if (livingEntity.getPersistentDataContainer().has(key)) {
-                    RpgEntity newEntity = new RpgEntity(livingEntity, RpgEntity.fromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING)));
-                    RpgEntities.put(livingEntity.getUniqueId(), newEntity);
-                    return newEntity;
-                }
-                RpgEntity newEntity = new RpgEntity(livingEntity);
-                RpgEntities.put(livingEntity.getUniqueId(), newEntity);
-                return newEntity;
-            }else{
-                throw new IllegalArgumentException("UUID "+uuid+" was either not a livingentity or was invalid");
-            }
-        }
-    }
+
 
 
 /*    @EventHandler
@@ -116,9 +78,10 @@ public class EntityManager implements Listener {
     }
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDamageMoniter(RpgEntityDamageEvent event) {
-        if(event instanceof RpgEntityDamageByElementEvent rpgEntityDamageByElementEvent){
-            if(rpgEntityDamageByElementEvent.getCause() instanceof RpgEntity attacker){
-                attacker.addTarget(event.getEntity());
+        if(event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent){
+            if(rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker){
+                logger.info("ADDED TARGET "+event.getEntity().livingEntity.name());
+                attacker.addTarget(event.getEntity().getUUID());
             }
         }
 /*                ArmorStand test = (ArmorStand) livingEntity.getWorld().spawnEntity(
@@ -179,12 +142,6 @@ public class EntityManager implements Listener {
     }
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event){
-        if(RpgEntities.containsKey(event.getEntity().getUniqueId())){
-            RpgEntities.remove(event.getEntity().getUniqueId());
-        }
-        if(TempRpgEntities.containsKey(event.getEntity().getUniqueId())){
-            TempRpgEntities.remove(event.getEntity().getUniqueId());
-        }
         //logger.info("ENTITY DIED "+event.getEntity().getName()+" AND IS CANCELLED "+event.isCancelled());
         //event.getEntity().setHealth(0);
         //event.getEntity().remove();

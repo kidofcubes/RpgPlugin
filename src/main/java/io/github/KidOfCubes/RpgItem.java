@@ -1,24 +1,20 @@
 package io.github.KidOfCubes;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.TextColor;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static io.github.KidOfCubes.ExtraFunctions.isEmpty;
 import static io.github.KidOfCubes.ExtraFunctions.toRoman;
-import static io.github.KidOfCubes.RpgPlugin.gson;
 import static io.github.KidOfCubes.RpgPlugin.key;
 
-public class RpgItem extends RpgElement{
+public class RpgItem extends RpgObject {
     public ItemStack item;
     public RpgItem(ItemStack item){
         this.item = item;
@@ -53,6 +49,7 @@ public class RpgItem extends RpgElement{
 
         return itemStack;
     }
+
     static class RpgItemJsonContainer{
         public String name;
         public int level;

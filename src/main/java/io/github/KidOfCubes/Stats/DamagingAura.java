@@ -6,7 +6,7 @@ import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageByEntityEvent;
 import io.github.KidOfCubes.Events.RpgTickEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
-import io.github.KidOfCubes.RpgElement;
+import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Types.StatType;

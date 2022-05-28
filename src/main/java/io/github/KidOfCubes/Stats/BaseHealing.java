@@ -2,9 +2,9 @@
 package io.github.KidOfCubes.Stats;
 
 import io.github.KidOfCubes.Events.RpgActivateStatEvent;
-import io.github.KidOfCubes.Events.RpgEntityHealByElementEvent;
+import io.github.KidOfCubes.Events.RpgEntityHealByObjectEvent;
 import io.github.KidOfCubes.Events.RpgEntityHealEvent;
-import io.github.KidOfCubes.RpgElement;
+import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.Stat;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.Event;
@@ -25,7 +25,7 @@ public class BaseHealing extends Stat {
 
     @Override
     protected void run(RpgActivateStatEvent event) {
-        if(event.getTriggerEvent() instanceof RpgEntityHealByElementEvent healByEntityEvent){
+        if(event.getTriggerEvent() instanceof RpgEntityHealByObjectEvent healByEntityEvent){
             healByEntityEvent.setChange(healByEntityEvent.getChange()+level);
         }
     }

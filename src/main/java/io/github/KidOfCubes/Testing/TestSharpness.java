@@ -1,14 +1,6 @@
 package io.github.KidOfCubes.Testing;
 
-import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-
-import io.github.KidOfCubes.RpgElement;
-import io.github.KidOfCubes.Stat;
-import org.bukkit.event.Event;
-
-import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public class TestSharpness implements Listener {
 

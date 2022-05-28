@@ -1,22 +1,14 @@
 package io.github.KidOfCubes.Types;
 
-import io.github.KidOfCubes.RpgElement;
+import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.RpgPlugin;
 import io.github.KidOfCubes.Stat;
-import io.github.KidOfCubes.Stats.Sharpness;
-import org.bukkit.Warning;
 import org.bukkit.event.*;
 import org.bukkit.plugin.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InvalidClassException;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.util.logging.Level;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
 
@@ -40,7 +32,7 @@ public class StatRegisteredListener extends RegisteredListener
         long startTime = System.nanoTime();
         for (int i = 0; i < listenEvents.size(); i++) {
             if(listenEvents.get(i).isAssignableFrom(event.getClass())) {
-                RpgElement toCheck = stat.elementToStatCheck(event);
+                RpgObject toCheck = stat.elementToStatCheck(event);
                 if (toCheck != null) {
                     if (toCheck.hasStat(stat.getName())) {
                         stat.trigger(event);

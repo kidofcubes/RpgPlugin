@@ -3,7 +3,6 @@ package io.github.KidOfCubes;
 import io.github.KidOfCubes.Events.*;
 import io.github.KidOfCubes.Types.DamageType;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -12,27 +11,24 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static io.github.KidOfCubes.ExtraFunctions.isEmpty;
-import static io.github.KidOfCubes.Managers.EntityManager.TempRpgEntities;
 import static io.github.KidOfCubes.RpgPlugin.logger;
 
-public class RpgEntity extends RpgElement{
+public class RpgEntity extends RpgObject {
     public LivingEntity livingEntity;
     private double health;
     private double maxHealth;
-    private List<RpgElement> attackedBy = new ArrayList<>();
-    private List<RpgElement> targets = new ArrayList<>();
-    private List<RpgElement> allies  = new ArrayList<>();
+    private final List<UUID> attackedBy = new ArrayList<>();
+    private final List<UUID> targets = new ArrayList<>();
+    private final List<UUID> allies  = new ArrayList<>();
 
     public RpgEntity(LivingEntity livingEntity){
         this.livingEntity = livingEntity;
+        setUUID(livingEntity.getUniqueId());
         level = 0;
     }
     public RpgEntity(LivingEntity livingEntity, boolean tempEntity){
         this(livingEntity);
-        if(tempEntity) {
-            TempRpgEntities.put(livingEntity.getUniqueId(),this);
-            logger.info("TEMPENTITIES: "+TempRpgEntities.size());
-        }
+        temporary = tempEntity;
     }
     public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity){
         this(livingEntity,tempEntity);
@@ -40,14 +36,14 @@ public class RpgEntity extends RpgElement{
             this.parent = parent;
         }
     }
-    public RpgEntity(LivingEntity livingEntity, RpgElement from){
+    public RpgEntity(LivingEntity livingEntity, RpgObject from){
         this(livingEntity);
         stats = from.stats;
         level = from.level;
         name = from.name;
         if(from instanceof RpgEntity rpgEntity) {
-            targets = rpgEntity.targets;
-            allies = rpgEntity.allies;
+            //targets = rpgEntity.targets;
+            //allies = rpgEntity.allies;
         }
     }
     public void damage(DamageType type, double amount){ //AMOUNT IS FOR BASE AMOUNT
@@ -56,8 +52,8 @@ public class RpgEntity extends RpgElement{
         livingEntity.damage(event.getTotalDamage());
     }
 
-    public RpgEntityDamageEvent damage(DamageType type, double amount, RpgElement attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
-        RpgEntityDamageEvent event = new RpgEntityDamageByElementEvent(this,type,amount, attacker);
+    public RpgEntityDamageEvent damage(DamageType type, double amount, RpgObject attacker){ //AMOUNT IS FOR BASE AMOUNT, WILL RUN STATS i think
+        RpgEntityDamageEvent event = new RpgEntityDamageByObjectEvent(this,type,amount, attacker);
         event.callEvent();
         livingEntity.damage(event.getTotalDamage());
         return event;
@@ -68,9 +64,9 @@ public class RpgEntity extends RpgElement{
         livingEntity.setHealth(livingEntity.getHealth()+event.getAmount());
         return event;
     }
-    public RpgEntityHealByElementEvent heal(double amount, @NotNull RpgElement healer){
+    public RpgEntityHealByObjectEvent heal(double amount, @NotNull RpgObject healer){
 
-        RpgEntityHealByElementEvent event = new RpgEntityHealByElementEvent(this, amount, healer);
+        RpgEntityHealByObjectEvent event = new RpgEntityHealByObjectEvent(this, amount, healer);
         event.callEvent();
         livingEntity.setHealth(livingEntity.getHealth()+event.getAmount());
         return event;
@@ -82,18 +78,20 @@ public class RpgEntity extends RpgElement{
         this.level = level;
     }*/
 
-    public void addAlly(RpgElement target){
+
+
+    public void addAlly(UUID target){
         allies.add(target);
     }
-    public void addAttackedBy(RpgElement target){
+    public void addAttackedBy(UUID target){
         attackedBy.add(target);
     }
-    public void addTarget(RpgElement target){
+    public void addTarget(UUID target){
         targets.add(target);
     }
 
-    public boolean isAlly(RpgElement entity){
-        if(entity!=this) {
+    public boolean isAlly(UUID entity){
+        if(entity!=getUUID()) {
             if (parent != null) {
                 return parent.isAlly(entity);
             } else {
@@ -104,8 +102,8 @@ public class RpgEntity extends RpgElement{
         }
     }
 
-    public boolean isAttackedBy(RpgElement entity){
-        if(entity!=this) {
+    public boolean isAttackedBy(UUID entity){
+        if(entity!=getUUID()) {
             if (parent != null) {
                 return parent.isAttackedBy(entity);
             } else {
@@ -116,8 +114,8 @@ public class RpgEntity extends RpgElement{
         }
     }
 
-    public boolean isTarget(RpgElement entity){
-        if(entity!=this) {
+    public boolean isTarget(UUID entity){
+        if(entity!=getUUID()) {
             if (parent != null) {
                 return parent.isTarget(entity)||targets.contains(entity);
             } else {
@@ -128,8 +126,8 @@ public class RpgEntity extends RpgElement{
         }
     }
 
-    @Nullable
-    public RpgElement currentTarget(){
+    //@Nullable
+    public UUID currentTarget(){
         if(targets.size()!=0){
             return targets.get(targets.size()-1);
         }else{
@@ -167,5 +165,10 @@ public class RpgEntity extends RpgElement{
         }
         return effectiveStatsCache;
 
+    }
+
+    @Override
+    public boolean exists() {
+        return livingEntity.isValid()&&!livingEntity.isDead();
     }
 }

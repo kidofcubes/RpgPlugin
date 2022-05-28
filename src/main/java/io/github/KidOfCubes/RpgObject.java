@@ -4,20 +4,30 @@ package io.github.KidOfCubes;
 
 import io.github.KidOfCubes.Events.*;
 import io.github.KidOfCubes.Types.DamageType;
-import org.bukkit.event.Event;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static io.github.KidOfCubes.RpgPlugin.gson;
-import static io.github.KidOfCubes.RpgPlugin.logger;
 
-public class RpgElement {
-    public String name;
-    public int level;
+public class RpgObject {
+    String name;
+    int level;
     protected List<String> stats = new ArrayList<>();
-    public float mana; //todo implement mana
-    public RpgEntity parent;
+    float mana; //todo implement mana
+    RpgEntity parent;
+    boolean temporary = false;
+
+
+    public UUID getUUID() {
+        return uuid;
+    }
+
+    private UUID uuid;
+    public void setUUID(UUID uuid){
+        this.uuid = uuid;
+    }
+
+
 
 
     public void addStat(Stat stat){
@@ -48,7 +58,7 @@ public class RpgElement {
     public List<String> getEffectiveStats(){
         return getStats();
     }
-    public void runStats(RpgElement caller){
+    public void runStats(RpgObject caller){
         List<String> statsSorted = getEffectiveStats();
     }
     public boolean hasStat(String name){
@@ -75,7 +85,7 @@ public class RpgElement {
 
 
     public void attack(double amount, RpgEntity victim){
-        RpgEntityDamageEvent event = new RpgEntityDamageByElementEvent(victim, DamageType.Physical, amount,this);
+        RpgEntityDamageEvent event = new RpgEntityDamageByObjectEvent(victim, DamageType.Physical, amount,this);
         event.callEvent();
         victim.livingEntity.damage(event.getTotalDamage());
     }
@@ -96,7 +106,7 @@ public class RpgElement {
         if(event instanceof RpgEntityDamageByEntityEvent rpgEntityDamageByEntityEvent){
             activateStatEvent.setCaster(rpgEntityDamageByEntityEvent.getAttacker());
         }
-        if(event instanceof RpgEntityHealByElementEvent rpgEntityHealByEntityEvent){
+        if(event instanceof RpgEntityHealByObjectEvent rpgEntityHealByEntityEvent){
             activateStatEvent.setCaster(rpgEntityHealByEntityEvent.getHealer());
         }
         activateStatEvent.setTriggerEvent(event);
@@ -114,10 +124,10 @@ public class RpgElement {
         }
         return gson.toJson(container);
     }
-    public static RpgElement fromJson(String json){
-        RpgElement rpgElement = new RpgElement();
-        rpgElement.loadFromJson(json);
-        return rpgElement;
+    public static RpgObject fromJson(String json){
+        RpgObject rpgObject = new RpgObject();
+        rpgObject.loadFromJson(json);
+        return rpgObject;
     }
     void loadFromJson(String json){
         RpgElementJsonContainer container = gson.fromJson(json,RpgElementJsonContainer.class);
@@ -138,17 +148,17 @@ public class RpgElement {
         if(other==null){
             return false;
         }
-        if(other instanceof RpgElement otherRpgElement){
-            if(!otherRpgElement.name.equalsIgnoreCase(name)){
+        if(other instanceof RpgObject otherRpgObject){
+            if(!otherRpgObject.name.equalsIgnoreCase(name)){
                 return false;
             }
-            if(otherRpgElement.level != level){
+            if(otherRpgObject.level != level){
                 return false;
             }
-            if(otherRpgElement.mana != mana){
+            if(otherRpgObject.mana != mana){
                 return false;
             }
-            List<String> otherEffectiveStats = otherRpgElement.getEffectiveStats();
+            List<String> otherEffectiveStats = otherRpgObject.getEffectiveStats();
             List<String> myEffectiveStats = getEffectiveStats();
             if(otherEffectiveStats.size()!=myEffectiveStats.size()){
                 return false;
@@ -162,5 +172,20 @@ public class RpgElement {
         }else{
             return false;
         }
+    }
+
+    /**
+     * should probably override this
+     * @return If it should be deleted
+     */
+    public boolean exists(){
+        return false;
+    }
+
+    //todo
+    /**
+     * should probably override this
+     */
+    public void save(){
     }
 }

@@ -1,6 +1,7 @@
 package io.github.KidOfCubes.Commands;
 
 import io.github.KidOfCubes.Managers.EntityManager;
+import io.github.KidOfCubes.Managers.RpgManager;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.RpgItem;
 import io.github.KidOfCubes.RpgPlugin;
@@ -25,7 +26,7 @@ public class StatEdit implements CommandExecutor {
                     case "add":
 
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
-                            RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
+                            RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
                             //Stat realStat = Stat.fromText(args[1],Integer.parseInt(args[2]));
                             String name = Stat.fromText(args[1]).getName();
                             rpgEntity.addStat(name);
@@ -44,7 +45,7 @@ public class StatEdit implements CommandExecutor {
                     case "remove":
 
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
-                            RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
+                            RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
 
                             List<String> stats = rpgEntity.getStats();
                             for (int i = stats.size()-1; i >= 0; i--) {
@@ -73,7 +74,7 @@ public class StatEdit implements CommandExecutor {
 
                     default: //LIST
                         if(isEmpty(livingEntity.getEquipment().getItemInMainHand())){
-                            RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
+                            RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
 
                             List<String> stats = rpgEntity.getEffectiveStats();
                             for(String stat : stats){

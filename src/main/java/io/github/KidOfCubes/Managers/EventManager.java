@@ -11,7 +11,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginManager;
 
-import static io.github.KidOfCubes.RpgPlugin.logger;
 import static io.github.KidOfCubes.RpgPlugin.plugin;
 
 
@@ -50,9 +49,9 @@ public class EventManager implements Listener {
                     //START THE CUSTOM PROCESS
                     RpgEntityDamageEvent customEvent;
                     if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) { //RpgEntityDamageByEntityEvent
-                        customEvent = new RpgEntityDamageByElementEvent(EntityManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage(), EntityManager.getRpgEntity(damager));
+                        customEvent = new RpgEntityDamageByObjectEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage(), RpgManager.getRpgEntity(damager));
                     } else { //RpgEntityDamageEvent
-                        customEvent = new RpgEntityDamageEvent(EntityManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage());
+                        customEvent = new RpgEntityDamageEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage());
                     }
                     long startTime = System.nanoTime();
                     pluginManager.callEvent(customEvent);
@@ -73,7 +72,7 @@ public class EventManager implements Listener {
                 //START THE CUSTOM PROCESS
 
                 //event = new RpgEntityHealEvent(event);
-                RpgEntityHealEvent customEvent = new RpgEntityHealEvent(EntityManager.getRpgEntity(entity),event.getAmount());
+                RpgEntityHealEvent customEvent = new RpgEntityHealEvent(RpgManager.getRpgEntity(entity),event.getAmount());
                 pluginManager.callEvent(customEvent);
                 event.setAmount(customEvent.getAmount());
             }

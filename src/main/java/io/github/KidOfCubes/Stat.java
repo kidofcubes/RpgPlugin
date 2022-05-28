@@ -6,7 +6,6 @@ import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.*;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
 import static io.github.KidOfCubes.RpgPlugin.logger;
@@ -23,7 +22,7 @@ public abstract class Stat implements Listener {
 
     public int level;
 
-    //public static List<RpgElement> elementsWithStat = new ArrayList<RpgElement>();
+    //public static List<RpgObject> elementsWithStat = new ArrayList<RpgObject>();
 
     //override stats run slower i suppose?
 
@@ -59,7 +58,7 @@ public abstract class Stat implements Listener {
         run(event);
     }
 
-    public abstract RpgElement elementToStatCheck(Event event);
+    public abstract RpgObject elementToStatCheck(Event event);
     public abstract void run(Event event);
 
 
