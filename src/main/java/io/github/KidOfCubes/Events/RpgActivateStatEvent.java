@@ -17,18 +17,20 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 public class RpgActivateStatEvent extends Event implements Cancellable{
 
 
-    @Nullable
+
     private RpgElement caster;
-    @NotNull
     private RpgElement parent;
-    @Nullable
     private RpgElement target;
 
 
-    private List<Stat> triggerStats = new ArrayList<>();
+    private List<String> triggerStats = new ArrayList<>();
     private boolean directOnly = false;
 
-    public RpgActivateStatEvent addTriggerStat(Stat stat){
+/*    public RpgActivateStatEvent(RpgElement parent){
+        this.parent = parent;
+    }*/
+
+    public RpgActivateStatEvent addTriggerStat(String stat){
         triggerStats.add(stat);
         return this;
     }
@@ -53,8 +55,21 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
         return this;
     }
 
+    @Override
+    public boolean callEvent() {
+        if(parent!=null) {
+            if (target == null) {
+                target = parent;
+            }
+            if (caster == null) {
+                caster = parent;
+            }
+            return super.callEvent();
+        }
+        return false;
+    }
 
-    //region gettersetters
+    //region getter setters
 
     public @Nullable RpgElement getCaster() {
         return caster;
@@ -80,11 +95,11 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
         this.target = target;
     }
 
-    public List<Stat> getTriggerStats() {
+    public List<String> getTriggerStats() {
         return triggerStats;
     }
 
-    public void setTriggerStats(List<Stat> triggerStats) {
+    public void setTriggerStats(List<String> triggerStats) {
         this.triggerStats = triggerStats;
     }
 

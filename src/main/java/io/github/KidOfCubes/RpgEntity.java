@@ -7,6 +7,7 @@ import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -18,8 +19,9 @@ public class RpgEntity extends RpgElement{
     public LivingEntity livingEntity;
     private double health;
     private double maxHealth;
-    private List<UUID> targets = new ArrayList<>();
-    private List<UUID> allies  = new ArrayList<>();
+    private List<RpgElement> attackedBy = new ArrayList<>();
+    private List<RpgElement> targets = new ArrayList<>();
+    private List<RpgElement> allies  = new ArrayList<>();
 
     public RpgEntity(LivingEntity livingEntity){
         this.livingEntity = livingEntity;
@@ -80,34 +82,60 @@ public class RpgEntity extends RpgElement{
         this.level = level;
     }*/
 
-    public void addTarget(RpgEntity target){
-        targets.add(target.livingEntity.getUniqueId());
+    public void addAlly(RpgElement target){
+        allies.add(target);
+    }
+    public void addAttackedBy(RpgElement target){
+        attackedBy.add(target);
+    }
+    public void addTarget(RpgElement target){
+        targets.add(target);
     }
 
-    public boolean isAlly(RpgEntity entity){
+    public boolean isAlly(RpgElement entity){
         if(entity!=this) {
             if (parent != null) {
                 return parent.isAlly(entity);
             } else {
-                return allies.contains(entity.livingEntity.getUniqueId());
+                return allies.contains(entity);
             }
         }else{
             return true;
         }
     }
 
-    public boolean isTarget(RpgEntity entity){
+    public boolean isAttackedBy(RpgElement entity){
         if(entity!=this) {
             if (parent != null) {
-                return parent.isTarget(entity)||targets.contains(entity.livingEntity.getUniqueId());
+                return parent.isAttackedBy(entity);
             } else {
-                return targets.contains(entity.livingEntity.getUniqueId());
+                return attackedBy.contains(entity);
             }
         }else{
             return false;
         }
     }
 
+    public boolean isTarget(RpgElement entity){
+        if(entity!=this) {
+            if (parent != null) {
+                return parent.isTarget(entity)||targets.contains(entity);
+            } else {
+                return targets.contains(entity);
+            }
+        }else{
+            return false;
+        }
+    }
+
+    @Nullable
+    public RpgElement currentTarget(){
+        if(targets.size()!=0){
+            return targets.get(targets.size()-1);
+        }else{
+            return null;
+        }
+    }
 
     List<String> effectiveStatsCache = new ArrayList<>();
     long effectiveStatsLastUpdate = 0;
@@ -122,14 +150,14 @@ public class RpgEntity extends RpgElement{
                     ItemStack item = livingEntity.getEquipment().getItem(slot);
                     if (!isEmpty(item)) {
                         RpgItem temp = new RpgItem(item);
-                        logger.info("length of effective stats is "+temp.getEffectiveStats().size());
+                        //logger.info("length of effective stats is "+temp.getEffectiveStats().size());
                         list.addAll(temp.getEffectiveStats());
                     }
                 }
             }
             Map<String, Integer> levels = new HashMap<>();
             for (String stat : list) {
-                logger.info("i have a stat "+stat);
+                //logger.info("i have a stat "+stat);
                 levels.putIfAbsent(stat, -1);
 /*                if (levels.get(stat.getName()).level < stat.level) {
                     levels.put(stat.getName(), stat);

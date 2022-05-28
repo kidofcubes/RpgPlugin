@@ -80,15 +80,11 @@ public class RpgElement {
         victim.livingEntity.damage(event.getTotalDamage());
     }
 
-    public void activateStat(String name){ //todo fix
-/*        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent().caster(this);
-        for (Stat stat: getEffectiveStats()) {
-            if(stat.getName().equalsIgnoreCase(name)){
-                logger.info("I HAVE A STAT "+ stat.getName() + " OF LEVEL "+stat.level);
-                activateStatEvent.addTriggerStat(stat);
-            }
-        }
-        activateStatEvent.callEvent(this);*/
+    public void activateStat(String name){
+        getActivateStatEvent(name).callEvent();
+    }
+    public RpgActivateStatEvent getActivateStatEvent(String name){
+        return new RpgActivateStatEvent().parent(this).addTriggerStat(name);
     }
 
 /*    public void activateStat(Event event){

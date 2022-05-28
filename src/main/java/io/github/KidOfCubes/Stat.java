@@ -4,6 +4,8 @@ package io.github.KidOfCubes;
 import io.github.KidOfCubes.Managers.StatManager;
 import io.github.KidOfCubes.Types.StatType;
 import org.bukkit.event.*;
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.Objects;
 
@@ -40,6 +42,7 @@ public abstract class Stat implements Listener {
         return statType;
     }
 
+    @Nullable
     public static Class<? extends Stat> fromText(String name){
         for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
             if(stat.getSimpleName().equalsIgnoreCase(name)){

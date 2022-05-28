@@ -1,5 +1,6 @@
 package io.github.KidOfCubes.Managers;
 
+import io.github.KidOfCubes.Events.RpgEntityDamageByElementEvent;
 import io.github.KidOfCubes.Events.RpgEntityDamageEvent;
 import io.github.KidOfCubes.Events.RpgTickEvent;
 import io.github.KidOfCubes.RpgEntity;
@@ -114,65 +115,67 @@ public class EntityManager implements Listener {
 
     }
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onDamageMoniter(EntityDamageEvent event) {
-
-        if (event.getCause() == EntityDamageEvent.DamageCause.CUSTOM) {
-            if (event.getEntity() instanceof LivingEntity livingEntity) {
-/*                ArmorStand test = (ArmorStand) livingEntity.getWorld().spawnEntity(
-                        livingEntity.getEyeLocation().add(
-                                (Math.random() - 0.5),
-                                (Math.random() - 0.5),
-                                (Math.random() - 0.5)
-                        ), EntityType.ARMOR_STAND);
-                test.setCanTick(false);
-                test.setVisible(false);
-                test.setCustomNameVisible(true);
-                test.customName(Component.text("-" + event.getDamage()).color(TextColor.color(255, 0, 0)).append(Component.text("\u2764").color(TextColor.color(255, 0, 0))));
-                Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, test::remove, 20);*/
-                long startTime = System.nanoTime();
-                ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
-                ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, nmsWorld);
-                armorstand.setInvisible(true);
-                armorstand.setCustomNameVisible(true);
-                armorstand.setSmall(true);
-                armorstand.setNoBasePlate(true);
-                armorstand.setCustomName(new TextComponent(ChatColor.RED+ "-" + event.getDamage()));
-
-                Location eyeLocation = livingEntity.getEyeLocation();
-                Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).toVector();
-                armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
-                ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);
-                //ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(),armorstand.getEntityData(),false);
-
-                List<ServerPlayerConnection> connections = new ArrayList<>();
-                for (Player other : Bukkit.getOnlinePlayers()) {
-                    if (other.getLocation().distance(eyeLocation) <= 32) {
-                        //logger.info("found a player "+other.name());
-                        ServerPlayerConnection connection = ((CraftPlayer) other).getHandle().connection;
-                        connection.send(packet);
-                        //connection.send(entityDataPacket);
-                        connections.add(connection);
-
-                    }
-                }
-                new java.util.Timer().schedule(
-                        new java.util.TimerTask() {
-                            @Override
-                            public void run() {
-                                ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(armorstand.getId());
-                                for (ServerPlayerConnection connection :
-                                        connections) {
-                                    connection.send(packet);
-                                }
-                            }
-                        },
-                        1500
-                );
-                long endTime = System.nanoTime();
-                double duration = (endTime - startTime)/1000000.0;
-                logger.info("health tag took "+duration);
+    public void onDamageMoniter(RpgEntityDamageEvent event) {
+        if(event instanceof RpgEntityDamageByElementEvent rpgEntityDamageByElementEvent){
+            if(rpgEntityDamageByElementEvent.getCause() instanceof RpgEntity attacker){
+                attacker.addTarget(event.getEntity());
             }
         }
+/*                ArmorStand test = (ArmorStand) livingEntity.getWorld().spawnEntity(
+                livingEntity.getEyeLocation().add(
+                        (Math.random() - 0.5),
+                        (Math.random() - 0.5),
+                        (Math.random() - 0.5)
+                ), EntityType.ARMOR_STAND);
+        test.setCanTick(false);
+        test.setVisible(false);
+        test.setCustomNameVisible(true);
+        test.customName(Component.text("-" + event.getDamage()).color(TextColor.color(255, 0, 0)).append(Component.text("\u2764").color(TextColor.color(255, 0, 0))));
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, test::remove, 20);*/
+        long startTime = System.nanoTime();
+        ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
+        ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, nmsWorld);
+        armorstand.setInvisible(true);
+        armorstand.setCustomNameVisible(true);
+        armorstand.setSmall(true);
+        armorstand.setNoBasePlate(true);
+        armorstand.setCustomName(new TextComponent(ChatColor.RED+ "-" + event.getDamage()));
+
+        Location eyeLocation = event.getEntity().livingEntity.getEyeLocation();
+        Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).toVector();
+        armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
+        ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);
+        ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(),armorstand.getEntityData(),false);
+
+        List<ServerPlayerConnection> connections = new ArrayList<>();
+        for (Player other : Bukkit.getOnlinePlayers()) {
+            if (other.getLocation().distance(eyeLocation) <= 32) {
+                //logger.info("found a player "+other.name());
+                ServerPlayerConnection connection = ((CraftPlayer) other).getHandle().connection;
+                connection.send(packet);
+                connection.send(entityDataPacket);
+                connections.add(connection);
+
+            }
+        }
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(armorstand.getId());
+                        for (ServerPlayerConnection connection :
+                                connections) {
+                            connection.send(packet);
+                        }
+                    }
+                },
+                1500
+        );
+        long endTime = System.nanoTime();
+        double duration = (endTime - startTime)/1000000.0;
+        //logger.info("health tag took "+duration);
+
+
     }
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event){

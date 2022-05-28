@@ -1,5 +1,6 @@
 package io.github.KidOfCubes.Commands;
 
+import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.RpgEntity;
 import io.github.KidOfCubes.Stat;
@@ -14,7 +15,11 @@ public class Cast implements CommandExecutor {
         if (sender instanceof LivingEntity livingEntity) {
             if(args.length>0) {
                 RpgEntity rpgEntity = EntityManager.getRpgEntity(livingEntity);
-                rpgEntity.activateStat(args[0]);
+                RpgActivateStatEvent event = rpgEntity.getActivateStatEvent(args[0]);
+                if(args.length>1){
+                    event.target(rpgEntity.currentTarget());
+                }
+                event.callEvent();
                 return true;
             }
             return true;
