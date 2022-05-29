@@ -8,6 +8,7 @@ import io.github.KidOfCubes.Events.RpgEntityDamageByObjectEvent;
 import io.github.KidOfCubes.Events.RpgEntityHealEvent;
 import io.github.KidOfCubes.Managers.EntityManager;
 import io.github.KidOfCubes.Managers.EventManager;
+import io.github.KidOfCubes.Managers.RpgManager;
 import io.github.KidOfCubes.Managers.StatManager;
 import io.github.KidOfCubes.Stats.HealingTest;
 import io.github.KidOfCubes.Stats.Sharpness;
@@ -35,12 +36,10 @@ public class RpgPlugin extends JavaPlugin {
         plugin = this;
         logger.info("RpgPlugin Starting");
 
-        //getServer().getPluginManager().registerEvents(new ItemManager(), this);
-        //getServer().getPluginManager().registerEvents(new StatManager(), this);
-        StatManager.register(new Sharpness(), List.of(RpgEntityDamageByObjectEvent.class));
-        StatManager.register(new HealingTest(), List.of(RpgEntityHealEvent.class));
-        StatManager.register(new Smite(), List.of(RpgActivateStatEvent.class));
+
         StatManager statManager = new StatManager();
+        RpgManager rpgManager = new RpgManager();
+        RpgManager.init();
         EntityManager entityManager = new EntityManager();
         getServer().getPluginManager().registerEvents(entityManager, plugin);
         EventManager eventManager = new EventManager();
@@ -57,7 +56,7 @@ public class RpgPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        EntityManager.close();
+        RpgManager.close();
         logger.info("RpgPlugin Closing");
     }
 }

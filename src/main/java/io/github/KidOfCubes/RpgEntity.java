@@ -24,7 +24,15 @@ public class RpgEntity extends RpgObject {
     private final Map<EntityRelation,List<UUID>> relations = new HashMap<>();
 
     public RpgEntity(LivingEntity livingEntity){
+        this(livingEntity,false);
+    }
+    public RpgEntity(LivingEntity livingEntity, boolean tempEntity){
+        this(livingEntity,null,tempEntity);
+    }
+    public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity){
         this.livingEntity = livingEntity;
+        level = 0;
+        temporary = tempEntity;
         if(livingEntity.getPersistentDataContainer().has(key)){
             loadFromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING));
         }
@@ -33,15 +41,10 @@ public class RpgEntity extends RpgObject {
                 EntityRelation.values()) {
             relations.put(relation,new ArrayList<>());
         }
-        level = 0;
-    }
-    public RpgEntity(LivingEntity livingEntity, boolean tempEntity){
-        this(livingEntity);
-        temporary = tempEntity;
-    }
-    public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity){
-        this(livingEntity,tempEntity);
-        setParent(parent);
+        if(parent!=null) {
+            setParent(parent);
+        }
+        RpgManager.addRpgEntity(getUUID(),this);
     }
 
 

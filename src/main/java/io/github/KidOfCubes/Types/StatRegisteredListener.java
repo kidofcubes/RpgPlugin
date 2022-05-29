@@ -1,5 +1,6 @@
 package io.github.KidOfCubes.Types;
 
+import io.github.KidOfCubes.Events.RpgActivateStatEvent;
 import io.github.KidOfCubes.RpgObject;
 import io.github.KidOfCubes.RpgPlugin;
 import io.github.KidOfCubes.Stat;
@@ -34,8 +35,15 @@ public class StatRegisteredListener extends RegisteredListener
             if(listenEvents.get(i).isAssignableFrom(event.getClass())) {
                 RpgObject toCheck = stat.elementToStatCheck(event);
                 if (toCheck != null) {
-                    if (toCheck.hasStat(stat.getName())) {
-                        stat.trigger(event);
+                    int level = toCheck.getEffectiveStats().getOrDefault(stat.getName(),0);
+                    if(level!=0) {
+
+                        if(event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
+                            logger.info("GOT A ACTIVATE EVENT ON "+stat.getName()+" "+rpgActivateStatEvent.getTriggerStats().size());
+                            if(rpgActivateStatEvent.getTriggerStats().contains(stat.getName())) stat.trigger(event, level);
+                        }else{
+                            stat.trigger(event, level);
+                        }
                     }
                 }
                 return;

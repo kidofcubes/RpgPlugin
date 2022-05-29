@@ -67,7 +67,7 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
 
     //region getter setters
 
-    public @Nullable RpgObject getCaster() {
+    public RpgObject getCaster() {
         return caster;
     }
 
@@ -83,7 +83,7 @@ public class RpgActivateStatEvent extends Event implements Cancellable{
         this.parent = parent;
     }
 
-    public @Nullable RpgObject getTarget() {
+    public RpgObject getTarget() {
         return target;
     }
 

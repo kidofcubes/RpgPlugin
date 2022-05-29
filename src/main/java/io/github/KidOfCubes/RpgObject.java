@@ -9,6 +9,7 @@ import io.github.KidOfCubes.Types.DamageType;
 import java.util.*;
 
 import static io.github.KidOfCubes.RpgPlugin.gson;
+import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public abstract class RpgObject {
     String name;
@@ -23,6 +24,12 @@ public abstract class RpgObject {
 
 
     UUID parentUUID;
+
+    public boolean isTemporary() {
+        logger.info("am temp"+temporary);
+        return temporary;
+    }
+
     boolean temporary = false;
 
 

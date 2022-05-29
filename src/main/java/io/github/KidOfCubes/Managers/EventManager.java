@@ -11,6 +11,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.plugin.PluginManager;
 
+import static io.github.KidOfCubes.RpgPlugin.logger;
 import static io.github.KidOfCubes.RpgPlugin.plugin;
 
 

@@ -18,8 +18,8 @@ public class StatManager implements Listener {
 
     private static final List<Class<? extends Stat>> registeredStats = new ArrayList<>();
 
-    public static void register(Stat stat, List<Class<? extends Event>> listenEvents){
-        if(!registeredStats.contains(stat.getClass())) {
+    public static void register(Stat stat, List<Class<? extends Event>> listenEvents) {
+        if (!registeredStats.contains(stat.getClass())) {
             for (Class<? extends Event> listenEvent : listenEvents) {
                 //if(listenEvent.getClass().asSubclass(Event.class))
                 try {
@@ -27,7 +27,7 @@ public class StatManager implements Listener {
                     Method method = getRegistrationClass(listenEvent).getDeclaredMethod("getHandlerList");
                     method.setAccessible(true);
                     HandlerList handlerList = ((HandlerList) method.invoke(null));
-                    handlerList.register(new StatRegisteredListener(stat,listenEvents));
+                    handlerList.register(new StatRegisteredListener(stat, listenEvents));
 /*                    logger.info("there are "+handlerList.getRegisteredListeners().length+" listeners listening for stuf");
                     for (RegisteredListener listener: handlerList.getRegisteredListeners()) {
                         logger.info("theres a listener "+listener.getClass().getName());
@@ -43,11 +43,13 @@ public class StatManager implements Listener {
             registeredStats.add(stat.getClass());
         }
     }
+
     //unimplemented (real)
-    public static void unregister(Stat stat){
+    public static void unregister(Stat stat) {
 
     }
-    public static List<Class<? extends Stat>> getRegisteredStats(){
+
+    public static List<Class<? extends Stat>> getRegisteredStats() {
         return Collections.unmodifiableList(registeredStats);
     }
 

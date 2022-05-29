@@ -14,11 +14,11 @@ public class Smite extends Stat {
     }
 
     @Override
-    public void run(Event event) {
+    public void run(Event event, int level) {
         RpgActivateStatEvent activateStatEvent = ((RpgActivateStatEvent)event);
         if(activateStatEvent.getTarget() instanceof RpgEntity entity){
             entity.livingEntity.getWorld().strikeLightningEffect(entity.livingEntity.getLocation());
-            entity.damage(DamageType.Thunder,10);
+            entity.damage(DamageType.Thunder,level);
         }
 
     }

@@ -22,8 +22,8 @@ public class Sharpness extends Stat {
 
     @Override
     //@StatHandler(listenEvent = RpgEntityDamageEvent.class)
-    public void run(Event event) {
-        ((RpgEntityDamageEvent)event).addDamage(DamageType.Physical,100);
+    public void run(Event event, int level) {
+        ((RpgEntityDamageEvent)event).addDamage(DamageType.Physical,level);
 /*        if(event instanceof RpgEntityDamageEvent damageEvent) {
             logger.info("sharpness activated with level "*//*+level*//*);
             damageEvent.setDamage(damageEvent.getDamage() + (*//*level * *//*200f));

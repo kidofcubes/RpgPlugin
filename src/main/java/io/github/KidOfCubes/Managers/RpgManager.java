@@ -28,9 +28,19 @@ public class RpgManager implements Listener {
     }
 
     public static void close() {
+        cleanTempEntities();
         saveAll();
     }
 
+    public static void cleanTempEntities(){
+        for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
+            if(entry.getValue().isTemporary()){
+                entry.getValue().livingEntity.setHealth(0);
+                entry.getValue().livingEntity.remove();
+            }
+        }
+        allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
+    }
 
     @Nullable
     public static RpgObject getRpgObject(UUID uuid) {
@@ -54,7 +64,7 @@ public class RpgManager implements Listener {
 
     private static void saveAllEntities() {
         for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
-            if (entry.getValue().exists()) {
+            if (entry.getValue().exists()&&!entry.getValue().isTemporary()) {
                 entry.getValue().save();
             }
         }
@@ -82,9 +92,9 @@ public class RpgManager implements Listener {
         allEntities.put(key, rpgEntity);
     }
 
-    public static void addTempRpgEntity(UUID key, RpgEntity rpgEntity) {
-        allEntities.put(key, rpgEntity); //considering different map
-    }
+//    public static void addTempRpgEntity(UUID key, RpgEntity rpgEntity) {
+//        allEntities.put(key, rpgEntity); //considering different map
+//    }
 
     public static RpgEntity getRpgEntity(LivingEntity livingEntity) {
         RpgEntity returnEntity = getRpgEntity(livingEntity.getUniqueId());
@@ -92,7 +102,7 @@ public class RpgManager implements Listener {
             return returnEntity;
         } else {
             RpgEntity newEntity = new RpgEntity(livingEntity);
-            addRpgEntity(newEntity.getUUID(), newEntity);
+            ///addRpgEntity(newEntity.getUUID(), newEntity);
             return newEntity;
         }
     }
@@ -115,12 +125,13 @@ public class RpgManager implements Listener {
 
     public static RpgEntity makeTempRpgEntity(LivingEntity livingEntity) {
         RpgEntity newEntity = new RpgEntity(livingEntity, true);
-        addTempRpgEntity(livingEntity.getUniqueId(), newEntity);
+        //addTempRpgEntity(livingEntity.getUniqueId(), newEntity);
         return newEntity;
     }
 
     public static boolean checkEntityExists(UUID uuid) {
         RpgEntity checkEntity = allEntities.getOrDefault(uuid, null);
+//        logger.info("return value of checkentity was "+checkEntity);
         if (checkEntity != null) return checkEntity.exists();
         return false;
     }

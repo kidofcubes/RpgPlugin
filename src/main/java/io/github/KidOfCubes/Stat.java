@@ -12,23 +12,10 @@ import static io.github.KidOfCubes.RpgPlugin.logger;
 
 public abstract class Stat implements Listener {
 
-
-    private boolean initalized=false;
-    private Stat instance;
-
     public static String description;
 
     public static StatType statType;
 
-
-
-    //public static List<RpgObject> elementsWithStat = new ArrayList<RpgObject>();
-
-    //override stats run slower i suppose?
-
-    public Stat(){
-
-    }
 
     public String getName(){
         return this.getClass().getName();
@@ -57,12 +44,18 @@ public abstract class Stat implements Listener {
 
 
 
-    public void trigger(Event event){
-        run(event);
+    public void trigger(Event event, int level){
+        run(event, level);
     }
 
     public abstract RpgObject elementToStatCheck(Event event);
-    public abstract void run(Event event);
+
+    /**
+     *
+     * @param event an event that's an instanceof one of the events you asked for
+     * @param level the stat level, for things like more damage on sharpness 5 than sharpness 1 (will not give 0)
+     */
+    public abstract void run(Event event, int level);
 
 
 

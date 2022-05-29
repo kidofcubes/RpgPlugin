@@ -31,6 +31,11 @@ java {
 jar {
     destinationDirectory.set(file("G:\\Testing Version Servers\\1.18.2Paper\\plugins"))
 }
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
 
 task copyToPlugins {
     group 'testServer'
