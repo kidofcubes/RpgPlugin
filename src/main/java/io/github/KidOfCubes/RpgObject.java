@@ -3,51 +3,68 @@ package io.github.KidOfCubes;
 
 
 import io.github.KidOfCubes.Events.*;
+import io.github.KidOfCubes.Managers.RpgManager;
 import io.github.KidOfCubes.Types.DamageType;
 
 import java.util.*;
 
 import static io.github.KidOfCubes.RpgPlugin.gson;
 
-public class RpgObject {
+public abstract class RpgObject {
     String name;
     int level;
-    protected List<String> stats = new ArrayList<>();
+    private final Map<String,Integer> stats = new HashMap<>();
     float mana; //todo implement mana
-    RpgEntity parent;
+
+
+
+    private RpgEntity parent;
+
+
+
+    UUID parentUUID;
     boolean temporary = false;
 
 
+    private UUID uuid;
     public UUID getUUID() {
         return uuid;
     }
 
-    private UUID uuid;
     public void setUUID(UUID uuid){
         this.uuid = uuid;
     }
 
 
-
-
-    public void addStat(Stat stat){
-/*        if(!stats.containsKey(stat.getTriggerType())){
-            stats.put(stat.getTriggerType(), new ArrayList<>());
-        }*/
-        stats.add(stat.getName());
-
-
+    public RpgEntity getParent() {
+        if(parent!=null){
+            return parent;
+        }else{
+            if(parentUUID!=null){
+                RpgEntity rpgEntityParent = RpgManager.getRpgEntity(parentUUID);
+                if(rpgEntityParent!=null){
+                    parent = rpgEntityParent;
+                    return parent;
+                }
+            }
+            return null;
+        }
     }
 
-    public void addStat(String stat){
-/*        if(!stats.containsKey(stat.getTriggerType())){
-            stats.put(stat.getTriggerType(), new ArrayList<>());
-        }*/
-        stats.add(stat);
-
-
+    public void setParent(RpgEntity parent) {
+        this.parent = parent;
+        parentUUID = parent.getUUID();
     }
-    public List<String> getStats(){
+
+
+
+    public void addStat(String stat,int level){
+        stats.put(stat,level);
+    }
+    public void removeStat(String stat){
+        stats.remove(stat);
+    }
+    public Map<String,Integer> getStats(){
         return stats;
 /*        List<Stat> statList = new ArrayList<>();
         for (List<Stat> tempList : stats.values()) {
@@ -55,34 +72,12 @@ public class RpgObject {
         }
         return statList;*/
     }
-    public List<String> getEffectiveStats(){
+    public Map<String,Integer> getEffectiveStats(){
         return getStats();
     }
-    public void runStats(RpgObject caller){
-        List<String> statsSorted = getEffectiveStats();
-    }
     public boolean hasStat(String name){
-        return getEffectiveStats().contains(name);
-/*        if(stats.contains(name)){
-
-        }
-        for (Stat stat :
-                getEffectiveStats()) {
-            if (stat.getName().equalsIgnoreCase(name)) {
-                return true;
-            }
-        }
-        return false;*/
+        return getEffectiveStats().containsKey(name);
     }
-/*    public Stat getStat(String name){
-        for (Stat stat : getEffectiveStats()) {
-            if(stat.getName().equalsIgnoreCase(name)){
-                return stat;
-            }
-        }
-        return null;
-    }*/
-
 
     public void attack(double amount, RpgEntity victim){
         RpgEntityDamageEvent event = new RpgEntityDamageByObjectEvent(victim, DamageType.Physical, amount,this);
@@ -97,95 +92,39 @@ public class RpgObject {
         return new RpgActivateStatEvent().parent(this).addTriggerStat(name);
     }
 
-/*    public void activateStat(Event event){
-        RpgActivateStatEvent activateStatEvent = new RpgActivateStatEvent();
-        if(event instanceof RpgEntityHealthChangeEvent rpgEntityHealthChangeEvent){
-            activateStatEvent.setTarget(rpgEntityHealthChangeEvent.getEntity());
-            //activateStatEvent.setParent(rpgEntityHealthChangeEvent.getEntity());
-        }
-        if(event instanceof RpgEntityDamageByEntityEvent rpgEntityDamageByEntityEvent){
-            activateStatEvent.setCaster(rpgEntityDamageByEntityEvent.getAttacker());
-        }
-        if(event instanceof RpgEntityHealByObjectEvent rpgEntityHealByEntityEvent){
-            activateStatEvent.setCaster(rpgEntityHealByEntityEvent.getHealer());
-        }
-        activateStatEvent.setTriggerEvent(event);
-        activateStatEvent.callEvent(this);
-    }*/
-
     public String toJson(){
         RpgElementJsonContainer container = new RpgElementJsonContainer();
         container.name = name;
         container.level = level;
-        List<String> allStats = getStats();
+        Map<String,Integer> allStats = getStats();
         container.stats = new HashMap<String,Integer>();
-        for (int i = 0; i < allStats.size(); i++) {
-            container.stats.put(allStats.get(i),/*allStats.get(i).level*/-1);
-        }
+        container.stats.putAll(allStats);
         return gson.toJson(container);
-    }
-    public static RpgObject fromJson(String json){
-        RpgObject rpgObject = new RpgObject();
-        rpgObject.loadFromJson(json);
-        return rpgObject;
     }
     void loadFromJson(String json){
         RpgElementJsonContainer container = gson.fromJson(json,RpgElementJsonContainer.class);
         level = container.level;
         name = container.name;
-        for(Map.Entry<String,Integer> statProperties : container.stats.entrySet()){
-            addStat(statProperties.getKey());
-        }
+        stats.putAll(container.stats);
     }
     public static class RpgElementJsonContainer{
         public String name;
         public int level;
+        public UUID parent;
         public Map<String,Integer> stats;
     }
 
     @Override
-    public boolean equals(Object other){ //use uuid system later not work gud
+    public boolean equals(Object other){
         if(other==null){
             return false;
         }
         if(other instanceof RpgObject otherRpgObject){
-            if(!otherRpgObject.name.equalsIgnoreCase(name)){
-                return false;
-            }
-            if(otherRpgObject.level != level){
-                return false;
-            }
-            if(otherRpgObject.mana != mana){
-                return false;
-            }
-            List<String> otherEffectiveStats = otherRpgObject.getEffectiveStats();
-            List<String> myEffectiveStats = getEffectiveStats();
-            if(otherEffectiveStats.size()!=myEffectiveStats.size()){
-                return false;
-            }
-            for (int i = 0; i < otherEffectiveStats.size(); i++) {
-                if(!otherEffectiveStats.get(i).equals(myEffectiveStats.get(i))){
-                    return false;
-                }
-            }
-            return true;
+            return getUUID().equals(otherRpgObject.getUUID());
         }else{
             return false;
         }
     }
 
-    /**
-     * should probably override this
-     * @return If it should be deleted
-     */
-    public boolean exists(){
-        return false;
-    }
-
-    //todo
-    /**
-     * should probably override this
-     */
-    public void save(){
-    }
+    public abstract void save();
 }

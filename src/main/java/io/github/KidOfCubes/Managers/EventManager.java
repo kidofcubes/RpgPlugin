@@ -50,13 +50,13 @@ public class EventManager implements Listener {
                     RpgEntityDamageEvent customEvent;
                     if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) { //RpgEntityDamageByEntityEvent
                         customEvent = new RpgEntityDamageByObjectEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage(), RpgManager.getRpgEntity(damager));
-                    } else { //RpgEntityDamageEvent
+                    } else {
                         customEvent = new RpgEntityDamageEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()),event.getDamage());
                     }
                     long startTime = System.nanoTime();
                     pluginManager.callEvent(customEvent);
                     long endTime = System.nanoTime();
-                    //logger.info("setting damage to "+customEvent.getTotalDamage() + " took time "+((endTime-startTime)/1000000.0));
+
                     event.setDamage(customEvent.getTotalDamage());
                 }
             }
@@ -66,12 +66,12 @@ public class EventManager implements Listener {
 
     @EventHandler
     public void onEntityHeal(EntityRegainHealthEvent event) {
-        if (event.getEntity() instanceof LivingEntity entity) {//todo check if map normal heals to custom
+        if (event.getEntity() instanceof LivingEntity entity) {//todo check if map normal heals to custom in config
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.CUSTOM) { //TRIGGERED BY NORMAL
 
                 //START THE CUSTOM PROCESS
 
-                //event = new RpgEntityHealEvent(event);
+
                 RpgEntityHealEvent customEvent = new RpgEntityHealEvent(RpgManager.getRpgEntity(entity),event.getAmount());
                 pluginManager.callEvent(customEvent);
                 event.setAmount(customEvent.getAmount());

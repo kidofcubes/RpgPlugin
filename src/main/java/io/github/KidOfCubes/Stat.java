@@ -20,7 +20,7 @@ public abstract class Stat implements Listener {
 
     public static StatType statType;
 
-    public int level;
+
 
     //public static List<RpgObject> elementsWithStat = new ArrayList<RpgObject>();
 
@@ -32,6 +32,9 @@ public abstract class Stat implements Listener {
 
     public String getName(){
         return this.getClass().getName();
+    }
+    public String getShortName(){
+        return this.getClass().getSimpleName();
     }
 
     public String getDescription() {
@@ -74,11 +77,7 @@ public abstract class Stat implements Listener {
         }
 
         final Stat otherStat = (Stat) other;
-        if (level!=otherStat.level) {
-            return false;
-        }
         if (!Objects.equals(getName(), otherStat.getName())) {
-            logger.info("false");
             return false;
         }
         return true;

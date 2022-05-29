@@ -23,13 +23,15 @@ import java.util.logging.Logger;
 public class RpgPlugin extends JavaPlugin {
     public static Logger logger;
     public static NamespacedKey key;
+    public static NamespacedKey uuidKey;
     public static Gson gson;
     public static RpgPlugin plugin;
     @Override
     public void onEnable() {
         logger=getLogger();
         gson = new Gson();
-        key = new NamespacedKey(this, "RpgPlugin");
+        key = new NamespacedKey(this, "RpgPluginData");
+        uuidKey = new NamespacedKey(this, "RpgPluginUUID");
         plugin = this;
         logger.info("RpgPlugin Starting");
 
