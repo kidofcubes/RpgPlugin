@@ -1,4 +1,4 @@
-main: io.github.KidOfCubes.RpgPlugin
+main: io.github.kidofcubes.RpgPlugin
 name: RpgPlugin
 version: 0.0.1
 description: another rpg really
