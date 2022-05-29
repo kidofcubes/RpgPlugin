@@ -1,3 +1,3 @@
 # RpgPlugin
 framework for rpg
-wynncraft and aetherian ideas
+insert documentation on how 2
