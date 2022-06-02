@@ -19,6 +19,11 @@ public class StatManager implements Listener {
 
     private static final List<Class<? extends Stat>> registeredStats = new ArrayList<>();
 
+    /**
+     * Registers a stat to listen for events
+     * @param stat The stat instance
+     * @param listenEvents A list of events it will listen for
+     */
     public static void register(Stat stat, List<Class<? extends Event>> listenEvents) {
         if (!registeredStats.contains(stat.getClass())) {
             for (Class<? extends Event> listenEvent : listenEvents) {
@@ -39,10 +44,15 @@ public class StatManager implements Listener {
         }
     }
 
+    /**
+     * Unregisters a stat (unimplemented) (real)
+     * @param stat The stat to be unregistered
+     */
     //todo unimplemented (real)
     public static void unregister(Stat stat) {
 
     }
+
 
     public static List<Class<? extends Stat>> getRegisteredStats() {
         return Collections.unmodifiableList(registeredStats);

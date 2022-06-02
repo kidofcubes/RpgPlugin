@@ -10,53 +10,46 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * idea for this was something like
+ * item has the stat SMITE
+ * entity holding item
+ * new activate event
+ * parent is item
+ * entity is caster
+ * target is target
+ */
 public class RpgActivateStatEvent extends Event implements Cancellable {
 
 
-    //region Event stuff
-    private static final HandlerList HANDLERS = new HandlerList();
     private RpgObject caster;
-    private RpgObject parent;
+    private final RpgObject parent;
     private RpgObject target;
-    private List<String> triggerStats = new ArrayList<>();
+    private final List<String> triggerStats;
 
-    /*    public RpgActivateStatEvent(RpgObject parent){
-            this.parent = parent;
-        }*/
-    private boolean directOnly = false;
-    private boolean canceled = false;
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
+    //todo better way to activate stats
+    public RpgActivateStatEvent(RpgObject parent, List<String> triggerStats){
+        this(parent, null, triggerStats);
     }
 
-    public RpgActivateStatEvent addTriggerStat(String stat) {
-        triggerStats.add(stat);
-        return this;
+    public RpgActivateStatEvent(RpgObject parent, RpgObject caster, List<String> triggerStats){
+        this(parent, caster, null, triggerStats);
     }
 
-    public RpgActivateStatEvent caster(RpgObject caster) {
-        setCaster(caster);
-        return this;
+    public RpgActivateStatEvent(RpgObject parent, RpgObject caster, RpgObject target, List<String> triggerStats){
+        this.parent = parent;
+        this.caster = caster;
+        this.target = target;
+        this.triggerStats = triggerStats;
     }
 
-    public RpgActivateStatEvent parent(RpgObject parent) {
-        setParent(parent);
-        return this;
-    }
 
-    //region getter setters
-
-    public RpgActivateStatEvent target(RpgObject target) {
-        setTarget(target);
-        return this;
-    }
-
-    public RpgActivateStatEvent directOnly(boolean directOnly) {
-        setDirectOnly(directOnly);
-        return this;
-    }
-
+    /**
+     * Calls the event and tests if cancelled.
+     *
+     * @return false if event was cancelled or parent was not set, otherwise true.
+     */
     @Override
     public boolean callEvent() {
         if (parent != null) {
@@ -71,56 +64,65 @@ public class RpgActivateStatEvent extends Event implements Cancellable {
         return false;
     }
 
+    /**
+     * Gets the RpgObject that activated the stats (defaults to parent if null)
+     * @return The RpgObject that activated the stats
+     */
+    @NotNull
     public RpgObject getCaster() {
-        return caster;
+        if (caster == null) {
+            return getParent();
+        }else{
+            return caster;
+        }
     }
 
-    public void setCaster(@Nullable RpgObject caster) {
-        this.caster = caster;
-    }
-
-    public @NotNull
-    RpgObject getParent() {
+    /**
+     * Gets the RpgObject that owns the triggerStats
+     * @return The RpgObject that owns the triggerStats
+     */
+    @NotNull
+    public RpgObject getParent() {
         return parent;
     }
 
-    public void setParent(@NotNull RpgObject parent) {
-        this.parent = parent;
-    }
-
+    /**
+     * Gets the target RpgObject (defaults to parent if null)
+     * @return The target RpgObject
+     */
+    @NotNull
     public RpgObject getTarget() {
         return target;
     }
 
-    public void setTarget(@Nullable RpgObject target) {
-        this.target = target;
-    }
 
+    /**
+     * Gets the stats that will be triggered
+     * @return The stats that will be triggered
+     */
     public List<String> getTriggerStats() {
         return triggerStats;
     }
     //endregion
 
-    public void setTriggerStats(List<String> triggerStats) {
-        this.triggerStats = triggerStats;
-    }
 
-    public boolean isDirectOnly() {
-        return directOnly;
-    }
 
-    public void setDirectOnly(boolean directOnly) {
-        this.directOnly = directOnly;
+    private boolean cancelled = false;
+
+    private static final HandlerList HANDLERS = new HandlerList();
+
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
     }
 
     @Override
     public boolean isCancelled() {
-        return this.canceled;
+        return this.cancelled;
     }
 
     @Override
     public void setCancelled(boolean cancel) {
-        this.canceled = cancel;
+        this.cancelled = cancel;
     }
 
     @Override

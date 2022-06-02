@@ -48,12 +48,12 @@ public class EventManager implements Listener {
                         customEvent = new RpgEntityDamageEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()), event.getDamage());
                     }
                     pluginManager.callEvent(customEvent);
-
                     event.setDamage(customEvent.getTotalDamage());
                 }
             }
         }
     }
+
 
 
     @EventHandler
