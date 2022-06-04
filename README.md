@@ -36,9 +36,16 @@ public class SmiteStat extends Stat {
 
 add the latest release jar as a dependency in your gradle/maven/smth
 also put the same jar as a plugin
-(i think this only supports paper idk havent tested)
 leave me a dm on discord if something KidOfCubes#4867
 
-
+might add:
+	classes
+	mob spawning
+	a ability casting system
+	a config file that lets you just disable things that you dont want 
+	
+will add:
+	
+	
 
 
