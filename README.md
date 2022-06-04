@@ -1,6 +1,5 @@
 # RpgPlugin
-framework for rpg
-insert documentation on how 2
+Minecraft [Paper](https://papermc.io) server RPG library
 
 
 example addon:
@@ -34,18 +33,19 @@ public class SmiteStat extends Stat {
 }
 ```
 
-add the latest release jar as a dependency in your gradle/maven/smth
-also put the same jar as a plugin
+add the latest release jar as a dependency in your gradle/maven
+and also the release jar needs to be running as a plugin
+
+(i think this only supports paper havent tested on spigot or bukkit)
 leave me a dm on discord if something KidOfCubes#4867
 
-might add:
+
+
+
+plans: (all going to be disablable)
+	custom mob spawning thing
+	custom hit detection (custom range, hit hitbox size, etc)
 	classes
-	mob spawning
-	a ability casting system
-	a config file that lets you just disable things that you dont want 
-	
-will add:
-	
-	
 
-
+not sure plans:
+	
