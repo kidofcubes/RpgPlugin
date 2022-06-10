@@ -31,50 +31,52 @@ public class EntityManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDamageMoniter(RpgEntityDamageEvent event) {
-        if (event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent) {
-            if (rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker) {
-                attacker.setRelation(event.getEntity().getUUID(), EntityRelation.Enemy);
-            }
-        }
-        if (event.getTotalDamage() > 0) {
-            long startTime = System.nanoTime();
-            ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
-            ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, nmsWorld);
-            armorstand.setInvisible(true);
-            armorstand.setCustomNameVisible(true);
-            armorstand.setSmall(true);
-            armorstand.setNoBasePlate(true);
-            armorstand.setCustomName(new TextComponent(damageToString(event.getDamage())));
-
-            Location eyeLocation = event.getEntity().livingEntity.getEyeLocation();
-            Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() + 0.5, Math.random() - 0.5).toVector();
-            armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
-            ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);
-            ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(), armorstand.getEntityData(), false);
-
-            List<ServerPlayerConnection> connections = new ArrayList<>();
-            for (Player other : Bukkit.getOnlinePlayers()) {
-                if (other.getLocation().distance(eyeLocation) <= 32) {
-                    ServerPlayerConnection connection = ((CraftPlayer) other).getHandle().connection;
-                    connection.send(packet);
-                    connection.send(entityDataPacket);
-                    connections.add(connection);
-
+        if(!event.isCancelled()) {
+            if (event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent) {
+                if (rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker) {
+                    attacker.setRelation(event.getEntity().getUUID(), EntityRelation.Enemy);
                 }
             }
-            new java.util.Timer().schedule( //optimise
-                    new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(armorstand.getId());
-                            for (ServerPlayerConnection connection :
-                                    connections) {
-                                connection.send(packet);
+            if (event.getTotalDamage() > 0) {
+                long startTime = System.nanoTime();
+                ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
+                ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, nmsWorld);
+                armorstand.setInvisible(true);
+                armorstand.setCustomNameVisible(true);
+                armorstand.setSmall(true);
+                armorstand.setNoBasePlate(true);
+                armorstand.setCustomName(new TextComponent(damageToString(event.getDamage())));
+
+                Location eyeLocation = event.getEntity().livingEntity.getEyeLocation();
+                Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() + 0.5, Math.random() - 0.5).toVector(); //high up because players could accidentally hit the armorstand
+                armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
+                ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);
+                ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(), armorstand.getEntityData(), false);
+
+                List<ServerPlayerConnection> connections = new ArrayList<>();
+                for (Player other : Bukkit.getOnlinePlayers()) {
+                    if (other.getLocation().distance(eyeLocation) <= 32) {
+                        ServerPlayerConnection connection = ((CraftPlayer) other).getHandle().connection;
+                        connection.send(packet);
+                        connection.send(entityDataPacket);
+                        connections.add(connection);
+
+                    }
+                }
+                new java.util.Timer().schedule( //optimise
+                        new java.util.TimerTask() {
+                            @Override
+                            public void run() {
+                                ClientboundRemoveEntitiesPacket packet = new ClientboundRemoveEntitiesPacket(armorstand.getId());
+                                for (ServerPlayerConnection connection :
+                                        connections) {
+                                    connection.send(packet);
+                                }
                             }
-                        }
-                    },
-                    1500
-            );
+                        },
+                        1500
+                );
+            }
         }
 
 

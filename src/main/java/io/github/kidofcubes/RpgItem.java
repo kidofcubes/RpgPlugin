@@ -1,8 +1,11 @@
 package io.github.kidofcubes;
 
+import io.github.kidofcubes.managers.RpgManager;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.UUID;
 
 import static io.github.kidofcubes.ExtraFunctions.isEmpty;
 import static io.github.kidofcubes.RpgPlugin.key;
@@ -11,17 +14,29 @@ import static io.github.kidofcubes.RpgPlugin.uuidKey;
 public class RpgItem extends RpgObject {
     public ItemStack item;
 
+    /**
+     * Makes a new item (pls use RpgManager.getItem instead of this)
+     * @param item
+     */
     public RpgItem(ItemStack item) {
         this.item = item;
         if (!isEmpty(item)) {
-            ItemMeta itemMeta = item.getItemMeta();
-            if (itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
-                String data = itemMeta
-                        .getPersistentDataContainer()
-                        .get(key, PersistentDataType.STRING);
-                loadFromJson(data);
 
+
+            ItemMeta itemMeta = item.getItemMeta();
+
+            if (itemMeta.getPersistentDataContainer().has(uuidKey, PersistentDataType.STRING)) {
+                setUUID(UUID.fromString(itemMeta.getPersistentDataContainer().get(uuidKey,PersistentDataType.STRING)));
+                if (itemMeta.getPersistentDataContainer().has(key, PersistentDataType.STRING)) {
+                    String data = itemMeta
+                            .getPersistentDataContainer()
+                            .get(key, PersistentDataType.STRING);
+                    loadFromJson(data);
+                }
+            }else{
+                setUUID(UUID.randomUUID());
             }
+
         } else {
             throw new IllegalArgumentException("Can't make a air item");
         }

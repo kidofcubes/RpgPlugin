@@ -3,23 +3,25 @@ package io.github.kidofcubes;
 
 import io.github.kidofcubes.events.RpgActivateStatEvent;
 import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
-import io.github.kidofcubes.events.RpgEntityDamageEvent;
 import io.github.kidofcubes.managers.RpgManager;
 import io.github.kidofcubes.types.DamageType;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 import static io.github.kidofcubes.RpgPlugin.gson;
+import static io.github.kidofcubes.RpgPlugin.plugin;
 
 public abstract class RpgObject {
-    private final Map<String, Integer> stats = new HashMap<>();
+    //probably shouldnt use strings i think
+    private final List<RpgClass> rpgClasses = new ArrayList<>();
+    private final Map<String, Stat> stats = new HashMap<>();
+    private final Map<String, Stat> classStats = new HashMap<>();
     String name;
     int level;
-    float mana; //todo implement mana
+
+    private float mana; //todo implement mana
     UUID parentUUID;
     boolean temporary = false;
     private RpgEntity parent;
@@ -32,6 +34,8 @@ public abstract class RpgObject {
     public boolean isTemporary() {
         return temporary;
     }
+
+    //region gettersetters
 
     /**
      * Gets the UUID of this object
@@ -49,6 +53,44 @@ public abstract class RpgObject {
         this.uuid = uuid;
     }
 
+
+
+    public float getMana() {
+        return mana;
+    }
+
+    public void setMana(float mana) {
+        this.mana = mana;
+    }
+
+
+    /**
+     * Clears all previous RpgClasses, and adds that class
+     * @param rpgClass
+     */
+    public void setRpgClass(RpgClass rpgClass){
+        rpgClasses.clear();
+        addRpgClass(rpgClass);
+    }
+    public void addRpgClass(RpgClass rpgClass){
+        rpgClasses.add(rpgClass);
+        for (Stat stat : rpgClass.classStats()) {
+            classStats.put(stat.getName(),stat);
+        }
+    }
+    public void removeRpgClass(RpgClass rpgClass){
+        if(rpgClasses.remove(rpgClass)){
+            for (Stat stat : rpgClass.classStats()) {
+                classStats.remove(stat.getName());
+            }
+        }
+    }
+
+    public boolean hasRpgClass(RpgClass rpgClass){
+        return rpgClasses.contains(rpgClass);
+    }
+
+    //endregion
 
     /**
      * Gets the parent of this object (inherits relations and will attribute things to parent)
@@ -78,11 +120,10 @@ public abstract class RpgObject {
 
     /**
      * Adds a stat to the statMap (replaces stat with new level if already exists)
-     * @param stat The stat name
-     * @param level The level of the stat
+     * @param stat The stat
      */
-    public void addStat(String stat, int level) {
-        stats.put(stat, level);
+    public void addStat(Stat stat) {
+        stats.put(stat.getName(), stat);
     }
 
     /**
@@ -97,21 +138,36 @@ public abstract class RpgObject {
      * Gets the stat map
      * @return The stat map
      */
-    public Map<String, Integer> getStats() {
+    public Map<String, Stat> getStatsMap() {
         return stats;
+    }
+    /**
+     * Gets the stat map
+     * @return The stat map
+     */
+    public List<Stat> getStats() {
+        return getStatsMap().values().stream().toList();
     }
 
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
-    public Map<String, Integer> getEffectiveStats() {
-        return getStats();
+    public Map<String, Stat> getEffectiveStatsMap() {
+        return getStatsMap();
+    }
+
+    /**
+     * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
+     * @return This object's effective stats
+     */
+    public List<Stat> getEffectiveStats() {
+        return getEffectiveStatsMap().values().stream().toList();
     }
 
 
     public boolean hasStat(String name) {
-        return getEffectiveStats().containsKey(name);
+        return getEffectiveStatsMap().containsKey(name);
     }
 
     /**
@@ -142,10 +198,14 @@ public abstract class RpgObject {
         RpgObjectJsonContainer container = new RpgObjectJsonContainer();
         container.name = name;
         container.level = level;
-        Map<String, Integer> allStats = getStats();
-        container.stats = new HashMap<>();
-        container.stats.putAll(allStats);
-        container.parentUUID = parentUUID.toString();
+
+        for (Map.Entry<String, Stat> entry : getStatsMap().entrySet()) {
+            container.stats.put(entry.getKey(),entry.getValue().asContainer());
+        }
+        if(parentUUID!=null) {
+            container.parentUUID = parentUUID.toString();
+        }
+        container.rpgClasses.addAll(rpgClasses);
         return gson.toJson(container);
     }
 
@@ -153,8 +213,24 @@ public abstract class RpgObject {
         RpgObjectJsonContainer container = gson.fromJson(json, RpgObjectJsonContainer.class);
         level = container.level;
         name = container.name;
-        stats.putAll(container.stats);
-        parentUUID = UUID.fromString(container.parentUUID);
+        for (Map.Entry<String, Stat.StatContainer> entry : container.stats.entrySet()) {
+            try {
+                Stat stat = (Stat)Stat.fromText(entry.getKey()).getDeclaredConstructor().newInstance();
+                stat.setLevel(entry.getValue().level);
+                stat.loadCustomData(entry.getValue().customData);
+                addStat(stat);
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+        for (RpgClass entry : container.rpgClasses) {
+            addRpgClass(entry);
+        }
+        if(container.parentUUID!=null) {
+            parentUUID = UUID.fromString(container.parentUUID);
+        }else{
+            parentUUID = null;
+        }
     }
 
     @Override
@@ -178,6 +254,7 @@ public abstract class RpgObject {
         public String name;
         public int level;
         public String parentUUID;
-        public Map<String, Integer> stats;
+        public Map<String, Stat.StatContainer> stats = new HashMap<>();
+        public List<RpgClass> rpgClasses = new ArrayList<>();
     }
 }

@@ -5,15 +5,18 @@ import io.github.kidofcubes.managers.EntityManager;
 import io.github.kidofcubes.managers.EventManager;
 import io.github.kidofcubes.managers.RpgManager;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 public class RpgPlugin extends JavaPlugin {
-    public static Logger logger;
+    private static Logger logger;
     public static NamespacedKey key;
     public static NamespacedKey uuidKey;
-    public static Gson gson;
+    protected static Gson gson;
     public static RpgPlugin plugin;
 
     @Override
@@ -30,7 +33,28 @@ public class RpgPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EventManager(), plugin);
         getServer().getPluginManager().registerEvents(new RpgManager(), plugin);
 
+        //yuck yaml
+        saveDefaultConfig();
+        FileConfiguration config = this.getConfig();
+        MapDefaultDamage = config.getBoolean("replaceDefaultDamage");
+        MapDefaultHealing = config.getBoolean("replaceDefaultHealing");
+        try {
+            ManaDisplayMethod = ManaDisplayType.valueOf(config.getString("manaDisplayMethod"));
+        } catch (Exception ex) {
+            ManaDisplayMethod = ManaDisplayType.none;
+            logger.info("manaDisplayMethod was not one of: "+ Arrays.toString(ManaDisplayType.values()));
+        }
+
+
     }
+    public enum ManaDisplayType{
+        none,
+        level
+    }
+
+    public static ManaDisplayType ManaDisplayMethod = ManaDisplayType.none;
+    public static boolean MapDefaultDamage = false;
+    public static boolean MapDefaultHealing = false;
 
     @Override
     public void onDisable() {

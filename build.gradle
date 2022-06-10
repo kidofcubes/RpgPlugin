@@ -47,3 +47,15 @@ tasks {
 
     }
 }
+
+//pls ignore i need this to test
+task copyToPlugins {
+    group 'testServer'
+    doLast {
+        copy {
+            from ("build/libs/RpgPlugin-1.0-SNAPSHOT.jar")
+            into ("G:\\Testing Version Servers\\1.18.2Paper\\plugins")
+        }
+    }
+}
+reobfJar.finalizedBy copyToPlugins

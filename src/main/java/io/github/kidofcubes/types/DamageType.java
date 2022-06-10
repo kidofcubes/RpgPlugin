@@ -1,6 +1,4 @@
 package io.github.kidofcubes.types;
-
-
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 public enum DamageType {

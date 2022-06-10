@@ -7,7 +7,9 @@ import io.github.kidofcubes.events.RpgEntityHealEvent;
 import io.github.kidofcubes.managers.RpgManager;
 import io.github.kidofcubes.types.DamageType;
 import io.github.kidofcubes.types.EntityRelation;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -17,18 +19,16 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static io.github.kidofcubes.ExtraFunctions.isEmpty;
+import static io.github.kidofcubes.RpgPlugin.ManaDisplayMethod;
 import static io.github.kidofcubes.RpgPlugin.key;
 
 public class RpgEntity extends RpgObject {
     private final Map<EntityRelation, List<UUID>> relations = new HashMap<>();
     public LivingEntity livingEntity;
-    Map<String, Integer> effectiveStatsCache = new HashMap<>();
-    long effectiveStatsLastUpdate = 0;
 
     public RpgEntity(LivingEntity livingEntity) {
         this(livingEntity, false);
     }
-
 
     public RpgEntity(LivingEntity livingEntity, boolean tempEntity) {
         this(livingEntity, null, tempEntity);
@@ -50,6 +50,18 @@ public class RpgEntity extends RpgObject {
             setParent(parent);
         }
         RpgManager.addRpgEntity(getUUID(), this);
+    }
+
+    @Override
+    public void setMana(float mana) {
+        super.setMana(mana);
+        if(ManaDisplayMethod== RpgPlugin.ManaDisplayType.level) {
+            if(Math.floor(mana)>=0) {
+                if (livingEntity instanceof Player player) {
+                    player.setLevel((int) Math.floor(mana));
+                }
+            }
+        }
     }
 
     public void damage(DamageType type, double amount) {
@@ -122,18 +134,22 @@ public class RpgEntity extends RpgObject {
         }
     }
 
+
+    Map<String, Stat> effectiveStatsCache = new HashMap<>();
+    long effectiveStatsLastUpdate = 0;
+
     @Override
-    public Map<String, Integer> getEffectiveStats() {
+    public Map<String, Stat> getEffectiveStatsMap() {
         long now = System.currentTimeMillis();
         if (now - effectiveStatsLastUpdate > 250) {
             effectiveStatsLastUpdate = now;
 
-            effectiveStatsCache = new HashMap<>(getStats());
+            effectiveStatsCache = new HashMap<>(getStatsMap());
             if (livingEntity.getEquipment() != null) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     ItemStack item = livingEntity.getEquipment().getItem(slot);
                     if (!isEmpty(item)) {
-                        effectiveStatsCache.putAll(RpgManager.getItem(item).getEffectiveStats());
+                        effectiveStatsCache.putAll(RpgManager.getItem(item).getEffectiveStatsMap());
                     }
                 }
             }

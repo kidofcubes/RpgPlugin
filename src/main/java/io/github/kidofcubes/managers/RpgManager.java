@@ -159,14 +159,20 @@ public class RpgManager implements Listener {
      * @param itemStack
      * @return
      */
+    @NotNull
     public static RpgItem getItem(ItemStack itemStack) { //reads uuid every time we get item, maybe not the smartest way?
         if (itemStack.getItemMeta().getPersistentDataContainer().has(uuidKey, PersistentDataType.STRING)) {
-            RpgItem item = allItems.getOrDefault(UUID.fromString(itemStack.getItemMeta().getPersistentDataContainer().get(uuidKey, PersistentDataType.STRING)), null);
+            RpgItem item = getItem(UUID.fromString(itemStack.getItemMeta().getPersistentDataContainer().get(uuidKey, PersistentDataType.STRING)));
             if (item != null) {
                 return item;
             }
         }
         return new RpgItem(itemStack);
+    }
+
+    @Nullable
+    public static RpgItem getItem(UUID uuid) { //reads uuid every time we get item, maybe not the smartest way?
+        return allItems.getOrDefault(uuid,null);
     }
 
 

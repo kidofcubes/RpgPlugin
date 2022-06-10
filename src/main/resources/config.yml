@@ -1,0 +1,4 @@
+replaceDefaultDamage: true
+replaceDefaultHealing: true
+manaDisplayMethod: level #doesnt work
+enableMobSpawning: false #unimplemented
