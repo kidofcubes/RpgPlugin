@@ -1,12 +1,18 @@
 package io.github.kidofcubes.events;
 
+import io.github.kidofcubes.ActivateStats;
 import io.github.kidofcubes.RpgEntity;
+import io.github.kidofcubes.Stat;
+import io.github.kidofcubes.types.DamageType;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class RpgEntityHealEvent extends Event implements Cancellable {
+import java.util.List;
+import java.util.Map;
+
+public class RpgEntityHealEvent extends Event implements Cancellable, ActivateStats {
 
     //region Event stuff
 
@@ -17,8 +23,12 @@ public class RpgEntityHealEvent extends Event implements Cancellable {
     private RpgEntity entity;
 
     public RpgEntityHealEvent(@NotNull RpgEntity entity, double amount) {
+        this(entity,amount,null);
+    }
+    public RpgEntityHealEvent(@NotNull RpgEntity entity,double amount, List<Stat> activateStats) {
         this.entity = entity;
         this.amount = amount;
+        addActivationStats(activateStats);
     }
 
     public static HandlerList getHandlerList() {

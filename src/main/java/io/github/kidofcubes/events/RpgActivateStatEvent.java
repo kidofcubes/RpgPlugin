@@ -1,5 +1,6 @@
 package io.github.kidofcubes.events;
 
+import io.github.kidofcubes.ActivateStats;
 import io.github.kidofcubes.RpgObject;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -20,7 +21,7 @@ import java.util.List;
  * entity is caster
  * target is target
  */
-public class RpgActivateStatEvent extends Event implements Cancellable {
+public class RpgActivateStatEvent extends Event implements Cancellable, ActivateStats {
 
 
     private RpgObject caster;

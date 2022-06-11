@@ -7,6 +7,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InvalidClassException;
 import java.lang.reflect.InvocationTargetException;
@@ -72,6 +73,16 @@ public class StatManager implements Listener {
                 throw new IllegalPluginAccessException("Unable to find handler list for event " + clazz.getName() + ". Static getHandlerList method required!");
             }
         }
+    }
+
+    @Nullable
+    public static Class<? extends Stat> getRegisteredStatByName(String name) {
+        for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
+            if (stat.getSimpleName().equalsIgnoreCase(name)||stat.getName().equalsIgnoreCase(name)) {
+                return stat;
+            }
+        }
+        return null;
     }
 
 }

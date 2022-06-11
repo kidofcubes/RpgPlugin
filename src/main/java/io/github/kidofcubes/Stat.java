@@ -5,6 +5,7 @@ import io.github.kidofcubes.events.RpgActivateStatEvent;
 import io.github.kidofcubes.managers.StatManager;
 import io.github.kidofcubes.types.StatType;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,15 +26,6 @@ public abstract class Stat implements Listener {
 
     private int level = 0;
 
-    @Nullable
-    public static Class<? extends Stat> fromText(String name) {
-        for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
-            if (stat.getSimpleName().equalsIgnoreCase(name)||stat.getName().equalsIgnoreCase(name)) {
-                return stat;
-            }
-        }
-        return null;
-    }
     public float getManaCost(){
         return 0;
     }
@@ -105,7 +97,9 @@ public abstract class Stat implements Listener {
         }
     }
 
-
+    public EventPriority priority(){
+        return EventPriority.NORMAL;
+    }
 
     public abstract RpgObject checkObject(Event event);
 

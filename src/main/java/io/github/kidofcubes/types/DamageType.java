@@ -72,4 +72,5 @@ public enum DamageType {
         }
         return false;
     }
+    public final static DamageType[] values = DamageType.values();
 }

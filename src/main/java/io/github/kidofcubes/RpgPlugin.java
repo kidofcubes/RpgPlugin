@@ -1,15 +1,19 @@
 package io.github.kidofcubes;
 
 import com.google.gson.Gson;
+import io.github.kidofcubes.events.RpgEntityDamageEvent;
 import io.github.kidofcubes.managers.EntityManager;
 import io.github.kidofcubes.managers.EventManager;
 import io.github.kidofcubes.managers.RpgManager;
+import io.github.kidofcubes.managers.StatManager;
+import io.github.kidofcubes.stats.DamageModifier;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class RpgPlugin extends JavaPlugin {
@@ -44,6 +48,8 @@ public class RpgPlugin extends JavaPlugin {
             ManaDisplayMethod = ManaDisplayType.none;
             logger.info("manaDisplayMethod was not one of: "+ Arrays.toString(ManaDisplayType.values()));
         }
+
+        StatManager.register(new DamageModifier(), List.of(RpgEntityDamageEvent.class));
 
 
     }

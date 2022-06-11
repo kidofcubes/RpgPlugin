@@ -4,6 +4,7 @@ package io.github.kidofcubes;
 import io.github.kidofcubes.events.RpgActivateStatEvent;
 import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
 import io.github.kidofcubes.managers.RpgManager;
+import io.github.kidofcubes.managers.StatManager;
 import io.github.kidofcubes.types.DamageType;
 import org.jetbrains.annotations.Nullable;
 
@@ -177,7 +178,10 @@ public abstract class RpgObject {
      * @param victim The victim of the attack
      */
     public void attack(double amount, RpgEntity victim) {
-        RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(victim, DamageType.Physical, amount, this);
+        attack(amount,victim,null);
+    }
+    public void attack(double amount, RpgEntity victim, List<Stat> extraStats){
+        RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(victim, DamageType.Physical, amount, this,extraStats);
         event.callEvent();
         victim.livingEntity.damage(event.getTotalDamage());
     }
@@ -215,7 +219,7 @@ public abstract class RpgObject {
         name = container.name;
         for (Map.Entry<String, Stat.StatContainer> entry : container.stats.entrySet()) {
             try {
-                Stat stat = (Stat)Stat.fromText(entry.getKey()).getDeclaredConstructor().newInstance();
+                Stat stat = StatManager.getRegisteredStatByName(entry.getKey()).getDeclaredConstructor().newInstance();
                 stat.setLevel(entry.getValue().level);
                 stat.loadCustomData(entry.getValue().customData);
                 addStat(stat);
