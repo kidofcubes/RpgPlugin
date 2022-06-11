@@ -14,7 +14,6 @@ public interface ActivateStats {
         activationStats.put(stat.getClass(),stat);
     }
     default void addActivationStats(List<Stat> stats){
-        System.out.println("ADDED ACTIVATION STATS");
         if(stats!=null) {
             for (Stat stat : stats) {
                 addActivationStat(stat);

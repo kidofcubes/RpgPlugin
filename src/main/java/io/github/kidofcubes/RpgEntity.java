@@ -7,6 +7,7 @@ import io.github.kidofcubes.events.RpgEntityHealEvent;
 import io.github.kidofcubes.managers.RpgManager;
 import io.github.kidofcubes.types.DamageType;
 import io.github.kidofcubes.types.EntityRelation;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -24,8 +25,13 @@ import static io.github.kidofcubes.RpgPlugin.key;
 
 public class RpgEntity extends RpgObject {
     private final Map<EntityRelation, List<UUID>> relations = new HashMap<>();
-    public LivingEntity livingEntity;
 
+    private LivingEntity livingEntity;
+
+    private double maxHealth;
+    private double health;
+
+    //region constructors
     public RpgEntity(LivingEntity livingEntity) {
         this(livingEntity, false);
     }
@@ -51,36 +57,31 @@ public class RpgEntity extends RpgObject {
         }
         RpgManager.addRpgEntity(getUUID(), this);
     }
+    //endregion
 
-    @Override
-    public void setMana(float mana) {
-        super.setMana(mana);
-        if(ManaDisplayMethod== RpgPlugin.ManaDisplayType.level) {
-            if(Math.floor(mana)>=0) {
-                if (livingEntity instanceof Player player) {
-                    player.setLevel((int) Math.floor(mana));
-                }
-            }
-        }
-    }
-
-    public void damage(DamageType type, double amount) {
+    //region healthfunctions
+    public RpgEntityDamageEvent damage(DamageType type, double amount) {
         RpgEntityDamageEvent event = new RpgEntityDamageEvent(this, type, amount);
         event.callEvent();
-        livingEntity.damage(event.getTotalDamage());
+        setHealth(getHealth()-event.getTotalDamage());
+        return event;
     }
 
     public RpgEntityDamageEvent damage(DamageType type, double amount, RpgObject attacker) {
-        RpgEntityDamageEvent event = new RpgEntityDamageByObjectEvent(this, type, amount, attacker);
+        return damage(type,amount,attacker, null);
+    }
+
+    public RpgEntityDamageByObjectEvent damage(DamageType type, double amount, @NotNull RpgObject attacker, List<Stat> extraStats) {
+        RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(this, type, amount, attacker, extraStats);
         event.callEvent();
-        livingEntity.damage(event.getTotalDamage());
+        setHealth(getHealth() - event.getTotalDamage());
         return event;
     }
 
     public RpgEntityHealEvent heal(double amount) {
         RpgEntityHealEvent event = new RpgEntityHealEvent(this, amount);
         event.callEvent();
-        livingEntity.setHealth(livingEntity.getHealth() + event.getAmount());
+        setHealth(getHealth()+event.getAmount());
         return event;
     }
 
@@ -88,9 +89,10 @@ public class RpgEntity extends RpgObject {
 
         RpgEntityHealByObjectEvent event = new RpgEntityHealByObjectEvent(this, amount, healer);
         event.callEvent();
-        livingEntity.setHealth(livingEntity.getHealth() + event.getAmount());
+        setHealth(getHealth()+event.getAmount());
         return event;
     }
+    //endregion
 
     private void cleanRelations() {
         for (Map.Entry<EntityRelation, List<UUID>> entry : relations.entrySet()) {
@@ -100,6 +102,10 @@ public class RpgEntity extends RpgObject {
             }
         }
     }
+
+
+
+    //region gettersetters
 
     public void setRelation(UUID uuid, EntityRelation relation) {
         for (Map.Entry<EntityRelation, List<UUID>> entry : relations.entrySet()) {
@@ -118,6 +124,65 @@ public class RpgEntity extends RpgObject {
             }
         }
         return EntityRelation.Neutral;
+    }
+
+
+    @Override
+    public void setMana(float mana) {
+        super.setMana(mana);
+        if(ManaDisplayMethod== RpgPlugin.ManaDisplayType.level) {
+            if(Math.floor(mana)>=0) {
+                if (livingEntity instanceof Player player) {
+                    player.setLevel((int) Math.floor(mana));
+                }
+            }
+        }
+    }
+
+    /**
+     * Gets the livingentity this RpgEntity is linked to
+     * Do not use the health functions on the living entity, use {@link #setHealth(double)} and {@link #getHealth()}
+     * @return
+     */
+    public LivingEntity getLivingEntity() {
+        return livingEntity;
+    }
+
+    public double getMaxHealth() {
+        return maxHealth;
+    }
+
+    public void setMaxHealth(double maxHealth) {
+        this.maxHealth = maxHealth;
+        if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
+        getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
+    }
+
+    public double getHealth() {
+        return health;
+    }
+
+    public void setHealth(double health) {
+        if(health>this.health){//fake dmg
+            livingEntity.damage(0);
+        }else if(health<this.health){
+            //hearts particles maybe later
+        }
+        this.health = Math.max(health,maxHealth);
+        livingEntity.setHealth(health);
+        //this.health = health; //overheal tf2 mechanic later maybe?
+    }
+
+
+
+
+    //endregion
+
+
+    @Override
+    public void remove() {
+        super.remove();
+        getLivingEntity().remove();
     }
 
     @Nullable

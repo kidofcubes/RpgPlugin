@@ -2,7 +2,7 @@ package io.github.kidofcubes.types;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 public enum DamageType {
-    Physical(new DamageCause[]{
+    PHYSICAL(new DamageCause[]{
             DamageCause.ENTITY_ATTACK,
             DamageCause.PROJECTILE,
             DamageCause.CONTACT,
@@ -14,32 +14,32 @@ public enum DamageType {
             DamageCause.ENTITY_SWEEP_ATTACK,
             DamageCause.FLY_INTO_WALL
     }),
-    Magical(new DamageCause[]{
+    MAGICAL(new DamageCause[]{
 
             DamageCause.MAGIC,
             DamageCause.CUSTOM,
             DamageCause.SUICIDE,
             DamageCause.DRAGON_BREATH,
     }),
-    Light(new DamageCause[]{}),
-    Darkness(new DamageCause[]{
+    LIGHT(new DamageCause[]{}),
+    DARKNESS(new DamageCause[]{
             DamageCause.WITHER,
             DamageCause.VOID
     }),
-    Earth(new DamageCause[]{
+    EARTH(new DamageCause[]{
             DamageCause.POISON,
             DamageCause.STARVATION,
             DamageCause.THORNS,
     }),
-    Thunder(new DamageCause[]{
+    THUNDER(new DamageCause[]{
             DamageCause.LIGHTNING
     }),
-    Water(new DamageCause[]{
+    WATER(new DamageCause[]{
             DamageCause.FREEZE,
             DamageCause.DROWNING
 
     }),
-    Fire(new DamageCause[]{
+    FIRE(new DamageCause[]{
             DamageCause.LAVA,
             DamageCause.MELTING,
             DamageCause.HOT_FLOOR,
@@ -47,7 +47,7 @@ public enum DamageType {
             DamageCause.FIRE_TICK
 
     }),
-    Air(new DamageCause[]{
+    AIR(new DamageCause[]{
             DamageCause.SUFFOCATION,
             DamageCause.DRYOUT
     });
@@ -63,7 +63,7 @@ public enum DamageType {
                 return type;
             }
         }
-        return Magical;
+        return MAGICAL;
     }
 
     public boolean containsDamageCause(DamageCause cause) {

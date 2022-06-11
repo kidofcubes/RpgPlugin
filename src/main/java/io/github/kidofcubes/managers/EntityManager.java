@@ -37,6 +37,9 @@ public class EntityManager implements Listener {
                     attacker.setRelation(event.getEntity().getUUID(), EntityRelation.Enemy);
                 }
             }
+
+
+            //MAKE DAMAGE THINGS
             if (event.getTotalDamage() > 0) {
                 long startTime = System.nanoTime();
                 ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
@@ -47,7 +50,7 @@ public class EntityManager implements Listener {
                 armorstand.setNoBasePlate(true);
                 armorstand.setCustomName(new TextComponent(damageToString(event.getDamage())));
 
-                Location eyeLocation = event.getEntity().livingEntity.getEyeLocation();
+                Location eyeLocation = event.getEntity().getLivingEntity().getEyeLocation();
                 Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() + 0.5, Math.random() - 0.5).toVector(); //high up because players could accidentally hit the armorstand
                 armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
                 ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);

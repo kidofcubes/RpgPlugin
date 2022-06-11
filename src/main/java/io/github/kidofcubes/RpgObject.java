@@ -12,7 +12,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static io.github.kidofcubes.RpgPlugin.gson;
-import static io.github.kidofcubes.RpgPlugin.plugin;
 
 public abstract class RpgObject {
     //probably shouldnt use strings i think
@@ -22,7 +21,8 @@ public abstract class RpgObject {
     String name;
     int level;
 
-    private float mana; //todo implement mana
+    private double maxMana;
+    private double mana;
     UUID parentUUID;
     boolean temporary = false;
     private RpgEntity parent;
@@ -56,12 +56,20 @@ public abstract class RpgObject {
 
 
 
-    public float getMana() {
+    public double getMana() {
         return mana;
     }
 
-    public void setMana(float mana) {
+    public void setMana(double mana) {
         this.mana = mana;
+    }
+
+    public double getMaxMana() {
+        return maxMana;
+    }
+
+    public void setMaxMana(double maxMana) {
+        this.maxMana = maxMana;
     }
 
 
@@ -177,13 +185,11 @@ public abstract class RpgObject {
      * @param amount The base damage of the attack
      * @param victim The victim of the attack
      */
-    public void attack(double amount, RpgEntity victim) {
-        attack(amount,victim,null);
+    public RpgEntityDamageByObjectEvent attack(double amount, RpgEntity victim) {
+        return attack(DamageType.PHYSICAL, amount,victim,null);
     }
-    public void attack(double amount, RpgEntity victim, List<Stat> extraStats){
-        RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(victim, DamageType.Physical, amount, this,extraStats);
-        event.callEvent();
-        victim.livingEntity.damage(event.getTotalDamage());
+    public RpgEntityDamageByObjectEvent attack(DamageType damageType, double amount, RpgEntity victim, List<Stat> extraStats){
+        return victim.damage(damageType,amount,this,extraStats);
     }
 
     /**
@@ -237,6 +243,11 @@ public abstract class RpgObject {
         }
     }
 
+    public void remove(){
+        RpgManager.removeRpgObject(getUUID());
+    }
+
+
     @Override
     public boolean equals(Object other) {
         if (other == null) {
@@ -257,6 +268,8 @@ public abstract class RpgObject {
     public static class RpgObjectJsonContainer {
         public String name;
         public int level;
+        public double maxMana;
+        public double mana;
         public String parentUUID;
         public Map<String, Stat.StatContainer> stats = new HashMap<>();
         public List<RpgClass> rpgClasses = new ArrayList<>();

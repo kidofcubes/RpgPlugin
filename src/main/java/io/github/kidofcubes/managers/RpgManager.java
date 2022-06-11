@@ -38,8 +38,7 @@ public class RpgManager implements Listener {
     public static void cleanTempEntities() {
         for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
             if (entry.getValue().isTemporary()) {
-                entry.getValue().livingEntity.setHealth(0);
-                entry.getValue().livingEntity.remove();
+                entry.getValue().remove();
             }
         }
         allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
@@ -179,5 +178,10 @@ public class RpgManager implements Listener {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent entityDeathEvent) {
         allEntities.remove(entityDeathEvent.getEntity().getUniqueId());
+    }
+
+    public static void removeRpgObject(UUID uuid){
+        if(allEntities.remove(uuid)!=null) allItems.remove(uuid);
+
     }
 }
