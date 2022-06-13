@@ -20,8 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static io.github.kidofcubes.ExtraFunctions.isEmpty;
-import static io.github.kidofcubes.RpgPlugin.ManaDisplayMethod;
-import static io.github.kidofcubes.RpgPlugin.key;
+import static io.github.kidofcubes.RpgPlugin.*;
 
 public class RpgEntity extends RpgObject {
     private final Map<EntityRelation, List<UUID>> relations = new HashMap<>();
@@ -46,6 +45,11 @@ public class RpgEntity extends RpgObject {
         temporary = tempEntity;
         if (livingEntity.getPersistentDataContainer().has(key)) {
             loadFromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING));
+        }else{
+            if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
+            setMaxHealth(livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+            health = livingEntity.getHealth();
+
         }
         setUUID(livingEntity.getUniqueId());
         for (EntityRelation relation :
@@ -54,8 +58,10 @@ public class RpgEntity extends RpgObject {
         }
         if (parent != null) {
             setParent(parent);
+            relations.get(EntityRelation.Ally).add(parentUUID);
         }
         RpgManager.addRpgEntity(getUUID(), this);
+
     }
     //endregion
 
@@ -118,17 +124,23 @@ public class RpgEntity extends RpgObject {
 
     public EntityRelation getRelation(UUID uuid) {
         cleanRelations();
+        if(uuid.equals(getUUID())){
+            return EntityRelation.Ally;
+        }
         for (Map.Entry<EntityRelation, List<UUID>> entry : relations.entrySet()) {
             if (entry.getValue().contains(uuid)) {
                 return entry.getKey();
             }
+        }
+        if(getParent()!=null) {
+            return getParent().getRelation(uuid);
         }
         return EntityRelation.Neutral;
     }
 
 
     @Override
-    public void setMana(float mana) {
+    public void setMana(double mana) {
         super.setMana(mana);
         if(ManaDisplayMethod== RpgPlugin.ManaDisplayType.level) {
             if(Math.floor(mana)>=0) {
@@ -149,6 +161,10 @@ public class RpgEntity extends RpgObject {
     }
 
     public double getMaxHealth() {
+        if(maxHealth<=0){
+            if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
+            setMaxHealth(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        }
         return maxHealth;
     }
 
@@ -163,13 +179,13 @@ public class RpgEntity extends RpgObject {
     }
 
     public void setHealth(double health) {
-        if(health>this.health){//fake dmg
+        if(health<this.health){//fake dmg
             livingEntity.damage(0);
-        }else if(health<this.health){
+        }else if(health>this.health){
             //hearts particles maybe later
         }
-        this.health = Math.max(health,maxHealth);
-        livingEntity.setHealth(health);
+        this.health = Math.min(health,maxHealth);
+        livingEntity.setHealth(this.health);
         //this.health = health; //overheal tf2 mechanic later maybe?
     }
 
@@ -200,24 +216,25 @@ public class RpgEntity extends RpgObject {
     }
 
 
-    Map<String, Stat> effectiveStatsCache = new HashMap<>();
+    StatSet effectiveStatsCache = new StatSet(this);
     long effectiveStatsLastUpdate = 0;
 
     @Override
-    public Map<String, Stat> getEffectiveStatsMap() {
+    public StatSet getEffectiveStats() {
         long now = System.currentTimeMillis();
         if (now - effectiveStatsLastUpdate > 250) {
             effectiveStatsLastUpdate = now;
 
-            effectiveStatsCache = new HashMap<>(getStatsMap());
+            effectiveStatsCache.statMap.clear();
             if (livingEntity.getEquipment() != null) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     ItemStack item = livingEntity.getEquipment().getItem(slot);
                     if (!isEmpty(item)) {
-                        effectiveStatsCache.putAll(RpgManager.getItem(item).getEffectiveStatsMap());
+                        effectiveStatsCache.addStats(RpgManager.getItem(item).getEffectiveStats(),false);
                     }
                 }
             }
+            effectiveStatsCache.addStats(getStats(),false);
         }
         return effectiveStatsCache;
 
@@ -230,5 +247,26 @@ public class RpgEntity extends RpgObject {
     @Override
     public void save() {
         livingEntity.getPersistentDataContainer().set(key, PersistentDataType.STRING, toJson());
+    }
+
+    @Override
+    protected void loadFromJson(String json) {
+        super.loadFromJson(json);
+        RpgEntityJsonContainer container = gson.fromJson(json, RpgEntityJsonContainer.class);
+        setMaxHealth(container.maxHealth);
+        setHealth(container.health);
+    }
+
+    @Override
+    public RpgObjectJsonContainer toContainer() {
+        RpgEntityJsonContainer entityJsonContainer = gson.fromJson(gson.toJson(super.toContainer()),RpgEntityJsonContainer.class);
+        entityJsonContainer.health = getHealth();
+        entityJsonContainer.maxHealth = getMaxHealth();
+        return entityJsonContainer;
+    }
+
+    public static class RpgEntityJsonContainer extends RpgObjectJsonContainer{
+        public double maxHealth=20;
+        public double health=20;
     }
 }

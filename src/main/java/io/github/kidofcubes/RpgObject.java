@@ -16,13 +16,12 @@ import static io.github.kidofcubes.RpgPlugin.gson;
 public abstract class RpgObject {
     //probably shouldnt use strings i think
     private final List<RpgClass> rpgClasses = new ArrayList<>();
-    private final Map<String, Stat> stats = new HashMap<>();
-    private final Map<String, Stat> classStats = new HashMap<>();
+    private final StatSet stats = new StatSet(this);
     String name;
-    int level;
+    int level = 0;
 
-    private double maxMana;
-    private double mana;
+    private double maxMana = 100;
+    private double mana = 100;
     UUID parentUUID;
     boolean temporary = false;
     private RpgEntity parent;
@@ -83,20 +82,26 @@ public abstract class RpgObject {
     }
     public void addRpgClass(RpgClass rpgClass){
         rpgClasses.add(rpgClass);
-        for (Stat stat : rpgClass.classStats()) {
-            classStats.put(stat.getName(),stat);
-        }
+        stats.addStats(rpgClass.classStats(),false);
+
     }
-    public void removeRpgClass(RpgClass rpgClass){
-        if(rpgClasses.remove(rpgClass)){
-            for (Stat stat : rpgClass.classStats()) {
-                classStats.remove(stat.getName());
+    public void removeRpgClass(String rpgClass){
+        for (int i = 0; i < rpgClasses.size(); i++) {
+            if(rpgClasses.get(i).getFullName().equalsIgnoreCase(rpgClass)){
+                stats.removeStats(rpgClasses.get(i).classStats(),false);
+                rpgClasses.remove(i);
+                break;
             }
         }
     }
 
     public boolean hasRpgClass(RpgClass rpgClass){
-        return rpgClasses.contains(rpgClass);
+        for (RpgClass check: rpgClasses) {
+            if(check.getFullName().equalsIgnoreCase(rpgClass.getFullName())){
+                return true;
+            }
+        }
+        return false;
     }
 
     //endregion
@@ -132,7 +137,7 @@ public abstract class RpgObject {
      * @param stat The stat
      */
     public void addStat(Stat stat) {
-        stats.put(stat.getName(), stat);
+        stats.addStat(stat,true);
     }
 
     /**
@@ -140,43 +145,26 @@ public abstract class RpgObject {
      * @param stat The stat name
      */
     public void removeStat(String stat) {
-        stats.remove(stat);
+        stats.removeStat(stat);
     }
 
-    /**
-     * Gets the stat map
-     * @return The stat map
-     */
-    public Map<String, Stat> getStatsMap() {
+    public StatSet getStats() {
         return stats;
     }
-    /**
-     * Gets the stat map
-     * @return The stat map
-     */
-    public List<Stat> getStats() {
-        return getStatsMap().values().stream().toList();
-    }
 
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
-    public Map<String, Stat> getEffectiveStatsMap() {
-        return getStatsMap();
-    }
-
-    /**
-     * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
-     * @return This object's effective stats
-     */
-    public List<Stat> getEffectiveStats() {
-        return getEffectiveStatsMap().values().stream().toList();
+    public StatSet getEffectiveStats() {
+        StatSet effectiveStats = new StatSet(this);
+        effectiveStats.addStats(getStats(),false);
+        return effectiveStats;
     }
 
 
     public boolean hasStat(String name) {
-        return getEffectiveStatsMap().containsKey(name);
+        return getEffectiveStats().hasStat(name);
     }
 
     /**
@@ -205,18 +193,26 @@ public abstract class RpgObject {
     }
 
     public String toJson() {
+        return gson.toJson(toContainer());
+    }
+
+    public RpgObjectJsonContainer toContainer(){
         RpgObjectJsonContainer container = new RpgObjectJsonContainer();
         container.name = name;
         container.level = level;
+        container.mana = getMana();
+        container.maxMana = getMaxMana();
 
-        for (Map.Entry<String, Stat> entry : getStatsMap().entrySet()) {
+        for (Map.Entry<String, Stat> entry : getStats().statMap.entrySet()) {
             container.stats.put(entry.getKey(),entry.getValue().asContainer());
         }
         if(parentUUID!=null) {
             container.parentUUID = parentUUID.toString();
         }
-        container.rpgClasses.addAll(rpgClasses);
-        return gson.toJson(container);
+        for (RpgClass temp: rpgClasses) {
+            container.rpgClasses.add(temp.getFullName());
+        }
+        return container;
     }
 
     protected void loadFromJson(String json) {
@@ -233,8 +229,12 @@ public abstract class RpgObject {
                 e.printStackTrace();
             }
         }
-        for (RpgClass entry : container.rpgClasses) {
-            addRpgClass(entry);
+        for (String entry : container.rpgClasses) {
+            try {
+                addRpgClass((RpgClass) Class.forName(entry).getDeclaredConstructor().newInstance());
+            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
         }
         if(container.parentUUID!=null) {
             parentUUID = UUID.fromString(container.parentUUID);
@@ -244,6 +244,10 @@ public abstract class RpgObject {
     }
 
     public void remove(){
+        for (Stat stat :
+                stats.statMap.values()) {
+            stat.onRemoveStat(this);
+        }
         RpgManager.removeRpgObject(getUUID());
     }
 
@@ -272,6 +276,6 @@ public abstract class RpgObject {
         public double mana;
         public String parentUUID;
         public Map<String, Stat.StatContainer> stats = new HashMap<>();
-        public List<RpgClass> rpgClasses = new ArrayList<>();
+        public List<String> rpgClasses = new ArrayList<>();
     }
 }

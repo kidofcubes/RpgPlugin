@@ -1,5 +1,6 @@
 package io.github.kidofcubes;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,20 +10,22 @@ public abstract class RpgClass { //unneeded class maybe idk i dont like how inst
     //i really do not know how to do this help
     //using classes for everything feels jank no cap because instances and stuff
     private int level;
+    private final static List<Stat> emptyStats = new ArrayList<>();
+    private final static List<RpgClass> emptyClasses = new ArrayList<>();
 
     /**
      * Override this to change what stats get added to any object with this class
      * @return
      */
     public List<Stat> classStats(){
-        return new ArrayList<>();
+        return emptyStats;
     }
     /**
      * Unused, just thought would be handy
      * @return
      */
     public List<RpgClass> requiredClasses(){
-        return new ArrayList<>();
+        return emptyClasses;
     }
 
 

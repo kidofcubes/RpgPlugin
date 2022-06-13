@@ -36,7 +36,7 @@ public class RpgPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EntityManager(), plugin);
         getServer().getPluginManager().registerEvents(new EventManager(), plugin);
         getServer().getPluginManager().registerEvents(new RpgManager(), plugin);
-
+        StatManager.init();
         //yuck yaml
         saveDefaultConfig();
         FileConfiguration config = this.getConfig();

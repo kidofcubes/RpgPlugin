@@ -1,11 +1,16 @@
 package io.github.kidofcubes.managers;
 
+import io.github.kidofcubes.RpgPlugin;
 import io.github.kidofcubes.Stat;
+import io.github.kidofcubes.TimedStat;
 import io.github.kidofcubes.types.StatRegisteredListener;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +24,19 @@ import java.util.List;
 public class StatManager implements Listener {
 
     private static final List<Class<? extends Stat>> registeredStats = new ArrayList<>();
+    private static final List<TimedStat> timedStats = new ArrayList<>();
+
+    public static void init(){
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.runTaskTimer(RpgPlugin.plugin, () -> {
+            for (TimedStat timedStat : timedStats) {
+                timedStat.trigger(null);
+            }
+        }, 0, 1);
+
+
+    }
+
 
     /**
      * Registers a stat to listen for events
@@ -27,6 +45,10 @@ public class StatManager implements Listener {
      */
     public static void register(Stat stat, List<Class<? extends Event>> listenEvents) {
         if (!registeredStats.contains(stat.getClass())) {
+            if(stat instanceof TimedStat timedStat){
+                timedStats.add(timedStat);
+            }
+
             for (Class<? extends Event> listenEvent : listenEvents) {
                 try {
                     Method method = getRegistrationClass(listenEvent).getDeclaredMethod("getHandlerList");

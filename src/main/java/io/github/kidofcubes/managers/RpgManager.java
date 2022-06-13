@@ -36,9 +36,9 @@ public class RpgManager implements Listener {
     }
 
     public static void cleanTempEntities() {
-        for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
-            if (entry.getValue().isTemporary()) {
-                entry.getValue().remove();
+        for (RpgEntity entry : allEntities.values()) {
+            if (entry.isTemporary()) {
+                entry.remove();
             }
         }
         allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
