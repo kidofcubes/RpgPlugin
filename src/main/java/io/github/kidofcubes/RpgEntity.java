@@ -216,25 +216,25 @@ public class RpgEntity extends RpgObject {
     }
 
 
-    StatSet effectiveStatsCache = new StatSet(this);
+    Map<String, Stat> effectiveStatsCache = new HashMap<>();
     long effectiveStatsLastUpdate = 0;
 
     @Override
-    public StatSet getEffectiveStats() {
+    public Map<String, Stat> getEffectiveStatsMap() {
         long now = System.currentTimeMillis();
         if (now - effectiveStatsLastUpdate > 250) {
             effectiveStatsLastUpdate = now;
 
-            effectiveStatsCache.statMap.clear();
+            effectiveStatsCache.clear();
             if (livingEntity.getEquipment() != null) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     ItemStack item = livingEntity.getEquipment().getItem(slot);
                     if (!isEmpty(item)) {
-                        effectiveStatsCache.addStats(RpgManager.getItem(item).getEffectiveStats(),false);
+                        effectiveStatsCache.putAll(RpgManager.getItem(item).getEffectiveStatsMap());
                     }
                 }
             }
-            effectiveStatsCache.addStats(getStats(),false);
+            effectiveStatsCache.putAll(getStatsMap());
         }
         return effectiveStatsCache;
 

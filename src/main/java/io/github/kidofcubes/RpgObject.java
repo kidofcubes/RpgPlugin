@@ -14,9 +14,9 @@ import java.util.*;
 import static io.github.kidofcubes.RpgPlugin.gson;
 
 public abstract class RpgObject {
-    //probably shouldnt use strings i think
+    //probably shouldnt use strings i think maybe? dunno
     private final List<RpgClass> rpgClasses = new ArrayList<>();
-    private final StatSet stats = new StatSet(this);
+    private final Map<String, Stat> statMap = new HashMap<>();
     String name;
     int level = 0;
 
@@ -27,6 +27,8 @@ public abstract class RpgObject {
     private RpgEntity parent;
     private UUID uuid;
 
+    //region gettersetters
+
     /**
      * Check if this object is temporary (deleted on server restart, doesn't get saved)
      * @return If this object is temporary
@@ -34,8 +36,6 @@ public abstract class RpgObject {
     public boolean isTemporary() {
         return temporary;
     }
-
-    //region gettersetters
 
     /**
      * Gets the UUID of this object
@@ -72,6 +72,9 @@ public abstract class RpgObject {
     }
 
 
+    //endregion
+    //region classes
+
     /**
      * Clears all previous RpgClasses, and adds that class
      * @param rpgClass
@@ -82,13 +85,15 @@ public abstract class RpgObject {
     }
     public void addRpgClass(RpgClass rpgClass){
         rpgClasses.add(rpgClass);
-        stats.addStats(rpgClass.classStats(),false);
+        addStats(rpgClass.classStats(),false);
 
     }
     public void removeRpgClass(String rpgClass){
         for (int i = 0; i < rpgClasses.size(); i++) {
             if(rpgClasses.get(i).getFullName().equalsIgnoreCase(rpgClass)){
-                stats.removeStats(rpgClasses.get(i).classStats(),false);
+                for (Stat stat : rpgClasses.get(i).classStats()) {
+                    removeStat(stat,false);
+                }
                 rpgClasses.remove(i);
                 break;
             }
@@ -96,15 +101,16 @@ public abstract class RpgObject {
     }
 
     public boolean hasRpgClass(RpgClass rpgClass){
-        for (RpgClass check: rpgClasses) {
+        for (RpgClass check : rpgClasses) {
             if(check.getFullName().equalsIgnoreCase(rpgClass.getFullName())){
                 return true;
             }
         }
         return false;
     }
-
     //endregion
+
+
 
     /**
      * Gets the parent of this object (inherits relations and will attribute things to parent)
@@ -126,18 +132,51 @@ public abstract class RpgObject {
         }
     }
 
-
     public void setParent(RpgEntity parent) {
         this.parent = parent;
         parentUUID = parent.getUUID();
     }
 
+
+    //region stat stuff
+
+    //todo fix class stat removing and stuff
+
     /**
-     * Adds a stat to the statMap (replaces stat with new level if already exists)
+     * Adds a stat to the statMap (will increase level if stat of that type already exists)
      * @param stat The stat
      */
-    public void addStat(Stat stat) {
-        stats.addStat(stat,true);
+    public void addStat(Stat stat){
+        addStat(stat,false);
+    }
+    public void addStats(List<Stat> addStats, boolean force){
+        for (Stat stat :
+                addStats) {
+            addStat(stat,force);
+        }
+    }
+    public void addStat(Stat stat, boolean force){
+        if(!force) {
+            Stat previous = getStat(stat.getName());
+            if (previous != null) {
+                if (previous.getLevel() < stat.getLevel()) {
+                    previous.setLevel(stat.getLevel());
+                }
+            }else{
+                addStat(stat,true);
+            }
+        }else{
+            statMap.put(stat.getName(),stat);
+            stat.onAddStat(this);
+        }
+    }
+
+    public boolean hasStat(String stat){
+        return statMap.containsKey(stat);
+    }
+    @Nullable
+    public Stat getStat(String stat){
+        return statMap.getOrDefault(stat,null);
     }
 
     /**
@@ -145,27 +184,65 @@ public abstract class RpgObject {
      * @param stat The stat name
      */
     public void removeStat(String stat) {
-        stats.removeStat(stat);
+        Stat removedStat = statMap.remove(stat);
+        if(removedStat!=null){
+            removedStat.onRemoveStat(this);
+        }
+    }
+    public void removeStat(Stat stat,boolean force){
+        if(!force){
+            Stat previous = getStat(stat.getName());
+            if (previous != null) {
+                if (previous.getLevel() > stat.getLevel()) {
+                    //previous.setLevel(previous.getLevel()-stat.getLevel());
+                }else{
+                    removeStat(stat,true);
+                }
+            }
+        }else{
+            removeStat(stat.getName());
+        }
+    }
+    public void removeStats(List<Stat> statList, boolean force){
+        for (Stat stat : statList) {
+            removeStat(stat,force);
+        }
     }
 
-    public StatSet getStats() {
-        return stats;
+    /**
+     * Gets the stat map
+     * @return The stat map
+     */
+    public Map<String, Stat> getStatsMap() {
+        return statMap;
+    }
+    /**
+     * Gets the stat map
+     * @return The stat map
+     */
+    public List<Stat> getStats() {
+        return getStatsMap().values().stream().toList();
     }
 
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
-    public StatSet getEffectiveStats() {
-        StatSet effectiveStats = new StatSet(this);
-        effectiveStats.addStats(getStats(),false);
+    public Map<String, Stat> getEffectiveStatsMap() {
+        Map<String,Stat> effectiveStats = new HashMap<>();
+        effectiveStats.putAll(getStatsMap());
         return effectiveStats;
     }
 
-
-    public boolean hasStat(String name) {
-        return getEffectiveStats().hasStat(name);
+    /**
+     * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
+     * @return This object's effective stats
+     */
+    public List<Stat> getEffectiveStats() {
+        return getEffectiveStatsMap().values().stream().toList();
     }
+
+    //endregion
 
     /**
      * Makes this object attack a RpgEntity victim with base damage
@@ -203,14 +280,15 @@ public abstract class RpgObject {
         container.mana = getMana();
         container.maxMana = getMaxMana();
 
-        for (Map.Entry<String, Stat> entry : getStats().statMap.entrySet()) {
+        for (Map.Entry<String, Stat> entry : getStatsMap().entrySet()) {
             container.stats.put(entry.getKey(),entry.getValue().asContainer());
         }
         if(parentUUID!=null) {
             container.parentUUID = parentUUID.toString();
         }
-        for (RpgClass temp: rpgClasses) {
-            container.rpgClasses.add(temp.getFullName());
+        for (RpgClass rpgClass :
+                rpgClasses) {
+            container.rpgClasses.add(rpgClass.getFullName());
         }
         return container;
     }
@@ -245,9 +323,10 @@ public abstract class RpgObject {
 
     public void remove(){
         for (Stat stat :
-                stats.statMap.values()) {
+                statMap.values()) {
             stat.onRemoveStat(this);
         }
+        statMap.clear();
         RpgManager.removeRpgObject(getUUID());
     }
 

@@ -94,7 +94,7 @@ public abstract class Stat implements Listener {
 
         RpgObject toCheck = checkObject(event);
         if (toCheck != null) {
-            Stat statInstance = toCheck.getEffectiveStats().getStat(this.getClass().getName());
+            Stat statInstance = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
             if(statInstance!=null) {
                 if (toCheck.getMana() >= getManaCost() || getManaCost() == 0) {
                     if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
