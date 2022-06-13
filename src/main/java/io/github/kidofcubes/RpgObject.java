@@ -76,17 +76,28 @@ public abstract class RpgObject {
     //region classes
 
     /**
-     * Clears all previous RpgClasses, and adds that class
+     * Adds a RpgClass
      * @param rpgClass
      */
-    public void setRpgClass(RpgClass rpgClass){
-        rpgClasses.clear();
-        addRpgClass(rpgClass);
-    }
     public void addRpgClass(RpgClass rpgClass){
+        removeRpgClass(rpgClass);
         rpgClasses.add(rpgClass);
         addStats(rpgClass.classStats(),false);
 
+    }
+    public RpgClass getRpgClass(RpgClass rpgClass){
+        return getRpgClass(rpgClass.getFullName());
+    }
+    public RpgClass getRpgClass(String rpgClass){
+        for (RpgClass check : rpgClasses) {
+            if (check.getFullName().equalsIgnoreCase(rpgClass)) {
+                return check;
+            }
+        }
+        return null;
+    }
+    public void removeRpgClass(RpgClass rpgClass){
+        removeRpgClass(rpgClass.getFullName());
     }
     public void removeRpgClass(String rpgClass){
         for (int i = 0; i < rpgClasses.size(); i++) {
@@ -109,8 +120,6 @@ public abstract class RpgObject {
         return false;
     }
     //endregion
-
-
 
     /**
      * Gets the parent of this object (inherits relations and will attribute things to parent)
@@ -269,6 +278,7 @@ public abstract class RpgObject {
         return new RpgActivateStatEvent(this, statNames);
     }
 
+    //region saveloadingjson
     public String toJson() {
         return gson.toJson(toContainer());
     }
@@ -320,6 +330,7 @@ public abstract class RpgObject {
             parentUUID = null;
         }
     }
+    //endregion
 
     public void remove(){
         for (Stat stat :
