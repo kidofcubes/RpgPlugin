@@ -101,13 +101,19 @@ public class RpgManager implements Listener {
      * @param livingEntity
      * @return The RpgEntity of the livingEntity
      */
-    @NotNull
+    @Nullable
     public static RpgEntity getRpgEntity(LivingEntity livingEntity) {
         RpgEntity returnEntity = getRpgEntity(livingEntity.getUniqueId());
         if (returnEntity != null) {
             return returnEntity;
         } else {
-            return new RpgEntity(livingEntity);
+            RpgEntity newRpgEntity = new RpgEntity(livingEntity);
+            if(!newRpgEntity.exists()){
+                removeRpgObject(newRpgEntity.getUUID());
+                return null;
+            }else{
+                return newRpgEntity;
+            }
         }
     }
 

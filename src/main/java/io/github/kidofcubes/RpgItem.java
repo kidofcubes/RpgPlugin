@@ -1,6 +1,7 @@
 package io.github.kidofcubes;
 
 import io.github.kidofcubes.managers.RpgManager;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -56,6 +57,11 @@ public class RpgItem extends RpgObject {
         itemStack.setItemMeta(itemMeta);
 
         return itemStack;
+    }
+
+    @Override
+    public String getName() {
+        return LegacyComponentSerializer.legacySection().serialize(item.displayName());
     }
 
     @Override

@@ -32,6 +32,10 @@ public abstract class TimedStat extends Stat{
         objectsWithStat.remove(object);
     }
 
+    public int getInterval(){
+        return 1;
+    }
+
     /**
      * Runs checks for event, and runs stat if passes
      * Checks are:
@@ -41,21 +45,29 @@ public abstract class TimedStat extends Stat{
      *
      * @param event
      */
+    int count = 0;
     @Override
     public void trigger(Event event) {
         if(event==null) {
-            for (int i = objectsWithStat.size() - 1; i > -1; i--) {
-                RpgObject toCheck = objectsWithStat.get(i);
-                if(toCheck instanceof RpgEntity rpgEntity) if(!rpgEntity.exists()){
-                    objectsWithStat.remove(i);
-                    continue;
-                }
-                if (toCheck != null) {
-                    Stat statInstance = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(), null);
-                    if (statInstance != null) {
-                        if (toCheck.getMana() >= getManaCost() || getManaCost() == 0) {
-                            toCheck.setMana(toCheck.getMana() - getManaCost());
-                            statInstance.run(null);
+            count++;
+            if(count>=getInterval()){
+                count=0;
+                for (int i = objectsWithStat.size() - 1; i > -1; i--) {
+                    RpgObject toCheck = objectsWithStat.get(i);
+                    if(toCheck instanceof RpgEntity rpgEntity) if(!rpgEntity.exists()){
+                        objectsWithStat.remove(i);
+                        continue;
+                    }
+                    if (toCheck != null) {
+                        List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(), null);
+                        if (statInstances != null) {
+                            for (Stat statInstance: statInstances) {
+                                float manaCost = statInstance.getManaCost();
+                                if (toCheck.getMana() >= manaCost || manaCost == 0) {
+                                    toCheck.setMana(toCheck.getMana() - manaCost);
+                                    statInstance.run(null);
+                                }
+                            }
                         }
                     }
                 }

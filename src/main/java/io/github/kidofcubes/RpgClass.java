@@ -42,8 +42,9 @@ public abstract class RpgClass { //unneeded class maybe idk i dont like how inst
         return level;
     }
 
-    public void setLevel(int level) {
+    public RpgClass setLevel(int level) {
         this.level = level;
+        return this;
     }
 
     @Override

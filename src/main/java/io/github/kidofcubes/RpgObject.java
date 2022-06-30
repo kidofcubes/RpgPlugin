@@ -17,6 +17,11 @@ public abstract class RpgObject {
     //probably shouldnt use strings i think maybe? dunno
     private final List<RpgClass> rpgClasses = new ArrayList<>();
     private final Map<String, Stat> statMap = new HashMap<>();
+
+    //not saved, generated at runtime
+    private final Map<RpgObject,Boolean> children = new HashMap<>(); //boolean is for use stats
+    //true means use stats from it
+    //false means dont use stats from it
     String name;
     int level = 0;
 
@@ -24,6 +29,7 @@ public abstract class RpgObject {
     private double mana = 100;
     UUID parentUUID;
     boolean temporary = false;
+
     private RpgEntity parent;
     private UUID uuid;
 
@@ -53,14 +59,14 @@ public abstract class RpgObject {
         this.uuid = uuid;
     }
 
-
+    public abstract String getName();
 
     public double getMana() {
         return mana;
     }
 
     public void setMana(double mana) {
-        this.mana = mana;
+        this.mana = Math.max(Math.min(mana,maxMana),0);
     }
 
     public double getMaxMana() {
@@ -75,13 +81,17 @@ public abstract class RpgObject {
     //endregion
     //region classes
 
+    public List<RpgClass> getRpgClasses(){
+        return rpgClasses;
+    }
+
     /**
      * Adds a RpgClass
      * @param rpgClass
      */
     public void addRpgClass(RpgClass rpgClass){
-        removeRpgClass(rpgClass);
-        rpgClasses.add(rpgClass);
+            removeRpgClass(rpgClass);
+            rpgClasses.add(rpgClass);
         addStats(rpgClass.classStats(),false);
 
     }
@@ -146,6 +156,14 @@ public abstract class RpgObject {
         parentUUID = parent.getUUID();
     }
 
+    public void addChild(RpgObject object, boolean used){
+        children.put(object,used);
+    }
+    public void removeChild(RpgObject object){
+        children.remove(object);
+
+    }
+
 
     //region stat stuff
 
@@ -166,13 +184,11 @@ public abstract class RpgObject {
     }
     public void addStat(Stat stat, boolean force){
         if(!force) {
-            Stat previous = getStat(stat.getName());
-            if (previous != null) {
-                if (previous.getLevel() < stat.getLevel()) {
-                    previous.setLevel(stat.getLevel());
-                }
+            Stat origStat = statMap.putIfAbsent(stat.getName(),stat);
+            if(origStat!=null){
+                origStat.join(stat);
             }else{
-                addStat(stat,true);
+                stat.onAddStat(this);
             }
         }else{
             statMap.put(stat.getName(),stat);
@@ -201,11 +217,10 @@ public abstract class RpgObject {
     public void removeStat(Stat stat,boolean force){
         if(!force){
             Stat previous = getStat(stat.getName());
-            if (previous != null) {
-                if (previous.getLevel() > stat.getLevel()) {
-                    //previous.setLevel(previous.getLevel()-stat.getLevel());
-                }else{
-                    removeStat(stat,true);
+            if(previous!=null) {
+                previous.remove(stat);
+                if (previous.getLevel() == 0) {
+                    removeStat(stat.getName());
                 }
             }
         }else{
@@ -233,13 +248,34 @@ public abstract class RpgObject {
         return getStatsMap().values().stream().toList();
     }
 
+
+
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
-    public Map<String, Stat> getEffectiveStatsMap() {
-        Map<String,Stat> effectiveStats = new HashMap<>();
-        effectiveStats.putAll(getStatsMap());
+    public Map<String, List<Stat>> getEffectiveStatsMap() {
+        Map<String,List<Stat>> effectiveStats = new HashMap<>();
+        //clone the stat
+        for (Map.Entry<String,Stat> pair: getStatsMap().entrySet()) {
+            effectiveStats.put(pair.getKey(),List.of(pair.getValue().newInstance()));
+        }
+        for (Map.Entry<RpgObject,Boolean> pair: children.entrySet()) {
+            //for (Stat stat : pair.getKey().getEffectiveStats()) { //will loop indefinitely if self is a child somewhere down the line
+            for (Stat stat : pair.getKey().getStats()) { //will not loop indefinitely if self is a child
+                List<Stat> origStats = effectiveStats.getOrDefault(stat.getName(),null);
+
+                if(origStats!=null){
+                    if(origStats.get(0).mergeable()){
+                        origStats.get(0).join(stat);
+                    }else{
+                        origStats.add(stat);
+                    }
+                }else{
+                    effectiveStats.put(stat.getName(),List.of(stat));
+                }
+            }
+        }
         return effectiveStats;
     }
 
@@ -248,8 +284,15 @@ public abstract class RpgObject {
      * @return This object's effective stats
      */
     public List<Stat> getEffectiveStats() {
-        return getEffectiveStatsMap().values().stream().toList();
+        Map<String, List<Stat>> effectiveStatsMap = new HashMap<>();
+        List<Stat> returnStats = new ArrayList<>();
+        for (List<Stat> list :
+                effectiveStatsMap.values()) {
+            returnStats.addAll(list);
+        }
+        return returnStats;
     }
+
 
     //endregion
 
@@ -263,7 +306,10 @@ public abstract class RpgObject {
         return attack(DamageType.PHYSICAL, amount,victim,null);
     }
     public RpgEntityDamageByObjectEvent attack(DamageType damageType, double amount, RpgEntity victim, List<Stat> extraStats){
-        return victim.damage(damageType,amount,this,extraStats);
+        if(victim!=null) {
+            return victim.damage(damageType, amount, this, extraStats);
+        }
+        return null;
     }
 
     /**
@@ -332,11 +378,14 @@ public abstract class RpgObject {
     }
     //endregion
 
+    /**
+     * Removes the object
+     */
     public void remove(){
-        for (Stat stat :
+/*        for (Stat stat :
                 statMap.values()) {
             stat.onRemoveStat(this);
-        }
+        }*/
         statMap.clear();
         RpgManager.removeRpgObject(getUUID());
     }

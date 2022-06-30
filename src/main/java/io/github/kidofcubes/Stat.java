@@ -9,22 +9,15 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static io.github.kidofcubes.RpgPlugin.gson;
 
 public abstract class Stat implements Listener {
 
-
-    protected static String description = "Default description";
-
-    protected static StatType statType = StatType.stat;
-
-    private static Map<String,String> emptyData = new HashMap<>();
-
     private int level = 0;
+
+    private static final Map<String,String> emptyData = new HashMap<>();
 
     public RpgObject getParent() {
         return parent;
@@ -46,16 +39,34 @@ public abstract class Stat implements Listener {
     }
 
     public String getDescription() {
-        return description;
+        return "Default description";
     }
 
     public StatType getStatType() {
-        return statType;
+        return StatType.stat;
     }
 
+    public boolean mergeable() {
+        return false;
+    }
+
+    public Stat newInstance() {
+        try {
+            return (Stat) clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Gets the level of this stat
+     * default is 0
+     * @return
+     */
     public int getLevel() {
         return level;
     }
+
 
     public Stat setLevel(int level) {
         this.level = level;
@@ -96,7 +107,7 @@ public abstract class Stat implements Listener {
         if (toCheck != null) {
             Stat statInstance = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
             if(statInstance!=null) {
-                if (toCheck.getMana() >= getManaCost() || getManaCost() == 0) {
+                if (getManaCost() == 0 || toCheck.getMana() >= getManaCost()) {
                     if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
                         if (rpgActivateStatEvent.getTriggerStats().contains(getName())) {
                             toCheck.setMana(toCheck.getMana() - getManaCost());
@@ -106,8 +117,6 @@ public abstract class Stat implements Listener {
                         toCheck.setMana(toCheck.getMana() - getManaCost());
                         statInstance.run(event);
                     }
-                }else{
-                    System.out.println("mana "+toCheck.getMana()+" is not enough "+getManaCost());
                 }
             }
         }
@@ -124,6 +133,12 @@ public abstract class Stat implements Listener {
      */
     public abstract void run(Event event);
 
+    public void join(Stat stat){
+        setLevel(stat.getLevel()+getLevel());
+    }
+    public void remove(Stat stat){
+        setLevel(getLevel()-stat.getLevel());
+    }
 
 
     public StatContainer asContainer(){

@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -71,10 +72,10 @@ public class ExtraFunctions {
             output = output.append(Component.text("-" + round(damage.get(DamageType.WATER), 1) + "✽ ", TextColor.fromCSSHexString("#55FFFF")));
         }
         if (damage.get(DamageType.FIRE) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.FIRE), 1) + "✽ ", TextColor.fromCSSHexString("#FFFF55")));
+            output = output.append(Component.text("-" + round(damage.get(DamageType.FIRE), 1) + "✹ ", TextColor.fromCSSHexString("#FF5555")));
         }
         if (damage.get(DamageType.AIR) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.AIR), 1) + "✽ ", TextColor.fromCSSHexString("#FFFFFF")));
+            output = output.append(Component.text("-" + round(damage.get(DamageType.AIR), 1) + "❋ ", TextColor.fromCSSHexString("#FFFFFF")));
         }
         return LegacyComponentSerializer.legacySection().serialize(output);
     }
@@ -82,5 +83,22 @@ public class ExtraFunctions {
     public static double round(double value, int precision) {
         int scale = (int) Math.pow(10, precision);
         return (double) Math.round(value * scale) / scale;
+    }
+
+    public static Map<String,Stat> joinStatMaps(Map<String,Stat> map1, Map<String,Stat> map2){
+        Map<String,Stat> returnvalue = new HashMap<>(map1);
+        for (Map.Entry<String, Stat> entry :
+                map2.entrySet()) {
+            Stat orig = returnvalue.getOrDefault(entry.getKey(),null);
+            if(orig!=null){
+                if(orig.getLevel()<entry.getValue().getLevel()){
+                    orig.setLevel(entry.getValue().getLevel());
+                }
+            }else{
+                returnvalue.put(entry.getKey(),entry.getValue());
+            }
+
+        }
+        return returnvalue;
     }
 }

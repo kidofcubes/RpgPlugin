@@ -11,6 +11,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Zoglin;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -20,12 +21,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static io.github.kidofcubes.ExtraFunctions.isEmpty;
+import static io.github.kidofcubes.ExtraFunctions.joinStatMaps;
 import static io.github.kidofcubes.RpgPlugin.*;
 
 public class RpgEntity extends RpgObject {
     private final Map<EntityRelation, List<UUID>> relations = new HashMap<>();
 
+    
+
     private LivingEntity livingEntity;
+
+    private boolean extension=false;
 
     private double maxHealth;
     private double health;
@@ -73,15 +79,15 @@ public class RpgEntity extends RpgObject {
         return event;
     }
 
-    public RpgEntityDamageEvent damage(DamageType type, double amount, RpgObject attacker) {
-        return damage(type,amount,attacker, null);
-    }
-
-    public RpgEntityDamageByObjectEvent damage(DamageType type, double amount, @NotNull RpgObject attacker, List<Stat> extraStats) {
-        RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(this, type, amount, attacker, extraStats);
-        event.callEvent();
-        setHealth(getHealth() - event.getTotalDamage());
-        return event;
+    public RpgEntityDamageByObjectEvent damage(DamageType type, double amount, RpgObject attacker, List<Stat> extraStats) {
+        if(attacker!=null) {
+            RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(this, type, amount, attacker, extraStats);
+            event.callEvent();
+            setHealth(getHealth() - event.getTotalDamage());
+            return event;
+        }else{
+            return null;
+        }
     }
 
     public RpgEntityHealEvent heal(double amount) {
@@ -91,12 +97,15 @@ public class RpgEntity extends RpgObject {
         return event;
     }
 
-    public RpgEntityHealByObjectEvent heal(double amount, @NotNull RpgObject healer) {
+    public RpgEntityHealByObjectEvent heal(double amount, RpgObject healer) {
+        if(healer!=null) {
+            RpgEntityHealByObjectEvent event = new RpgEntityHealByObjectEvent(this, amount, healer);
+            event.callEvent();
+            setHealth(getHealth() + event.getAmount());
+            return event;
+        }
+        return null;
 
-        RpgEntityHealByObjectEvent event = new RpgEntityHealByObjectEvent(this, amount, healer);
-        event.callEvent();
-        setHealth(getHealth()+event.getAmount());
-        return event;
     }
     //endregion
 
@@ -140,13 +149,16 @@ public class RpgEntity extends RpgObject {
 
 
     @Override
+    public String getName() {
+        return getLivingEntity().getName();
+    }
+
+    @Override
     public void setMana(double mana) {
         super.setMana(mana);
         if(ManaDisplayMethod== RpgPlugin.ManaDisplayType.level) {
-            if(Math.floor(mana)>=0) {
-                if (livingEntity instanceof Player player) {
-                    player.setLevel((int) Math.floor(mana));
-                }
+            if (livingEntity instanceof Player player) {
+                player.setLevel((int) Math.floor(getMana()));
             }
         }
     }
@@ -184,7 +196,7 @@ public class RpgEntity extends RpgObject {
         }else if(health>this.health){
             //hearts particles maybe later
         }
-        this.health = Math.min(health,maxHealth);
+        this.health = Math.max(Math.min(health,maxHealth),0);
         livingEntity.setHealth(this.health);
         //this.health = health; //overheal tf2 mechanic later maybe?
     }
@@ -195,6 +207,9 @@ public class RpgEntity extends RpgObject {
     //endregion
 
 
+    /**
+     * Not the same as kill()
+     */
     @Override
     public void remove() {
         super.remove();
@@ -216,7 +231,7 @@ public class RpgEntity extends RpgObject {
     }
 
 
-    Map<String, Stat> effectiveStatsCache = new HashMap<>();
+    Map<String, List<Stat>> effectiveStatsCache = new HashMap<>();
     long effectiveStatsLastUpdate = 0;
 
     @Override
@@ -226,21 +241,53 @@ public class RpgEntity extends RpgObject {
             effectiveStatsLastUpdate = now;
 
             effectiveStatsCache.clear();
+            effectiveStatsCache.putAll(super.getEffectiveStatsMap());
             if (livingEntity.getEquipment() != null) {
                 for (EquipmentSlot slot : EquipmentSlot.values()) {
                     ItemStack item = livingEntity.getEquipment().getItem(slot);
                     if (!isEmpty(item)) {
-                        effectiveStatsCache.putAll(RpgManager.getItem(item).getEffectiveStatsMap());
+                        effectiveStatsCache = joinStatMaps(effectiveStatsCache,RpgManager.getItem(item).getEffectiveStatsMap());
                     }
                 }
             }
-            effectiveStatsCache.putAll(getStatsMap());
         }
         return effectiveStatsCache;
 
     }
+    public Map<String, List<Stat>> getEffectiveStatsMap() {
+        Map<String,List<Stat>> effectiveStats = super.getEffectiveStatsMap();
+        long now = System.currentTimeMillis();
+        if (now - effectiveStatsLastUpdate > 250) {
+            effectiveStatsLastUpdate = now;
+
+            effectiveStatsCache.clear();
+            effectiveStatsCache.putAll(super.getEffectiveStatsMap());
+            if (livingEntity.getEquipment() != null) {
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+
+                    ItemStack item = livingEntity.getEquipment().getItem(slot);
+                    if (!isEmpty(item)) {
+                        for (List<Stat> stats : RpgManager.getItem(item).getEffectiveStatsMap().values()) {
+                            List<Stat> origStats = effectiveStatsCache.
+                        }
+                        effectiveStatsCache = joinStatMaps(effectiveStatsCache,RpgManager.getItem(item).getEffectiveStatsMap());
+                    }
+
+                }
+            }
+        }
+        return effectiveStats;
+    }
+
+
+
+
 
     public boolean exists() {
+        return livingEntity.isValid() && !livingEntity.isDead() && livingEntity.getHealth() > 0;
+    }
+
+    public static boolean exists(LivingEntity livingEntity) {
         return livingEntity.isValid() && !livingEntity.isDead() && livingEntity.getHealth() > 0;
     }
 
