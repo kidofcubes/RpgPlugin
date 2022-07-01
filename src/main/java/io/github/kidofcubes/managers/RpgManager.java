@@ -44,6 +44,11 @@ public class RpgManager implements Listener {
         allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
     }
 
+    public static Map<UUID, RpgEntity> getAllRpgEntities(){
+        return allEntities;
+    }
+
+
     /**
      * Attempts to get a RpgEntity, then a RpgItem, if it can't find any then returns null
      * @param uuid UUID to search for

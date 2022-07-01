@@ -118,7 +118,9 @@ public class RpgEntity extends RpgObject {
         }
     }
 
+    public void checkEquipment(){
 
+    }
 
     //region gettersetters
 
@@ -228,55 +230,6 @@ public class RpgEntity extends RpgObject {
         } else {
             return null;
         }
-    }
-
-
-    Map<String, List<Stat>> effectiveStatsCache = new HashMap<>();
-    long effectiveStatsLastUpdate = 0;
-
-    @Override
-    public Map<String, Stat> getEffectiveStatsMap() {
-        long now = System.currentTimeMillis();
-        if (now - effectiveStatsLastUpdate > 250) {
-            effectiveStatsLastUpdate = now;
-
-            effectiveStatsCache.clear();
-            effectiveStatsCache.putAll(super.getEffectiveStatsMap());
-            if (livingEntity.getEquipment() != null) {
-                for (EquipmentSlot slot : EquipmentSlot.values()) {
-                    ItemStack item = livingEntity.getEquipment().getItem(slot);
-                    if (!isEmpty(item)) {
-                        effectiveStatsCache = joinStatMaps(effectiveStatsCache,RpgManager.getItem(item).getEffectiveStatsMap());
-                    }
-                }
-            }
-        }
-        return effectiveStatsCache;
-
-    }
-    public Map<String, List<Stat>> getEffectiveStatsMap() {
-        Map<String,List<Stat>> effectiveStats = super.getEffectiveStatsMap();
-        long now = System.currentTimeMillis();
-        if (now - effectiveStatsLastUpdate > 250) {
-            effectiveStatsLastUpdate = now;
-
-            effectiveStatsCache.clear();
-            effectiveStatsCache.putAll(super.getEffectiveStatsMap());
-            if (livingEntity.getEquipment() != null) {
-                for (EquipmentSlot slot : EquipmentSlot.values()) {
-
-                    ItemStack item = livingEntity.getEquipment().getItem(slot);
-                    if (!isEmpty(item)) {
-                        for (List<Stat> stats : RpgManager.getItem(item).getEffectiveStatsMap().values()) {
-                            List<Stat> origStats = effectiveStatsCache.
-                        }
-                        effectiveStatsCache = joinStatMaps(effectiveStatsCache,RpgManager.getItem(item).getEffectiveStatsMap());
-                    }
-
-                }
-            }
-        }
-        return effectiveStats;
     }
 
 

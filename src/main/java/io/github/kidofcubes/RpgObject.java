@@ -17,11 +17,10 @@ public abstract class RpgObject {
     //probably shouldnt use strings i think maybe? dunno
     private final List<RpgClass> rpgClasses = new ArrayList<>();
     private final Map<String, Stat> statMap = new HashMap<>();
+    private final Map<String, List<Stat>> effectiveStats = new HashMap<>();
 
-    //not saved, generated at runtime
-    private final Map<RpgObject,Boolean> children = new HashMap<>(); //boolean is for use stats
-    //true means use stats from it
-    //false means dont use stats from it
+    //stats work by checking if a object is using a objects
+
     String name;
     int level = 0;
 
@@ -156,16 +155,60 @@ public abstract class RpgObject {
         parentUUID = parent.getUUID();
     }
 
-    public void addChild(RpgObject object, boolean used){
-        children.put(object,used);
-    }
-    public void removeChild(RpgObject object){
-        children.remove(object);
-
-    }
 
 
     //region stat stuff
+
+    private final List<RpgObject> usedObjects = new ArrayList<>();
+    public List<RpgObject> getUsedObjects(){
+        return usedObjects;
+    }
+    public void addUsedObject(RpgObject rpgObject){
+        if(rpgObject!=null) {
+            if(rpgObject.usingObject(rpgObject)) return;
+            usedObjects.add(rpgObject);
+            for (Stat stat : rpgObject.getEffectiveStats()) {
+                addEffectiveStat(stat);
+            }
+        }
+    }
+    public void removeUsedObject(RpgObject rpgObject){
+        if(rpgObject!=null) {
+            usedObjects.remove(rpgObject);
+            for (Stat stat : rpgObject.getEffectiveStats()) {
+                removeEffectiveStat(stat);
+            }
+        }
+    }
+
+    public boolean usingObject(RpgObject rpgObject){
+        if(rpgObject!=null) {
+            if (getUUID().equals(rpgObject.getUUID())) return true;
+            for (RpgObject usedObject : getUsedObjects()) {
+                if (usedObject != null) {
+                    if (usedObject.equals(rpgObject)) return true;
+                    if (rpgObject.usingObject(rpgObject)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public void addEffectiveStat(Stat stat){
+        effectiveStats.putIfAbsent(stat.getName(),List.of());
+        effectiveStats.get(stat.getName()).add(stat);
+        if(getParent()!=null){
+            getParent().addEffectiveStat(stat);
+        }
+    }
+    public void removeEffectiveStat(Stat stat){
+        effectiveStats.putIfAbsent(stat.getName(),List.of());
+        effectiveStats.get(stat.getName()).remove(stat);
+        if(getParent()!=null){
+            getParent().removeEffectiveStat(stat);
+        }
+    }
+
 
     //todo fix class stat removing and stuff
 
@@ -250,32 +293,12 @@ public abstract class RpgObject {
 
 
 
+
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
     public Map<String, List<Stat>> getEffectiveStatsMap() {
-        Map<String,List<Stat>> effectiveStats = new HashMap<>();
-        //clone the stat
-        for (Map.Entry<String,Stat> pair: getStatsMap().entrySet()) {
-            effectiveStats.put(pair.getKey(),List.of(pair.getValue().newInstance()));
-        }
-        for (Map.Entry<RpgObject,Boolean> pair: children.entrySet()) {
-            //for (Stat stat : pair.getKey().getEffectiveStats()) { //will loop indefinitely if self is a child somewhere down the line
-            for (Stat stat : pair.getKey().getStats()) { //will not loop indefinitely if self is a child
-                List<Stat> origStats = effectiveStats.getOrDefault(stat.getName(),null);
-
-                if(origStats!=null){
-                    if(origStats.get(0).mergeable()){
-                        origStats.get(0).join(stat);
-                    }else{
-                        origStats.add(stat);
-                    }
-                }else{
-                    effectiveStats.put(stat.getName(),List.of(stat));
-                }
-            }
-        }
         return effectiveStats;
     }
 

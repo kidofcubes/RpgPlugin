@@ -46,10 +46,6 @@ public abstract class Stat implements Listener {
         return StatType.stat;
     }
 
-    public boolean mergeable() {
-        return false;
-    }
-
     public Stat newInstance() {
         try {
             return (Stat) clone();
@@ -105,17 +101,21 @@ public abstract class Stat implements Listener {
 
         RpgObject toCheck = checkObject(event);
         if (toCheck != null) {
-            Stat statInstance = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
-            if(statInstance!=null) {
-                if (getManaCost() == 0 || toCheck.getMana() >= getManaCost()) {
-                    if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
-                        if (rpgActivateStatEvent.getTriggerStats().contains(getName())) {
-                            toCheck.setMana(toCheck.getMana() - getManaCost());
+
+            List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
+            if(statInstances!=null) {
+                for (Stat statInstance : statInstances) {
+                    float manaCost = statInstance.getManaCost();
+                    if (manaCost == 0 || toCheck.getMana() >= manaCost) {
+                        if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
+                            if (rpgActivateStatEvent.getTriggerStats().contains(getName())) {
+                                toCheck.setMana(toCheck.getMana() - manaCost);
+                                statInstance.run(event);
+                            }
+                        } else {
+                            toCheck.setMana(toCheck.getMana() - manaCost);
                             statInstance.run(event);
                         }
-                    } else {
-                        toCheck.setMana(toCheck.getMana() - getManaCost());
-                        statInstance.run(event);
                     }
                 }
             }

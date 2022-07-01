@@ -11,20 +11,28 @@ import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.ServerPlayerConnection;
+import net.minecraft.util.datafix.fixes.EntityEquipmentToArmorAndHandFix;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftContainer;
+import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryEvent;
+import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static io.github.kidofcubes.ExtraFunctions.damageToString;
 
@@ -79,6 +87,16 @@ public class EntityManager implements Listener {
         }
 
 
+    }
+    private Map<UUID,Integer> equipmentHashes = new HashMap<>();
+    public void updateInventories(){
+        for (RpgEntity rpgEntity : RpgManager.getAllRpgEntities().values()) {
+            Integer original = equipmentHashes.getOrDefault(rpgEntity.getUUID(),Integer.MIN_VALUE);
+            if(original==Integer.MIN_VALUE){
+                rpgEntity
+            }
+            rpgEntity.getLivingEntity().getEquipment()
+        }
     }
 
 
