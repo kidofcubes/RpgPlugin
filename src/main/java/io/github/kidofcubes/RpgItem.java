@@ -12,6 +12,8 @@ import static io.github.kidofcubes.ExtraFunctions.isEmpty;
 import static io.github.kidofcubes.RpgPlugin.key;
 import static io.github.kidofcubes.RpgPlugin.uuidKey;
 
+
+//note, create and destroy on whims
 public class RpgItem extends RpgObject {
     public ItemStack item;
 
@@ -43,9 +45,6 @@ public class RpgItem extends RpgObject {
         }
     }
 
-    public void setItem(ItemStack item) {
-        this.item = item;
-    }
 
     public ItemStack toItemStack() {
         ItemStack itemStack = new ItemStack(item);
@@ -58,6 +57,8 @@ public class RpgItem extends RpgObject {
 
         return itemStack;
     }
+
+
 
     @Override
     public String getName() {

@@ -28,6 +28,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.util.Vector;
@@ -88,7 +89,15 @@ public class EntityManager implements Listener {
 
 
     }
-    private Map<UUID,Integer> equipmentHashes = new HashMap<>();
+    @EventHandler
+    public void onSwitchItem(PlayerItemHeldEvent event){
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
+            RpgManager.getRpgEntity(event.getPlayer()).updateInventoryStats();
+        }, 1);
+
+    }
+
+/*    private Map<UUID,Integer> equipmentHashes = new HashMap<>();
     public void updateInventories(){
         for (RpgEntity rpgEntity : RpgManager.getAllRpgEntities().values()) {
             Integer original = equipmentHashes.getOrDefault(rpgEntity.getUUID(),Integer.MIN_VALUE);
@@ -97,7 +106,7 @@ public class EntityManager implements Listener {
             }
             rpgEntity.getLivingEntity().getEquipment()
         }
-    }
+    }*/
 
 
 }

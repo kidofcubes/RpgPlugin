@@ -24,7 +24,7 @@ public abstract class Stat implements Listener {
     }
 
     private RpgObject parent;
-    public float getManaCost(){
+    public double getManaCost(){
         return 0;
     }
 
@@ -105,15 +105,15 @@ public abstract class Stat implements Listener {
             List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
             if(statInstances!=null) {
                 for (Stat statInstance : statInstances) {
-                    float manaCost = statInstance.getManaCost();
+                    double manaCost = statInstance.getManaCost();
                     if (manaCost == 0 || toCheck.getMana() >= manaCost) {
                         if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
                             if (rpgActivateStatEvent.getTriggerStats().contains(getName())) {
-                                toCheck.setMana(toCheck.getMana() - manaCost);
+                                if(manaCost!=0) toCheck.setMana(toCheck.getMana() - manaCost);
                                 statInstance.run(event);
                             }
                         } else {
-                            toCheck.setMana(toCheck.getMana() - manaCost);
+                            if(manaCost!=0) toCheck.setMana(toCheck.getMana() - manaCost);
                             statInstance.run(event);
                         }
                     }

@@ -22,6 +22,10 @@ public class RpgManager implements Listener {
     private static final Map<UUID, RpgEntity> allEntities = new HashMap<>();
     private static final Map<UUID, RpgItem> allItems = new HashMap<>();
 
+    //not saved
+    //should clean every so often
+    private static final Map<ItemStack, RpgItem> itemsCache = new HashMap<>();
+
     public static void init() {
 
     }
@@ -75,7 +79,8 @@ public class RpgManager implements Listener {
     public static void garbageCollect() {
         allEntities.entrySet().removeIf(entry -> !entry.getValue().exists());
         saveAllItems();
-        allItems.entrySet().clear();
+        itemsCache.clear();
+        allItems.clear();
     }
 
     /**
@@ -165,19 +170,24 @@ public class RpgManager implements Listener {
     }
 
     /**
-     *
+     * Will return null if air
      * @param itemStack
      * @return
      */
-    @NotNull
-    public static RpgItem getItem(ItemStack itemStack) { //reads uuid every time we get item, maybe not the smartest way?
+    @Nullable
+    public static RpgItem getItem(ItemStack itemStack) { //reads uuid sometimes
+        RpgItem cachedItem = itemsCache.getOrDefault(itemStack,null);
+        if(cachedItem!=null) return cachedItem;
+
         if (itemStack.getItemMeta().getPersistentDataContainer().has(uuidKey, PersistentDataType.STRING)) {
             RpgItem item = getItem(UUID.fromString(itemStack.getItemMeta().getPersistentDataContainer().get(uuidKey, PersistentDataType.STRING)));
             if (item != null) {
                 return item;
             }
         }
-        return new RpgItem(itemStack);
+        RpgItem rpgItem = new RpgItem(itemStack);
+        itemsCache.put(itemStack,rpgItem);
+        return rpgItem;
     }
 
     @Nullable

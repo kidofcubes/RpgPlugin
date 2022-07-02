@@ -62,8 +62,8 @@ public abstract class TimedStat extends Stat{
                         List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(), null);
                         if (statInstances != null) {
                             for (Stat statInstance: statInstances) {
-                                float manaCost = statInstance.getManaCost();
-                                if (toCheck.getMana() >= manaCost || manaCost == 0) {
+                                double manaCost = statInstance.getManaCost();
+                                if (manaCost == 0 || toCheck.getMana() >= manaCost) {
                                     toCheck.setMana(toCheck.getMana() - manaCost);
                                     statInstance.run(null);
                                 }

@@ -8,10 +8,8 @@ import io.github.kidofcubes.managers.RpgManager;
 import io.github.kidofcubes.types.DamageType;
 import io.github.kidofcubes.types.EntityRelation;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.HumanEntity;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Zoglin;
+import org.bukkit.entity.*;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -144,7 +142,9 @@ public class RpgEntity extends RpgObject {
             }
         }
         if(getParent()!=null) {
-            return getParent().getRelation(uuid);
+            if(getParent() instanceof RpgEntity rpgEntity) {
+                return rpgEntity.getRelation(uuid);
+            }
         }
         return EntityRelation.Neutral;
     }
@@ -208,6 +208,40 @@ public class RpgEntity extends RpgObject {
 
     //endregion
 
+    public void updateInventoryStats(){
+        if(cachedEquipment.values().size()==0){
+            cachedEquipment.put(EquipmentSlot.HEAD,null);
+            cachedEquipment.put(EquipmentSlot.CHEST,null);
+            cachedEquipment.put(EquipmentSlot.LEGS,null);
+            cachedEquipment.put(EquipmentSlot.FEET,null);
+            cachedEquipment.put(EquipmentSlot.HAND,null);
+            cachedEquipment.put(EquipmentSlot.OFF_HAND,null);
+        }
+        EntityEquipment entityEquipment = livingEntity.getEquipment();
+
+        if(entityEquipment!=null){
+            for (EquipmentSlot equipmentSlot : EquipmentSlot.values()) {
+                ItemStack itemStack = entityEquipment.getItem(equipmentSlot);
+                if(!itemStack.getType().isAir()){
+                    RpgItem rpgItem = RpgManager.getItem(itemStack);
+                    if(!rpgItem.equals(cachedEquipment.get(equipmentSlot))){
+                        removeUsedObject(cachedEquipment.get(equipmentSlot));
+                        addUsedObject(rpgItem);
+                        cachedEquipment.put(equipmentSlot,rpgItem);
+                    }
+                }
+            }
+        }
+    }
+
+    private final Map<EquipmentSlot,RpgItem> cachedEquipment = new HashMap<>();
+
+    @Override
+    public List<RpgObject> getUsedObjects() {
+        List<RpgObject> temp = super.getUsedObjects();
+
+        return temp;
+    }
 
     /**
      * Not the same as kill()

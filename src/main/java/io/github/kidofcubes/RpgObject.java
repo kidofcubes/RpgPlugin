@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 import static io.github.kidofcubes.RpgPlugin.gson;
 
@@ -29,7 +30,9 @@ public abstract class RpgObject {
     UUID parentUUID;
     boolean temporary = false;
 
-    private RpgEntity parent;
+    private boolean usedByParent = false;
+
+    private RpgObject parent;
     private UUID uuid;
 
     //region gettersetters
@@ -65,7 +68,8 @@ public abstract class RpgObject {
     }
 
     public void setMana(double mana) {
-        this.mana = Math.max(Math.min(mana,maxMana),0);
+        System.out.println("newmana:"+mana+" maxmana:"+getMaxMana()+" min of mana and max mana: "+Math.min(mana,getMaxMana()));
+        this.mana = Math.max(Math.min(mana,getMaxMana()),0);
     }
 
     public double getMaxMana() {
@@ -135,14 +139,14 @@ public abstract class RpgObject {
      * @return The parent of this object
      */
     @Nullable
-    public RpgEntity getParent() {
+    public RpgObject getParent() {
         if (parent != null) {
             return parent;
         } else {
             if (parentUUID != null) {
-                RpgEntity rpgEntityParent = RpgManager.getRpgEntity(parentUUID);
-                if (rpgEntityParent != null) {
-                    parent = rpgEntityParent;
+                RpgObject rpgObjectParent = RpgManager.getRpgObject(parentUUID);
+                if (rpgObjectParent != null) {
+                    parent = rpgObjectParent;
                     return parent;
                 }
             }
@@ -150,12 +154,14 @@ public abstract class RpgObject {
         }
     }
 
-    public void setParent(RpgEntity parent) {
+    public void setParent(RpgObject parent) {
         this.parent = parent;
         parentUUID = parent.getUUID();
     }
 
-
+    public void setUsedByParent(boolean usedByParent){
+        this.usedByParent = usedByParent;
+    }
 
     //region stat stuff
 
@@ -164,17 +170,26 @@ public abstract class RpgObject {
         return usedObjects;
     }
     public void addUsedObject(RpgObject rpgObject){
+        System.out.println("ADDED USED OBJECT 1");
         if(rpgObject!=null) {
-            if(rpgObject.usingObject(rpgObject)) return;
+            System.out.println(getName()+"ADDED USED OBJECT 11"+rpgObject.getName());
+            if(rpgObject.usingObject(this)) return;
+            rpgObject.setParent(this);
+            rpgObject.setUsedByParent(true);
             usedObjects.add(rpgObject);
+            System.out.println("ADDED USED OBJECT 2");
             for (Stat stat : rpgObject.getEffectiveStats()) {
+                System.out.println(getName()+" ADDING EFFECTIVE STATT "+stat.getName());
                 addEffectiveStat(stat);
             }
         }
     }
     public void removeUsedObject(RpgObject rpgObject){
         if(rpgObject!=null) {
+            if(!this.usingObject(rpgObject)) return;
+            System.out.println("REMOVED USED OBJECT "+rpgObject.getName());
             usedObjects.remove(rpgObject);
+            rpgObject.setUsedByParent(false);
             for (Stat stat : rpgObject.getEffectiveStats()) {
                 removeEffectiveStat(stat);
             }
@@ -195,16 +210,19 @@ public abstract class RpgObject {
     }
 
     public void addEffectiveStat(Stat stat){
-        effectiveStats.putIfAbsent(stat.getName(),List.of());
-        effectiveStats.get(stat.getName()).add(stat);
-        if(getParent()!=null){
+        System.out.println(getName()+" IS GETTING A NEW STAT "+stat.getName());
+        if(effectiveStats.putIfAbsent(stat.getName(),new ArrayList<>(List.of(stat)))!=null){
+            effectiveStats.get(stat.getName()).add(stat);
+        }
+        System.out.println(getName()+" NOW WITH "+effectiveStats.get(stat.getName()).size() + "of "+stat.getName());
+        if(getParent()!=null&&usedByParent){
             getParent().addEffectiveStat(stat);
         }
     }
     public void removeEffectiveStat(Stat stat){
-        effectiveStats.putIfAbsent(stat.getName(),List.of());
-        effectiveStats.get(stat.getName()).remove(stat);
-        if(getParent()!=null){
+        if(effectiveStats.containsKey(stat.getName())) effectiveStats.get(stat.getName()).remove(stat);
+
+        if(getParent()!=null&&usedByParent){
             getParent().removeEffectiveStat(stat);
         }
     }
@@ -213,11 +231,13 @@ public abstract class RpgObject {
     //todo fix class stat removing and stuff
 
     /**
-     * Adds a stat to the statMap (will increase level if stat of that type already exists)
+     * Adds a stat to the statMap (will overwrite earlier version if exists)
      * @param stat The stat
      */
     public void addStat(Stat stat){
-        addStat(stat,false);
+        stat.onAddStat(this);
+        statMap.put(stat.getName(),stat);
+        addEffectiveStat(stat);
     }
     public void addStats(List<Stat> addStats, boolean force){
         for (Stat stat :
@@ -227,15 +247,14 @@ public abstract class RpgObject {
     }
     public void addStat(Stat stat, boolean force){
         if(!force) {
-            Stat origStat = statMap.putIfAbsent(stat.getName(),stat);
+            Stat origStat = statMap.getOrDefault(stat.getName(),null);
             if(origStat!=null){
                 origStat.join(stat);
             }else{
-                stat.onAddStat(this);
+                addStat(stat);
             }
         }else{
-            statMap.put(stat.getName(),stat);
-            stat.onAddStat(this);
+            addStat(stat);
         }
     }
 
@@ -255,6 +274,7 @@ public abstract class RpgObject {
         Stat removedStat = statMap.remove(stat);
         if(removedStat!=null){
             removedStat.onRemoveStat(this);
+            removeEffectiveStat(removedStat);
         }
     }
     public void removeStat(Stat stat,boolean force){
@@ -299,6 +319,11 @@ public abstract class RpgObject {
      * @return This object's effective stats
      */
     public Map<String, List<Stat>> getEffectiveStatsMap() {
+/*        for (Map.Entry<String, List<Stat>> entry : effectiveStats.entrySet()) {
+            for (Stat stat : entry.getValue()) {
+                System.out.println("YOU HAVEE A STAT "+stat.getName()+" LVL "+stat.getLevel()+" FROM "+getName());
+            }
+        }*/
         return effectiveStats;
     }
 
@@ -307,7 +332,7 @@ public abstract class RpgObject {
      * @return This object's effective stats
      */
     public List<Stat> getEffectiveStats() {
-        Map<String, List<Stat>> effectiveStatsMap = new HashMap<>();
+        Map<String, List<Stat>> effectiveStatsMap = getEffectiveStatsMap();
         List<Stat> returnStats = new ArrayList<>();
         for (List<Stat> list :
                 effectiveStatsMap.values()) {
