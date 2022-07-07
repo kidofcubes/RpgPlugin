@@ -1,10 +1,7 @@
 package io.github.kidofcubes;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public abstract class RpgClass { //unneeded class maybe idk i dont like how instances dont do anything
     //i really do not know how to do this help

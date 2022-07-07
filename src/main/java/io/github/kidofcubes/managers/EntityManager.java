@@ -21,10 +21,14 @@ import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftContainer;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftInventory;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.inventory.InventoryInteractEvent;
@@ -38,6 +42,16 @@ import java.util.*;
 import static io.github.kidofcubes.ExtraFunctions.damageToString;
 
 public class EntityManager implements Listener {
+
+    public static void init(){
+        Bukkit.getScheduler().runTaskTimer(RpgPlugin.plugin, () -> {
+
+            for (RpgEntity rpgEntity :
+                    RpgManager.getAllRpgEntities().values()) {
+                rpgEntity.updateInventoryStats();
+            }
+        },0,5);
+    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDamageMoniter(RpgEntityDamageEvent event) {
@@ -90,11 +104,32 @@ public class EntityManager implements Listener {
 
     }
     @EventHandler
+    public void onEntitySpawn(CreatureSpawnEvent event){
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
+            System.out.println("initiated a entity which spawned "+event.getEntity());
+            RpgManager.getRpgEntity(event.getEntity());
+        }, 1);
+    }
+
+    @EventHandler
     public void onSwitchItem(PlayerItemHeldEvent event){
         Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            RpgManager.getRpgEntity(event.getPlayer()).updateInventoryStats();
+            updateInventoryStats(event.getPlayer());
         }, 1);
 
+    }
+    @EventHandler
+    public void onPickupItem(EntityPickupItemEvent event){
+
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
+            updateInventoryStats(event.getEntity());
+        }, 1);
+
+    }
+
+
+    private static void updateInventoryStats(LivingEntity livingEntity){
+        RpgManager.getRpgEntity(livingEntity).updateInventoryStats();
     }
 
 /*    private Map<UUID,Integer> equipmentHashes = new HashMap<>();

@@ -6,31 +6,34 @@ import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
 import io.github.kidofcubes.managers.RpgManager;
 import io.github.kidofcubes.managers.StatManager;
 import io.github.kidofcubes.types.DamageType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
-import java.util.stream.StreamSupport;
 
 import static io.github.kidofcubes.RpgPlugin.gson;
 
+
+//dodgy code
 public abstract class RpgObject {
     //probably shouldnt use strings i think maybe? dunno
-    private final List<RpgClass> rpgClasses = new ArrayList<>();
-    private final Map<String, Stat> statMap = new HashMap<>();
-    private final Map<String, List<Stat>> effectiveStats = new HashMap<>();
+    private final Map<RpgClass, List<Stat>> rpgClasses = new HashMap<>();
+    private final Map<String, Stat> statMap = new HashMap<>(); //key stat name
+    private final Map<String, List<Stat>> effectiveStats = new HashMap<>(); //key stat name
 
     //stats work by checking if a object is using a objects
 
     String name;
+
     int level = 0;
 
     private double maxMana = 100;
     private double mana = 100;
     UUID parentUUID;
-    boolean temporary = false;
+    public boolean temporary = false;
 
-    private boolean usedByParent = false;
+    private boolean beingUsed = false;
 
     private RpgObject parent;
     private UUID uuid;
@@ -61,14 +64,24 @@ public abstract class RpgObject {
         this.uuid = uuid;
     }
 
+    @NotNull
     public abstract String getName();
+
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
 
     public double getMana() {
         return mana;
     }
-
     public void setMana(double mana) {
-        System.out.println("newmana:"+mana+" maxmana:"+getMaxMana()+" min of mana and max mana: "+Math.min(mana,getMaxMana()));
+        //System.out.println("newmana:"+mana+" maxmana:"+getMaxMana()+" min of mana and max mana: "+Math.min(mana,getMaxMana()));
         this.mana = Math.max(Math.min(mana,getMaxMana()),0);
     }
 
@@ -85,7 +98,7 @@ public abstract class RpgObject {
     //region classes
 
     public List<RpgClass> getRpgClasses(){
-        return rpgClasses;
+        return new ArrayList<RpgClass>(rpgClasses.keySet());
     }
 
     /**
@@ -93,16 +106,21 @@ public abstract class RpgObject {
      * @param rpgClass
      */
     public void addRpgClass(RpgClass rpgClass){
-            removeRpgClass(rpgClass);
-            rpgClasses.add(rpgClass);
-        addStats(rpgClass.classStats(),false);
+        removeRpgClass(rpgClass);
+        List<Stat> listOfStats = rpgClass.classStats();
+        rpgClasses.put(rpgClass,listOfStats);
+        for (Stat stat : listOfStats) {
+            stat.onAddStat(this);
+            addEffectiveStat(stat);
+        }
+
 
     }
     public RpgClass getRpgClass(RpgClass rpgClass){
         return getRpgClass(rpgClass.getFullName());
     }
     public RpgClass getRpgClass(String rpgClass){
-        for (RpgClass check : rpgClasses) {
+        for (RpgClass check : getRpgClasses()) {
             if (check.getFullName().equalsIgnoreCase(rpgClass)) {
                 return check;
             }
@@ -113,19 +131,24 @@ public abstract class RpgObject {
         removeRpgClass(rpgClass.getFullName());
     }
     public void removeRpgClass(String rpgClass){
-        for (int i = 0; i < rpgClasses.size(); i++) {
-            if(rpgClasses.get(i).getFullName().equalsIgnoreCase(rpgClass)){
-                for (Stat stat : rpgClasses.get(i).classStats()) {
-                    removeStat(stat,false);
+        RpgClass toRemove = null;
+        for (Map.Entry<RpgClass, List<Stat>> pair : rpgClasses.entrySet()) {
+            if(pair.getKey().getFullName().equalsIgnoreCase(rpgClass)){
+                for (Stat stat : pair.getValue()) {
+                    stat.onRemoveStat(this);
+                    removeEffectiveStat(stat);
                 }
-                rpgClasses.remove(i);
+                toRemove = pair.getKey();
                 break;
             }
+        }
+        if(toRemove!=null){
+            rpgClasses.remove(toRemove);
         }
     }
 
     public boolean hasRpgClass(RpgClass rpgClass){
-        for (RpgClass check : rpgClasses) {
+        for (RpgClass check : getRpgClasses()) {
             if(check.getFullName().equalsIgnoreCase(rpgClass.getFullName())){
                 return true;
             }
@@ -145,8 +168,12 @@ public abstract class RpgObject {
         } else {
             if (parentUUID != null) {
                 RpgObject rpgObjectParent = RpgManager.getRpgObject(parentUUID);
+                if(rpgObjectParent==this){
+                    parentUUID = null;
+                    return null;
+                }
                 if (rpgObjectParent != null) {
-                    parent = rpgObjectParent;
+                    setParent(rpgObjectParent);
                     return parent;
                 }
             }
@@ -155,12 +182,21 @@ public abstract class RpgObject {
     }
 
     public void setParent(RpgObject parent) {
+        if(parent==this){
+            System.out.println("HES TRYING TO SET SELF AS PARENT HELP");
+        }
         this.parent = parent;
         parentUUID = parent.getUUID();
     }
 
-    public void setUsedByParent(boolean usedByParent){
-        this.usedByParent = usedByParent;
+    public void setBeingUsed(boolean beingUsed){
+        System.out.println("being used is being set to "+beingUsed+" on "+getName()+" whose parent is "+(getParent()!=null)+" real");
+        this.beingUsed = beingUsed;
+        if(!beingUsed){
+            if(getParent()!=null) {
+                getParent().removeUsedObject(this);
+            }
+        }
     }
 
     //region stat stuff
@@ -170,16 +206,19 @@ public abstract class RpgObject {
         return usedObjects;
     }
     public void addUsedObject(RpgObject rpgObject){
-        System.out.println("ADDED USED OBJECT 1");
         if(rpgObject!=null) {
-            System.out.println(getName()+"ADDED USED OBJECT 11"+rpgObject.getName());
-            if(rpgObject.usingObject(this)) return;
+            if(rpgObject.usingObject(this)){
+                System.out.println(rpgObject.getName()+" was about to be looped on "+getName());
+                return;
+            }
+            if(rpgObject==this){
+                System.out.println(rpgObject.getName()+" was about to be looped fastly on "+getName());
+                return;
+            }
             rpgObject.setParent(this);
-            rpgObject.setUsedByParent(true);
+            rpgObject.setBeingUsed(true);
             usedObjects.add(rpgObject);
-            System.out.println("ADDED USED OBJECT 2");
             for (Stat stat : rpgObject.getEffectiveStats()) {
-                System.out.println(getName()+" ADDING EFFECTIVE STATT "+stat.getName());
                 addEffectiveStat(stat);
             }
         }
@@ -187,22 +226,24 @@ public abstract class RpgObject {
     public void removeUsedObject(RpgObject rpgObject){
         if(rpgObject!=null) {
             if(!this.usingObject(rpgObject)) return;
-            System.out.println("REMOVED USED OBJECT "+rpgObject.getName());
             usedObjects.remove(rpgObject);
-            rpgObject.setUsedByParent(false);
+            rpgObject.setBeingUsed(false);
             for (Stat stat : rpgObject.getEffectiveStats()) {
                 removeEffectiveStat(stat);
             }
         }
     }
 
+    //did i do this right
     public boolean usingObject(RpgObject rpgObject){
         if(rpgObject!=null) {
-            if (getUUID().equals(rpgObject.getUUID())) return true;
-            for (RpgObject usedObject : getUsedObjects()) {
+            if (getUUID().equals(rpgObject.getUUID())) return true;//check if object is me
+
+            for (RpgObject usedObject : getUsedObjects()) {//check my used objects
                 if (usedObject != null) {
-                    if (usedObject.equals(rpgObject)) return true;
-                    if (rpgObject.usingObject(rpgObject)) return true;
+                    if (usedObject.equals(rpgObject))return true; //if usedobject is said object
+                    System.out.println("when "+getName()+" was checking if it owned "+rpgObject.getName()+", it found a child of itself called "+usedObject.getName()+" and now is checking that");
+                    if (usedObject.usingObject(rpgObject)) return true; //if used object using said object
                 }
             }
         }
@@ -210,20 +251,23 @@ public abstract class RpgObject {
     }
 
     public void addEffectiveStat(Stat stat){
-        System.out.println(getName()+" IS GETTING A NEW STAT "+stat.getName());
         if(effectiveStats.putIfAbsent(stat.getName(),new ArrayList<>(List.of(stat)))!=null){
             effectiveStats.get(stat.getName()).add(stat);
         }
-        System.out.println(getName()+" NOW WITH "+effectiveStats.get(stat.getName()).size() + "of "+stat.getName());
-        if(getParent()!=null&&usedByParent){
+        if(getParent()!=null&&beingUsed){
+            System.out.println("PASSING ADD EFFECTIVE STAT UP BECAUSE "+getParent().getName()+" IS NOT NULL AND "+beingUsed);
             getParent().addEffectiveStat(stat);
+        }else{
+            stat.onUseStat(this);
         }
     }
     public void removeEffectiveStat(Stat stat){
         if(effectiveStats.containsKey(stat.getName())) effectiveStats.get(stat.getName()).remove(stat);
 
-        if(getParent()!=null&&usedByParent){
+        if(getParent()!=null&&beingUsed){
             getParent().removeEffectiveStat(stat);
+        }else{
+            stat.onStopUsingStat(this);
         }
     }
 
@@ -319,11 +363,6 @@ public abstract class RpgObject {
      * @return This object's effective stats
      */
     public Map<String, List<Stat>> getEffectiveStatsMap() {
-/*        for (Map.Entry<String, List<Stat>> entry : effectiveStats.entrySet()) {
-            for (Stat stat : entry.getValue()) {
-                System.out.println("YOU HAVEE A STAT "+stat.getName()+" LVL "+stat.getLevel()+" FROM "+getName());
-            }
-        }*/
         return effectiveStats;
     }
 
@@ -391,7 +430,7 @@ public abstract class RpgObject {
             container.parentUUID = parentUUID.toString();
         }
         for (RpgClass rpgClass :
-                rpgClasses) {
+                getRpgClasses()) {
             container.rpgClasses.add(rpgClass.getFullName());
         }
         return container;
@@ -401,6 +440,8 @@ public abstract class RpgObject {
         RpgObjectJsonContainer container = gson.fromJson(json, RpgObjectJsonContainer.class);
         level = container.level;
         name = container.name;
+        mana = container.mana;
+        maxMana = container.maxMana;
         for (Map.Entry<String, Stat.StatContainer> entry : container.stats.entrySet()) {
             try {
                 Stat stat = StatManager.getRegisteredStatByName(entry.getKey()).getDeclaredConstructor().newInstance();
@@ -408,6 +449,7 @@ public abstract class RpgObject {
                 stat.loadCustomData(entry.getValue().customData);
                 addStat(stat);
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+
                 e.printStackTrace();
             }
         }
@@ -434,8 +476,20 @@ public abstract class RpgObject {
                 statMap.values()) {
             stat.onRemoveStat(this);
         }*/
-        statMap.clear();
         RpgManager.removeRpgObject(getUUID());
+        for (Stat stat :
+                getStats()) {
+            stat.onRemoveStat(this);
+        }
+        if(beingUsed&&getParent()!=null){
+            getParent().removeUsedObject(this);
+        }
+        for (int i = getUsedObjects().size()-1; i > -1; i--) {
+            removeUsedObject(getUsedObjects().get(i));
+        }
+        statMap.clear();
+        effectiveStats.clear();
+        System.out.println("REMOVED A OBEJCT NAMED "+getName());
     }
 
 

@@ -40,16 +40,14 @@ public class RpgManager implements Listener {
     }
 
     public static void cleanTempEntities() {
-        for (RpgEntity entry : allEntities.values()) {
-            if (entry.isTemporary()) {
-                entry.remove();
-            }
-        }
         allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
     }
 
     public static Map<UUID, RpgEntity> getAllRpgEntities(){
         return allEntities;
+    }
+    public static Map<UUID, RpgItem> getAllRpgItems(){
+        return allItems;
     }
 
 
@@ -118,7 +116,9 @@ public class RpgManager implements Listener {
             return returnEntity;
         } else {
             RpgEntity newRpgEntity = new RpgEntity(livingEntity);
+            System.out.println("CREATED A NEW RPG ENTITY "+newRpgEntity.getName());
             if(!newRpgEntity.exists()){
+                newRpgEntity.remove();
                 removeRpgObject(newRpgEntity.getUUID());
                 return null;
             }else{
@@ -150,15 +150,6 @@ public class RpgManager implements Listener {
     }
 
     /**
-     * dunno why this exists, might be removed later
-     * @param livingEntity
-     * @return
-     */
-    public static RpgEntity makeTempRpgEntity(LivingEntity livingEntity) {
-        return new RpgEntity(livingEntity, true);
-    }
-
-    /**
      * Check if there's a RpgEntity bound to an uuid
      * @param uuid
      * @return true if theres a RpgEntity that exists with this uuid
@@ -187,6 +178,7 @@ public class RpgManager implements Listener {
         }
         RpgItem rpgItem = new RpgItem(itemStack);
         itemsCache.put(itemStack,rpgItem);
+        allItems.put(rpgItem.getUUID(),rpgItem);
         return rpgItem;
     }
 
@@ -198,11 +190,15 @@ public class RpgManager implements Listener {
 
     @EventHandler
     public void onEntityDeath(EntityDeathEvent entityDeathEvent) {
+        RpgEntity rpgEntity = getRpgEntity(entityDeathEvent.getEntity());
+        if(rpgEntity!=null){
+            rpgEntity.remove();
+        }
         allEntities.remove(entityDeathEvent.getEntity().getUniqueId());
     }
 
+
     public static void removeRpgObject(UUID uuid){
         if(allEntities.remove(uuid)!=null) allItems.remove(uuid);
-
     }
 }

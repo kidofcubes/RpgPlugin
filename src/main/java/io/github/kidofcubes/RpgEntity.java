@@ -25,7 +25,7 @@ import static io.github.kidofcubes.RpgPlugin.*;
 public class RpgEntity extends RpgObject {
     private final Map<EntityRelation, List<UUID>> relations = new HashMap<>();
 
-    
+
 
     private LivingEntity livingEntity;
 
@@ -36,17 +36,7 @@ public class RpgEntity extends RpgObject {
 
     //region constructors
     public RpgEntity(LivingEntity livingEntity) {
-        this(livingEntity, false);
-    }
-
-    public RpgEntity(LivingEntity livingEntity, boolean tempEntity) {
-        this(livingEntity, null, tempEntity);
-    }
-
-    public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity) {
         this.livingEntity = livingEntity;
-        level = 0;
-        temporary = tempEntity;
         if (livingEntity.getPersistentDataContainer().has(key)) {
             loadFromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING));
         }else{
@@ -60,13 +50,36 @@ public class RpgEntity extends RpgObject {
                 EntityRelation.values()) {
             relations.put(relation, new ArrayList<>());
         }
-        if (parent != null) {
-            setParent(parent);
-            relations.get(EntityRelation.Ally).add(parentUUID);
-        }
         RpgManager.addRpgEntity(getUUID(), this);
-
     }
+
+//    public RpgEntity(LivingEntity livingEntity, boolean tempEntity) {
+//        this(livingEntity, null, tempEntity);
+//    }
+//
+//    public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity) {
+//        this.livingEntity = livingEntity;
+//        temporary = tempEntity;
+//        if (livingEntity.getPersistentDataContainer().has(key)) {
+//            loadFromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING));
+//        }else{
+//            if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
+//            setMaxHealth(livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+//            health = livingEntity.getHealth();
+//
+//        }
+//        setUUID(livingEntity.getUniqueId());
+//        for (EntityRelation relation :
+//                EntityRelation.values()) {
+//            relations.put(relation, new ArrayList<>());
+//        }
+//        if (parent != null) {
+//            setParent(parent);
+//            relations.get(EntityRelation.Ally).add(parentUUID);
+//        }
+//        RpgManager.addRpgEntity(getUUID(), this);
+//
+//    }
     //endregion
 
     //region healthfunctions
@@ -143,13 +156,13 @@ public class RpgEntity extends RpgObject {
         }
         if(getParent()!=null) {
             if(getParent() instanceof RpgEntity rpgEntity) {
-                return rpgEntity.getRelation(uuid);
+                return rpgEntity.getRelation(uuid); //time to seperate whos using and parent :pensive:
             }
         }
         return EntityRelation.Neutral;
     }
 
-
+    @NotNull
     @Override
     public String getName() {
         return getLivingEntity().getName();
@@ -229,6 +242,9 @@ public class RpgEntity extends RpgObject {
                         addUsedObject(rpgItem);
                         cachedEquipment.put(equipmentSlot,rpgItem);
                     }
+                }else{
+                    removeUsedObject(cachedEquipment.get(equipmentSlot));
+                    cachedEquipment.put(equipmentSlot,null);
                 }
             }
         }
@@ -271,6 +287,7 @@ public class RpgEntity extends RpgObject {
 
 
     public boolean exists() {
+        System.out.println("isvalid: "+getLivingEntity().isValid()+" isdead: "+livingEntity.isDead()+" health: "+livingEntity.getHealth());
         return livingEntity.isValid() && !livingEntity.isDead() && livingEntity.getHealth() > 0;
     }
 

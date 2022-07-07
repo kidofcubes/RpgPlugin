@@ -22,10 +22,17 @@ public abstract class Stat implements Listener {
     public RpgObject getParent() {
         return parent;
     }
+    public RpgObject getUser() {
+        return user;
+    }
 
     private RpgObject parent;
+    private RpgObject user;
     public double getManaCost(){
         return 0;
+    }
+    public boolean manaSourceFromParent(){
+        return false;
     }
 
 
@@ -46,13 +53,6 @@ public abstract class Stat implements Listener {
         return StatType.stat;
     }
 
-    public Stat newInstance() {
-        try {
-            return (Stat) clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     /**
      * Gets the level of this stat
@@ -71,9 +71,20 @@ public abstract class Stat implements Listener {
 
     public void onAddStat(RpgObject object){
         parent = object;
+        System.out.println("ON ADD STAT "+getName()+" ON "+object.getName());
     }
     public void onRemoveStat(RpgObject object){
         parent=null;
+        System.out.println("ON REMOVE STAT "+getName()+" ON "+object.getName());
+    }
+
+    public void onUseStat(RpgObject object){
+        user = object;
+        System.out.println("ON USE STAT"+getName()+" ON "+object.getName());
+    }
+    public void onStopUsingStat(RpgObject object){
+        user=null;
+        System.out.println("ON STOP USE STAT"+getName()+" ON "+object.getName());
     }
 
 
@@ -105,16 +116,25 @@ public abstract class Stat implements Listener {
             List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
             if(statInstances!=null) {
                 for (Stat statInstance : statInstances) {
+                    if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
+                        if (!rpgActivateStatEvent.getTriggerStats().contains(getName())) {
+                            continue;
+                        }
+                    }
                     double manaCost = statInstance.getManaCost();
-                    if (manaCost == 0 || toCheck.getMana() >= manaCost) {
-                        if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
-                            if (rpgActivateStatEvent.getTriggerStats().contains(getName())) {
-                                if(manaCost!=0) toCheck.setMana(toCheck.getMana() - manaCost);
+                    if(manaCost == 0){
+                        statInstance.run(event);
+                    }else{
+                        if(manaSourceFromParent()){
+                            if (statInstance.getParent().getMana() >= manaCost) {
+                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
                                 statInstance.run(event);
                             }
-                        } else {
-                            if(manaCost!=0) toCheck.setMana(toCheck.getMana() - manaCost);
-                            statInstance.run(event);
+                        }else{
+                            if (statInstance.getUser().getMana() >= manaCost) {
+                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
+                                statInstance.run(event);
+                            }
                         }
                     }
                 }

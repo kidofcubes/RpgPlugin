@@ -5,10 +5,12 @@ import io.github.kidofcubes.managers.RpgManager;
 import org.bukkit.event.Event;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public abstract class TimedStat extends Stat{
-    static final List<RpgObject> objectsWithStat = new ArrayList<>();
+    static final List<TimedStat> objectsWithStat = new ArrayList<>(); //key parent, value user
 
     /**
      * Override this if you want to support events too
@@ -23,13 +25,26 @@ public abstract class TimedStat extends Stat{
     @Override
     public void onAddStat(RpgObject object) {
         super.onAddStat(object);
-        objectsWithStat.add(object);
+        objectsWithStat.add(this);
     }
 
     @Override
     public void onRemoveStat(RpgObject object) {
         super.onRemoveStat(object);
-        objectsWithStat.remove(object);
+        objectsWithStat.remove(this);
+    }
+
+    @Override
+    public void onUseStat(RpgObject object) {
+        super.onAddStat(object);
+        //statInstances.put(getParent(),this);
+    }
+
+    @Override
+    public void onStopUsingStat(RpgObject object) {
+        super.onStopUsingStat(object);
+        //objectsWithStat.remove(getParent());
+        //statInstances.remove(getParent(),this);
     }
 
     public int getInterval(){
@@ -48,25 +63,24 @@ public abstract class TimedStat extends Stat{
     int count = 0;
     @Override
     public void trigger(Event event) {
-        if(event==null) {
+        if(event==null) { //check if timed event
             count++;
             if(count>=getInterval()){
                 count=0;
-                for (int i = objectsWithStat.size() - 1; i > -1; i--) {
-                    RpgObject toCheck = objectsWithStat.get(i);
-                    if(toCheck instanceof RpgEntity rpgEntity) if(!rpgEntity.exists()){
-                        objectsWithStat.remove(i);
-                        continue;
-                    }
-                    if (toCheck != null) {
-                        List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(), null);
-                        if (statInstances != null) {
-                            for (Stat statInstance: statInstances) {
-                                double manaCost = statInstance.getManaCost();
-                                if (manaCost == 0 || toCheck.getMana() >= manaCost) {
-                                    toCheck.setMana(toCheck.getMana() - manaCost);
-                                    statInstance.run(null);
-                                }
+                for (TimedStat statInstance : objectsWithStat) {
+                    double manaCost = statInstance.getManaCost();
+                    if(manaCost == 0){
+                        statInstance.run(null);
+                    }else{
+                        if(manaSourceFromParent()){
+                            if (statInstance.getParent().getMana() >= manaCost) {
+                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
+                                statInstance.run(null);
+                            }
+                        }else{
+                            if (statInstance.getUser().getMana() >= manaCost) {
+                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
+                                statInstance.run(null);
                             }
                         }
                     }
