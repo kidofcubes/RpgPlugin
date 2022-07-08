@@ -33,7 +33,6 @@ public abstract class RpgObject {
     UUID parentUUID;
     public boolean temporary = false;
 
-    private boolean beingUsed = false;
 
     private RpgObject parent;
     private UUID uuid;
@@ -156,6 +155,46 @@ public abstract class RpgObject {
         return false;
     }
     //endregion
+    //region usingstuff
+
+    private RpgObject user;
+    private final List<RpgObject> usedObjects = new ArrayList<>(); //for updating
+
+    public void use(RpgObject rpgObject){
+        if(!rpgObject.usedBy(this)&&!this.usedBy(rpgObject)){
+            usedObjects.add(rpgObject);
+            rpgObject.setUser(this);
+            for (Stat stat : rpgObject.getEffectiveStats()) {
+
+                stat.onStopUsingStat(rpgObject);
+                addEffectiveStat(stat);
+            }
+        }
+    }
+
+    protected void setUser(RpgObject user){
+        this.user=user;
+    }
+    public void stopUsing(RpgObject rpgObject){
+        if (rpgObject.user == this) {
+            usedObjects.remove(rpgObject);
+            for (Stat stat : rpgObject.getEffectiveStats()) {
+                removeEffectiveStat(stat);
+                stat.onUseStat(rpgObject);
+            }
+            rpgObject.setUser(null);
+        }
+    }
+
+    public boolean usedBy(RpgObject rpgObject){
+        if (getUUID().equals(rpgObject.getUUID())||rpgObject==this) return true;//check if object is me
+        if(user!=null){
+            if(user==rpgObject) return true;
+            return user.usedBy(rpgObject);
+        }
+        return false;
+    }
+    //endregion
 
     /**
      * Gets the parent of this object (inherits relations and will attribute things to parent)
@@ -181,6 +220,7 @@ public abstract class RpgObject {
         }
     }
 
+
     public void setParent(RpgObject parent) {
         if(parent==this){
             System.out.println("HES TRYING TO SET SELF AS PARENT HELP");
@@ -189,74 +229,17 @@ public abstract class RpgObject {
         parentUUID = parent.getUUID();
     }
 
-    public void setBeingUsed(boolean beingUsed){
-        System.out.println("being used is being set to "+beingUsed+" on "+getName()+" whose parent is "+(getParent()!=null)+" real");
-        this.beingUsed = beingUsed;
-        if(!beingUsed){
-            if(getParent()!=null) {
-                getParent().removeUsedObject(this);
-            }
-        }
-    }
 
     //region stat stuff
-
-    private final List<RpgObject> usedObjects = new ArrayList<>();
-    public List<RpgObject> getUsedObjects(){
-        return usedObjects;
-    }
-    public void addUsedObject(RpgObject rpgObject){
-        if(rpgObject!=null) {
-            if(rpgObject.usingObject(this)){
-                System.out.println(rpgObject.getName()+" was about to be looped on "+getName());
-                return;
-            }
-            if(rpgObject==this){
-                System.out.println(rpgObject.getName()+" was about to be looped fastly on "+getName());
-                return;
-            }
-            rpgObject.setParent(this);
-            rpgObject.setBeingUsed(true);
-            usedObjects.add(rpgObject);
-            for (Stat stat : rpgObject.getEffectiveStats()) {
-                addEffectiveStat(stat);
-            }
-        }
-    }
-    public void removeUsedObject(RpgObject rpgObject){
-        if(rpgObject!=null) {
-            if(!this.usingObject(rpgObject)) return;
-            usedObjects.remove(rpgObject);
-            rpgObject.setBeingUsed(false);
-            for (Stat stat : rpgObject.getEffectiveStats()) {
-                removeEffectiveStat(stat);
-            }
-        }
-    }
-
-    //did i do this right
-    public boolean usingObject(RpgObject rpgObject){
-        if(rpgObject!=null) {
-            if (getUUID().equals(rpgObject.getUUID())) return true;//check if object is me
-
-            for (RpgObject usedObject : getUsedObjects()) {//check my used objects
-                if (usedObject != null) {
-                    if (usedObject.equals(rpgObject))return true; //if usedobject is said object
-                    System.out.println("when "+getName()+" was checking if it owned "+rpgObject.getName()+", it found a child of itself called "+usedObject.getName()+" and now is checking that");
-                    if (usedObject.usingObject(rpgObject)) return true; //if used object using said object
-                }
-            }
-        }
-        return false;
-    }
 
     public void addEffectiveStat(Stat stat){
         if(effectiveStats.putIfAbsent(stat.getName(),new ArrayList<>(List.of(stat)))!=null){
             effectiveStats.get(stat.getName()).add(stat);
         }
-        if(getParent()!=null&&beingUsed){
-            System.out.println("PASSING ADD EFFECTIVE STAT UP BECAUSE "+getParent().getName()+" IS NOT NULL AND "+beingUsed);
-            getParent().addEffectiveStat(stat);
+
+        if(user!=null){
+            System.out.println("PASSING ADD EFFECTIVE STAT UP BECAUSE "+user+" IS NOT NULL");
+            user.addEffectiveStat(stat);
         }else{
             stat.onUseStat(this);
         }
@@ -264,8 +247,10 @@ public abstract class RpgObject {
     public void removeEffectiveStat(Stat stat){
         if(effectiveStats.containsKey(stat.getName())) effectiveStats.get(stat.getName()).remove(stat);
 
-        if(getParent()!=null&&beingUsed){
-            getParent().removeEffectiveStat(stat);
+        if(user!=null){
+            System.out.println("PASSING REMOVING EFFECTIVE STAT UP BECAUSE "+user+" IS NOT NULL");
+            user.removeEffectiveStat(stat);
+
         }else{
             stat.onStopUsingStat(this);
         }
@@ -481,14 +466,25 @@ public abstract class RpgObject {
                 getStats()) {
             stat.onRemoveStat(this);
         }
-        if(beingUsed&&getParent()!=null){
-            getParent().removeUsedObject(this);
+        List<Stat> statsList = getStats();
+        for(int i=getStats().size();i>-1;i--){
+            removeStat(statsList.get(i).getName());
         }
-        for (int i = getUsedObjects().size()-1; i > -1; i--) {
-            removeUsedObject(getUsedObjects().get(i));
+        if(user!=null){
+            user.stopUsing(this);
+        }
+
+        for(int i=usedObjects.size()-1;i>-1;i--){
+            stopUsing(usedObjects.get(i));
+        }
+
+        List<Stat> effectiveStatsList = getEffectiveStats();
+        for(int i=getEffectiveStats().size();i>-1;i--){
+            removeEffectiveStat(effectiveStatsList.get(i));
         }
         statMap.clear();
         effectiveStats.clear();
+        usedObjects.clear();
         System.out.println("REMOVED A OBEJCT NAMED "+getName());
     }
 

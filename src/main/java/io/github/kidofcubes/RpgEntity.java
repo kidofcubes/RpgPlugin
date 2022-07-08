@@ -222,42 +222,22 @@ public class RpgEntity extends RpgObject {
     //endregion
 
     public void updateInventoryStats(){
-        if(cachedEquipment.values().size()==0){
-            cachedEquipment.put(EquipmentSlot.HEAD,null);
-            cachedEquipment.put(EquipmentSlot.CHEST,null);
-            cachedEquipment.put(EquipmentSlot.LEGS,null);
-            cachedEquipment.put(EquipmentSlot.FEET,null);
-            cachedEquipment.put(EquipmentSlot.HAND,null);
-            cachedEquipment.put(EquipmentSlot.OFF_HAND,null);
-        }
         EntityEquipment entityEquipment = livingEntity.getEquipment();
 
         if(entityEquipment!=null){
             for (EquipmentSlot equipmentSlot : EquipmentSlot.values()) {
-                ItemStack itemStack = entityEquipment.getItem(equipmentSlot);
-                if(!itemStack.getType().isAir()){
-                    RpgItem rpgItem = RpgManager.getItem(itemStack);
-                    if(!rpgItem.equals(cachedEquipment.get(equipmentSlot))){
-                        removeUsedObject(cachedEquipment.get(equipmentSlot));
-                        addUsedObject(rpgItem);
-                        cachedEquipment.put(equipmentSlot,rpgItem);
-                    }
-                }else{
-                    removeUsedObject(cachedEquipment.get(equipmentSlot));
-                    cachedEquipment.put(equipmentSlot,null);
-                }
+                RpgItem newItem = null;
+                if(!entityEquipment.getItem(equipmentSlot).getType().isAir()) newItem = RpgManager.getItem(entityEquipment.getItem(equipmentSlot));
+                RpgItem oldItem = cachedEquipment.getOrDefault(equipmentSlot,null);
+                if(newItem==oldItem) continue;
+                if(oldItem!=null) stopUsing(cachedEquipment.getOrDefault(equipmentSlot,null));
+                if(newItem!=null) use(newItem);
+                cachedEquipment.put(equipmentSlot,newItem);
             }
         }
     }
 
     private final Map<EquipmentSlot,RpgItem> cachedEquipment = new HashMap<>();
-
-    @Override
-    public List<RpgObject> getUsedObjects() {
-        List<RpgObject> temp = super.getUsedObjects();
-
-        return temp;
-    }
 
     /**
      * Not the same as kill()
