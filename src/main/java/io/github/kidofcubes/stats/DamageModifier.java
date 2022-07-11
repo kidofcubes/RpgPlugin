@@ -42,6 +42,7 @@ public class DamageModifier extends Stat {
             rpgEntityDamageEvent.multiplyDamage(damageType,multiplier);
             rpgEntityDamageEvent.addDamage(damageType,addend);
         }
+        System.out.println("DAMAGE MODIFIER WAS RUN ON "+rpgEntityDamageEvent.getEntity().getName());
     }
 
     @Override

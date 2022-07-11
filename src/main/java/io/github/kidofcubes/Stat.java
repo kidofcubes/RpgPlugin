@@ -146,12 +146,13 @@ public abstract class Stat implements Listener {
         return EventPriority.NORMAL;
     }
 
-    public abstract RpgObject checkObject(Event event);
+    public RpgObject checkObject(Event event){return null;}
 
     /**
+     * Override this to run code when your stat is activated
      * @param event an event that's an instanceof one of the events you asked for
      */
-    public abstract void run(Event event);
+    public void run(Event event){}
 
     public void join(Stat stat){
         setLevel(stat.getLevel()+getLevel());

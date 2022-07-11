@@ -27,8 +27,9 @@ public class StatRegisteredListener extends RegisteredListener {
     public void callEvent(@NotNull Event event)  //DOUBLE-TRIPLE-(42 ms first time wtf) SPEED RN (this call event takes 0.0041 - 0.0024 ms)(calling the event) (orig takes 0.13 ms ????????)
     {
         if(event instanceof ActivateStats activateStats){
-            Stat statToRun = activateStats.activationStats.getOrDefault(stat.getClass(),null);
+            Stat statToRun = activateStats.getActivationStats().getOrDefault(stat.getClass(),null);
             if(statToRun!=null){
+                System.out.println("MY ACTIVATION STAT WAS "+statToRun.getName()+" TO RUN FOR "+event.getEventName());
                 statToRun.run(event);
             }
         }

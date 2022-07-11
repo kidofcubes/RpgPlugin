@@ -9,6 +9,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,12 @@ public class RpgEntityHealEvent extends Event implements Cancellable, ActivateSt
     public RpgEntityHealEvent(@NotNull RpgEntity entity,double amount, List<Stat> activateStats) {
         this.entity = entity;
         this.amount = amount;
-        addActivationStats(activateStats);
+        if(activateStats!=null){
+            for (Stat stat :
+                    activateStats) {
+                getActivationStats().put(stat.getClass(),stat);
+            }
+        }
     }
 
     public static HandlerList getHandlerList() {
@@ -69,6 +75,11 @@ public class RpgEntityHealEvent extends Event implements Cancellable, ActivateSt
     }
 
 
+    private final Map<Class<? extends Stat>, Stat> activationStats = new HashMap<>();
+    @Override
+    public Map<Class<? extends Stat>, Stat> getActivationStats() {
+        return activationStats;
+    }
 //gonna be like damage but oppisite
 
 

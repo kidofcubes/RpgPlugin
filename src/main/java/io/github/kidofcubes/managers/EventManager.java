@@ -4,8 +4,10 @@ import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
 import io.github.kidofcubes.events.RpgEntityDamageEvent;
 import io.github.kidofcubes.events.RpgEntityHealEvent;
 import io.github.kidofcubes.types.DamageType;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -47,12 +49,30 @@ public class EventManager implements Listener {
                         } else {
                             customEvent = new RpgEntityDamageEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()), event.getDamage());
                         }
+                        customEvent.setCancelled(event.isCancelled());
                         pluginManager.callEvent(customEvent);
-                        event.setCancelled(event.isCancelled());
+                        event.setCancelled(customEvent.isCancelled());
                         event.setDamage(customEvent.getTotalDamage());
                     }
                 }
             }
+        }
+    }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onEntityDamageEarly(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) {
+            System.out.println("EARLY DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" FROM "+damager.getName()+" IS CANCELLED IS "+event.isCancelled());
+        }else{
+            System.out.println("EARLY DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" IS CANCELLED IS "+event.isCancelled());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEntityDamageMoniter(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) {
+            System.out.println("MONITOR DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" FROM "+damager.getName()+" IS CANCELLED IS "+event.isCancelled());
+        }else{
+            System.out.println("MONITOR DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" IS CANCELLED IS "+event.isCancelled());
         }
     }
 

@@ -238,7 +238,6 @@ public abstract class RpgObject {
         }
 
         if(user!=null){
-            System.out.println("PASSING ADD EFFECTIVE STAT UP BECAUSE "+user+" IS NOT NULL");
             user.addEffectiveStat(stat);
         }else{
             stat.onUseStat(this);
@@ -264,6 +263,7 @@ public abstract class RpgObject {
      * @param stat The stat
      */
     public void addStat(Stat stat){
+        System.out.println("ADDED STAT "+stat.getName()+" TO "+getName());
         stat.onAddStat(this);
         statMap.put(stat.getName(),stat);
         addEffectiveStat(stat);
@@ -467,20 +467,24 @@ public abstract class RpgObject {
             stat.onRemoveStat(this);
         }
         List<Stat> statsList = getStats();
-        for(int i=getStats().size();i>-1;i--){
-            removeStat(statsList.get(i).getName());
+        if(statsList.size()>0) {
+            for (int i = getStats().size() - 1; i > -1; i--) {
+                removeStat(statsList.get(i).getName());
+            }
         }
         if(user!=null){
             user.stopUsing(this);
         }
-
-        for(int i=usedObjects.size()-1;i>-1;i--){
-            stopUsing(usedObjects.get(i));
+        if(usedObjects.size()>0) {
+            for (int i = usedObjects.size() - 1; i > -1; i--) {
+                stopUsing(usedObjects.get(i));
+            }
         }
-
         List<Stat> effectiveStatsList = getEffectiveStats();
-        for(int i=getEffectiveStats().size();i>-1;i--){
-            removeEffectiveStat(effectiveStatsList.get(i));
+        if(effectiveStatsList.size()>0) {
+            for (int i = getEffectiveStats().size() - 1; i > -1; i--) {
+                removeEffectiveStat(effectiveStatsList.get(i));
+            }
         }
         statMap.clear();
         effectiveStats.clear();

@@ -12,9 +12,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.kidofcubes.RpgPlugin.uuidKey;
 
@@ -40,7 +38,14 @@ public class RpgManager implements Listener {
     }
 
     public static void cleanTempEntities() {
-        allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
+        List<RpgEntity> tempRpgEntities = new ArrayList<>();
+        for (RpgEntity rpgEntity :
+                allEntities.values()) {
+            if(rpgEntity.temporary) tempRpgEntities.add(rpgEntity);
+        }
+        for (RpgEntity rpgEntity: tempRpgEntities) {
+            rpgEntity.remove();
+        }
     }
 
     public static Map<UUID, RpgEntity> getAllRpgEntities(){
@@ -113,18 +118,18 @@ public class RpgManager implements Listener {
     public static RpgEntity getRpgEntity(LivingEntity livingEntity) {
         RpgEntity returnEntity = getRpgEntity(livingEntity.getUniqueId());
         if (returnEntity != null) {
+            System.out.println("HAD THE ENTITY IN CACHE WITH UUID");
             return returnEntity;
         } else {
-            RpgEntity newRpgEntity = new RpgEntity(livingEntity);
-            System.out.println("CREATED A NEW RPG ENTITY "+newRpgEntity.getName());
-            if(!newRpgEntity.exists()){
-                newRpgEntity.remove();
-                removeRpgObject(newRpgEntity.getUUID());
-                return null;
-            }else{
+            if(RpgEntity.exists(livingEntity)){
+                RpgEntity newRpgEntity = new RpgEntity(livingEntity);
+                System.out.println("CREATED A NEW RPG ENTITY "+newRpgEntity.getName());
                 return newRpgEntity;
+            }else{
+                System.out.println("WAS GFING TO CREATE BUT DOESNT EXIST");
             }
         }
+        return null;
     }
 
 
@@ -140,7 +145,7 @@ public class RpgManager implements Listener {
             if (returnValue.exists()) {
                 return returnValue;
             } else {
-                allEntities.remove(uuid);
+                returnValue.remove();
                 return null;
             }
         } else {
@@ -188,14 +193,6 @@ public class RpgManager implements Listener {
     }
 
 
-    @EventHandler
-    public void onEntityDeath(EntityDeathEvent entityDeathEvent) {
-        RpgEntity rpgEntity = getRpgEntity(entityDeathEvent.getEntity());
-        if(rpgEntity!=null){
-            rpgEntity.remove();
-        }
-        allEntities.remove(entityDeathEvent.getEntity().getUniqueId());
-    }
 
 
     public static void removeRpgObject(UUID uuid){

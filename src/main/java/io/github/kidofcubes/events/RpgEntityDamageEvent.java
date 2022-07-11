@@ -8,6 +8,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,13 +32,23 @@ public class RpgEntityDamageEvent extends Event implements Cancellable, Activate
     }
 
 
-    public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull Map<DamageType, Double> amount, List<Stat> activateStats) {
+    public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull Map<DamageType, Double> amount, @Nullable List<Stat> activateStats) {
+        System.out.println("A DAMAGE EVENT WAS INITED ON "+entity.getName());
+        if(activateStats!=null) System.out.println(" WITH LENGTH OF ACTIVATE STATS "+activateStats.size());
         this.entity = entity;
         initDamage();
         for (Map.Entry<DamageType, Double> pair : amount.entrySet()) {
             setDamage(pair.getKey(), pair.getValue());
         }
-        addActivationStats(activateStats);
+        if(activateStats!=null){
+            for (Stat stat :
+                    activateStats) {
+                getActivationStats().put(stat.getClass(),stat);
+            }
+        }
+        for (Map.Entry<Class<? extends Stat>, Stat> entry : activationStats.entrySet()) {
+            System.out.println("ACTIVATION STATS HAS A "+entry.getValue().getName());
+        }
     }
 
     public static HandlerList getHandlerList() {
@@ -110,5 +121,11 @@ public class RpgEntityDamageEvent extends Event implements Cancellable, Activate
 
     public void setDamage(DamageType type, double newDamage) {
         damage.put(type, newDamage);
+    }
+
+    private final Map<Class<? extends Stat>, Stat> activationStats = new HashMap<>();
+    @Override
+    public Map<Class<? extends Stat>, Stat> getActivationStats() {
+        return activationStats;
     }
 }

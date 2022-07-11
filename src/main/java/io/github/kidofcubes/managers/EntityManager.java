@@ -1,5 +1,6 @@
 package io.github.kidofcubes.managers;
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.github.kidofcubes.RpgPlugin;
 import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
 import io.github.kidofcubes.events.RpgEntityDamageEvent;
@@ -11,16 +12,12 @@ import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.network.ServerPlayerConnection;
-import net.minecraft.util.datafix.fixes.EntityEquipmentToArmorAndHandFix;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.ArmorStand;
-import net.minecraft.world.inventory.InventoryMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftContainer;
-import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftInventory;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -28,13 +25,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.EntitySpawnEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryEvent;
-import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -55,10 +46,11 @@ public class EntityManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDamageMoniter(RpgEntityDamageEvent event) {
+        System.out.println("THE DAMAGE IS "+event.getTotalDamage()+" ONTO "+event.getEntity().getName()+" AND IS CANCELLED "+event.isCancelled());
         if(!event.isCancelled()) {
             if (event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent) {
                 if (rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker) {
-                    attacker.setRelation(event.getEntity().getUUID(), EntityRelation.Enemy);
+                    attacker.setRelation(event.getEntity().getUUID(), EntityRelation.ENEMY);
                 }
             }
 
@@ -72,6 +64,7 @@ public class EntityManager implements Listener {
                 armorstand.setCustomNameVisible(true);
                 armorstand.setSmall(true);
                 armorstand.setNoBasePlate(true);
+                armorstand.setMarker(true);
                 armorstand.setCustomName(Component.literal(damageToString(event.getDamage())));
 
                 Location eyeLocation = event.getEntity().getLivingEntity().getEyeLocation();
@@ -109,6 +102,19 @@ public class EntityManager implements Listener {
             System.out.println("initiated a entity which spawned "+event.getEntity());
             RpgManager.getRpgEntity(event.getEntity());
         }, 1);
+    }
+
+    @EventHandler
+    public void onEntityRemoved(EntityRemoveFromWorldEvent event){
+        System.out.println("ENEITY REMOVE FROM WORL EFTNET");
+        if(event.getEntity() instanceof LivingEntity livingEntity) {
+            System.out.println("ENEITY REMOVE FROM WORL EFTNET REAL");
+            RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
+            if (rpgEntity != null) {
+                System.out.println("ENEITY REMOVE FROM WORL EFTNE REMOVEDT");
+                rpgEntity.remove();
+            }
+        }
     }
 
     @EventHandler

@@ -2,6 +2,7 @@ package io.github.kidofcubes.events;
 
 import io.github.kidofcubes.ActivateStats;
 import io.github.kidofcubes.RpgObject;
+import io.github.kidofcubes.Stat;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -9,7 +10,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -133,4 +136,9 @@ public class RpgActivateStatEvent extends Event implements Cancellable, Activate
     }
     //endregion
 
+    private final Map<Class<? extends Stat>, Stat> activationStats = new HashMap<>();
+    @Override
+    public Map<Class<? extends Stat>, Stat> getActivationStats() {
+        return activationStats;
+    }
 }

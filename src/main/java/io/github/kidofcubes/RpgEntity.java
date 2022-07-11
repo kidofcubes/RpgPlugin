@@ -11,15 +11,12 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static io.github.kidofcubes.ExtraFunctions.isEmpty;
-import static io.github.kidofcubes.ExtraFunctions.joinStatMaps;
 import static io.github.kidofcubes.RpgPlugin.*;
 
 public class RpgEntity extends RpgObject {
@@ -46,10 +43,9 @@ public class RpgEntity extends RpgObject {
 
         }
         setUUID(livingEntity.getUniqueId());
-        for (EntityRelation relation :
-                EntityRelation.values()) {
-            relations.put(relation, new ArrayList<>());
-        }
+        relations.put(EntityRelation.ALLY, new ArrayList<>());
+        relations.put(EntityRelation.ENEMY, new ArrayList<>());
+        relations.put(EntityRelation.NEUTRAL, new ArrayList<>());
         RpgManager.addRpgEntity(getUUID(), this);
     }
 
@@ -139,7 +135,7 @@ public class RpgEntity extends RpgObject {
         for (Map.Entry<EntityRelation, List<UUID>> entry : relations.entrySet()) {
             entry.getValue().remove(uuid);
         }
-        if (relation != EntityRelation.Neutral) {
+        if (relation != EntityRelation.NEUTRAL) {
             relations.get(relation).add(uuid);
         }
     }
@@ -147,7 +143,7 @@ public class RpgEntity extends RpgObject {
     public EntityRelation getRelation(UUID uuid) {
         cleanRelations();
         if(uuid.equals(getUUID())){
-            return EntityRelation.Ally;
+            return EntityRelation.ALLY;
         }
         for (Map.Entry<EntityRelation, List<UUID>> entry : relations.entrySet()) {
             if (entry.getValue().contains(uuid)) {
@@ -159,7 +155,7 @@ public class RpgEntity extends RpgObject {
                 return rpgEntity.getRelation(uuid); //time to seperate whos using and parent :pensive:
             }
         }
-        return EntityRelation.Neutral;
+        return EntityRelation.NEUTRAL;
     }
 
     @NotNull
@@ -245,15 +241,17 @@ public class RpgEntity extends RpgObject {
     @Override
     public void remove() {
         super.remove();
-        getLivingEntity().remove();
+        if(!(getLivingEntity() instanceof Player)){
+            getLivingEntity().remove();
+        }
     }
 
     @Nullable
     public UUID currentTarget() {
-        if (relations.get(EntityRelation.Enemy).size() != 0) {
+        if (relations.get(EntityRelation.ENEMY).size() != 0) {
             cleanRelations();
-            if (relations.get(EntityRelation.Enemy).size() != 0) {
-                return relations.get(EntityRelation.Enemy).get(relations.get(EntityRelation.Enemy).size() - 1);
+            if (relations.get(EntityRelation.ENEMY).size() != 0) {
+                return relations.get(EntityRelation.ENEMY).get(relations.get(EntityRelation.ENEMY).size() - 1);
             } else {
                 return null;
             }
@@ -267,8 +265,8 @@ public class RpgEntity extends RpgObject {
 
 
     public boolean exists() {
-        System.out.println("isvalid: "+getLivingEntity().isValid()+" isdead: "+livingEntity.isDead()+" health: "+livingEntity.getHealth());
-        return livingEntity.isValid() && !livingEntity.isDead() && livingEntity.getHealth() > 0;
+        //System.out.println("isvalid: "+getLivingEntity().isValid()+" isdead: "+livingEntity.isDead()+" health: "+livingEntity.getHealth());
+        return exists(getLivingEntity());
     }
 
     public static boolean exists(LivingEntity livingEntity) {
