@@ -1,4 +1,4 @@
-package io.github.kidofcubes.types;
+package io.github.kidofcubes;
 
 import io.github.kidofcubes.ActivateStats;
 import io.github.kidofcubes.RpgPlugin;
@@ -23,14 +23,13 @@ public class StatRegisteredListener extends RegisteredListener {
     }
 
 
-    @Override //i dunno the speed
-    public void callEvent(@NotNull Event event)  //DOUBLE-TRIPLE-(42 ms first time wtf) SPEED RN (this call event takes 0.0041 - 0.0024 ms)(calling the event) (orig takes 0.13 ms ????????)
+    @Override
+    public void callEvent(@NotNull Event event)  //whats performance
     {
         if(event instanceof ActivateStats activateStats){
             Stat statToRun = activateStats.getActivationStats().getOrDefault(stat.getClass(),null);
             if(statToRun!=null){
-                System.out.println("MY ACTIVATION STAT WAS "+statToRun.getName()+" TO RUN FOR "+event.getEventName());
-                statToRun.run(event);
+                statToRun.trigger(event);
             }
         }
         for (Class<? extends Event> listenEvent : listenEvents) {

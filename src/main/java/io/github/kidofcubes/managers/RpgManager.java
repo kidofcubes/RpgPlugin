@@ -92,6 +92,9 @@ public class RpgManager implements Listener {
     public static void saveAllEntities() {
         for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
             if (entry.getValue().exists() && !entry.getValue().isTemporary()) {
+                System.out.println("PREPARING FOR REMOVAL "+entry.getValue().getName());
+                entry.getValue().prepareForRemove();
+                System.out.println("SAVING "+entry.getValue().getName());
                 entry.getValue().save();
             }
         }
@@ -101,6 +104,9 @@ public class RpgManager implements Listener {
      */
     public static void saveAllItems() {
         for (Map.Entry<UUID, RpgItem> entry : allItems.entrySet()) {
+            System.out.println("PREPARING FOR REMOVAL "+entry.getValue().getName());
+            entry.getValue().prepareForRemove();
+            System.out.println("SAVING "+entry.getValue().getName());
             entry.getValue().save();
         }
     }

@@ -3,13 +3,12 @@ package io.github.kidofcubes.managers;
 import io.github.kidofcubes.RpgPlugin;
 import io.github.kidofcubes.Stat;
 import io.github.kidofcubes.TimedStat;
-import io.github.kidofcubes.types.StatRegisteredListener;
+import io.github.kidofcubes.StatRegisteredListener;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.IllegalPluginAccessException;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -19,6 +18,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class StatManager implements Listener {
@@ -47,6 +47,7 @@ public class StatManager implements Listener {
         if (!registeredStats.contains(stat.getClass())) {
             if(stat instanceof TimedStat timedStat){
                 timedStats.add(timedStat);
+                timedStats.sort(Comparator.comparing(Stat::priority));
             }
 
             for (Class<? extends Event> listenEvent : listenEvents) {
@@ -99,6 +100,7 @@ public class StatManager implements Listener {
 
     @Nullable
     public static Class<? extends Stat> getRegisteredStatByName(String name) {
+        System.out.println("REGISTER STAT SEARCH IS "+name);
         for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
             if (stat.getSimpleName().equalsIgnoreCase(name)||stat.getName().equalsIgnoreCase(name)) {
                 return stat;

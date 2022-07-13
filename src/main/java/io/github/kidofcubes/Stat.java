@@ -17,6 +17,12 @@ public abstract class Stat implements Listener {
 
     private int level = 0;
 
+    private final List<String> runBeforeStats = runBeforeStats();
+
+    public List<String> runBeforeStats() {
+        return List.of();
+    }
+
     private static final Map<String,String> emptyData = new HashMap<>();
 
     public RpgObject getParent() {
@@ -121,25 +127,41 @@ public abstract class Stat implements Listener {
                             continue;
                         }
                     }
+                    //mana
                     double manaCost = statInstance.getManaCost();
                     if(manaCost == 0){
-                        statInstance.run(event);
+                        statInstance.activateStat(event);
                     }else{
                         if(manaSourceFromParent()){
                             if (statInstance.getParent().getMana() >= manaCost) {
                                 statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
-                                statInstance.run(event);
+
+
+                                statInstance.activateStat(event);
                             }
                         }else{
                             if (statInstance.getUser().getMana() >= manaCost) {
                                 statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
-                                statInstance.run(event);
+
+
+                                statInstance.activateStat(event);
                             }
                         }
                     }
                 }
             }
         }
+    }
+    public void activateStat(Event event){
+        for (String runBeforeStat : runBeforeStats) {
+            List<Stat> stats = getUser().getEffectiveStatsMap().getOrDefault(runBeforeStat,null);
+            if(stats!=null){
+                for (Stat stat : stats) {
+                    stat.trigger(event);
+                }
+            }
+        }
+        run(event);
     }
 
     public EventPriority priority(){

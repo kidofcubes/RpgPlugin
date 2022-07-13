@@ -16,6 +16,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
@@ -35,10 +36,17 @@ import static io.github.kidofcubes.ExtraFunctions.damageToString;
 public class EntityManager implements Listener {
 
     public static void init(){
+        for (World world : Bukkit.getWorlds()) {
+            for (LivingEntity livingEntity: world.getLivingEntities()) {
+                RpgManager.getRpgEntity(livingEntity);
+            }
+        }
+
         Bukkit.getScheduler().runTaskTimer(RpgPlugin.plugin, () -> {
 
             for (RpgEntity rpgEntity :
                     RpgManager.getAllRpgEntities().values()) {
+
                 rpgEntity.updateInventoryStats();
             }
         },0,5);
@@ -46,7 +54,6 @@ public class EntityManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDamageMoniter(RpgEntityDamageEvent event) {
-        System.out.println("THE DAMAGE IS "+event.getTotalDamage()+" ONTO "+event.getEntity().getName()+" AND IS CANCELLED "+event.isCancelled());
         if(!event.isCancelled()) {
             if (event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent) {
                 if (rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker) {

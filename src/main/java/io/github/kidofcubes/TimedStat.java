@@ -73,17 +73,17 @@ public abstract class TimedStat extends Stat{
                         //System.out.println("COUNT IS "+count+" AND INTERVAL IS "+statInstance.getInterval()+" ON "+statInstance.getName() +" WHOS PARENT IS "+statInstance.getParent().getName()+" AND USER IS "+statInstance.getUser().getName());
                         double manaCost = statInstance.getManaCost();
                         if(manaCost == 0){
-                            statInstance.run(null);
+                            statInstance.activateStat(null);
                         }else{
                             if(manaSourceFromParent()){
                                 if (statInstance.getParent().getMana() >= manaCost) {
                                     statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
-                                    statInstance.run(null);
+                                    statInstance.activateStat(null);
                                 }
                             }else{
                                 if (statInstance.getUser().getMana() >= manaCost) {
                                     statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
-                                    statInstance.run(null);
+                                    statInstance.activateStat(null);
                                 }
                             }
                         }

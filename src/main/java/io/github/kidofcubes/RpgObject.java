@@ -80,7 +80,6 @@ public abstract class RpgObject {
         return mana;
     }
     public void setMana(double mana) {
-        //System.out.println("newmana:"+mana+" maxmana:"+getMaxMana()+" min of mana and max mana: "+Math.min(mana,getMaxMana()));
         this.mana = Math.max(Math.min(mana,getMaxMana()),0);
     }
 
@@ -178,11 +177,11 @@ public abstract class RpgObject {
     public void stopUsing(RpgObject rpgObject){
         if (rpgObject.user == this) {
             usedObjects.remove(rpgObject);
+            rpgObject.setUser(null);
             for (Stat stat : rpgObject.getEffectiveStats()) {
                 removeEffectiveStat(stat);
                 stat.onUseStat(rpgObject);
             }
-            rpgObject.setUser(null);
         }
     }
 
@@ -223,7 +222,7 @@ public abstract class RpgObject {
 
     public void setParent(RpgObject parent) {
         if(parent==this){
-            System.out.println("HES TRYING TO SET SELF AS PARENT HELP");
+            throw new IllegalArgumentException("Can't set parent of "+getName()+" to itself");
         }
         this.parent = parent;
         parentUUID = parent.getUUID();
@@ -247,7 +246,6 @@ public abstract class RpgObject {
         if(effectiveStats.containsKey(stat.getName())) effectiveStats.get(stat.getName()).remove(stat);
 
         if(user!=null){
-            System.out.println("PASSING REMOVING EFFECTIVE STAT UP BECAUSE "+user+" IS NOT NULL");
             user.removeEffectiveStat(stat);
 
         }else{
@@ -263,7 +261,6 @@ public abstract class RpgObject {
      * @param stat The stat
      */
     public void addStat(Stat stat){
-        System.out.println("ADDED STAT "+stat.getName()+" TO "+getName());
         stat.onAddStat(this);
         statMap.put(stat.getName(),stat);
         addEffectiveStat(stat);
@@ -398,7 +395,8 @@ public abstract class RpgObject {
 
     //region saveloadingjson
     public String toJson() {
-        return gson.toJson(toContainer());
+        String returnValue = gson.toJson(toContainer());
+        return returnValue;
     }
 
     public RpgObjectJsonContainer toContainer(){
@@ -457,15 +455,19 @@ public abstract class RpgObject {
      * Removes the object
      */
     public void remove(){
-/*        for (Stat stat :
+        prepareForRemove();
+    }
+    public void prepareForRemove(){
+        /*        for (Stat stat :
                 statMap.values()) {
             stat.onRemoveStat(this);
         }*/
         RpgManager.removeRpgObject(getUUID());
-        for (Stat stat :
-                getStats()) {
-            stat.onRemoveStat(this);
-        }
+//        for (Stat stat :
+//                getStats()) {
+//            stat.onRemoveStat(this);
+//        }
+        Map<String, Stat> tempStats = new HashMap<>(getStatsMap());
         List<Stat> statsList = getStats();
         if(statsList.size()>0) {
             for (int i = getStats().size() - 1; i > -1; i--) {
@@ -480,18 +482,17 @@ public abstract class RpgObject {
                 stopUsing(usedObjects.get(i));
             }
         }
-        List<Stat> effectiveStatsList = getEffectiveStats();
-        if(effectiveStatsList.size()>0) {
-            for (int i = getEffectiveStats().size() - 1; i > -1; i--) {
-                removeEffectiveStat(effectiveStatsList.get(i));
-            }
-        }
-        statMap.clear();
-        effectiveStats.clear();
-        usedObjects.clear();
-        System.out.println("REMOVED A OBEJCT NAMED "+getName());
+        statMap.putAll(tempStats);
+//        List<Stat> effectiveStatsList = getEffectiveStats();
+//        if(effectiveStatsList.size()>0) {
+//            for (int i = getEffectiveStats().size() - 1; i > -1; i--) {
+//                removeEffectiveStat(effectiveStatsList.get(i));
+//            }
+//        }
+//        statMap.clear();
+//        effectiveStats.clear();
+//        usedObjects.clear();
     }
-
 
     @Override
     public boolean equals(Object other) {

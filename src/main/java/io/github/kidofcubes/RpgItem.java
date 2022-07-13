@@ -69,59 +69,59 @@ public class RpgItem extends RpgObject {
     //test
 
 
-    @Override
-    public void removeRpgClass(RpgClass rpgClass) {
-        super.removeRpgClass(rpgClass);
-        save();
-    }
-
-    @Override
-    public void removeStat(String stat) {
-        super.removeStat(stat);
-        save();
-    }
-
-    @Override
-    public void addRpgClass(RpgClass rpgClass) {
-        super.addRpgClass(rpgClass);
-        save();
-    }
-
-    @Override
-    public void addStat(Stat stat) {
-        super.addStat(stat);
-        save();
-    }
-
-    @Override
-    public void setUUID(UUID uuid) {
-        super.setUUID(uuid);
-        save();
-    }
-
-    @Override
-    public void setMana(double mana) {
-        super.setMana(mana);
-        save();
-    }
-
-    @Override
-    public void setMaxMana(double maxMana) {
-        super.setMaxMana(maxMana);
-        save();
-    }
-
-    @Override
-    public void setParent(RpgObject parent) {
-        super.setParent(parent);
-        save();
-    }
-
-    @Override
-    public void setLevel(int level) {
-        super.setLevel(level);
-        save();
-    }
+//    @Override
+//    public void removeRpgClass(RpgClass rpgClass) {
+//        super.removeRpgClass(rpgClass);
+//        save();
+//    }
+//
+//    @Override
+//    public void removeStat(String stat) {
+//        super.removeStat(stat);
+//        save();
+//    }
+//
+//    @Override
+//    public void addRpgClass(RpgClass rpgClass) {
+//        super.addRpgClass(rpgClass);
+//        save();
+//    }
+//
+//    @Override
+//    public void addStat(Stat stat) {
+//        super.addStat(stat);
+//        save();
+//    }
+//
+//    @Override
+//    public void setUUID(UUID uuid) {
+//        super.setUUID(uuid);
+//        save();
+//    }
+//
+//    @Override
+//    public void setMana(double mana) {
+//        super.setMana(mana);
+//        save();
+//    }
+//
+//    @Override
+//    public void setMaxMana(double maxMana) {
+//        super.setMaxMana(maxMana);
+//        save();
+//    }
+//
+//    @Override
+//    public void setParent(RpgObject parent) {
+//        super.setParent(parent);
+//        save();
+//    }
+//
+//    @Override
+//    public void setLevel(int level) {
+//        super.setLevel(level);
+//        save();
+//    }
 
     @NotNull
     @Override
@@ -133,6 +133,7 @@ public class RpgItem extends RpgObject {
 
     @Override
     public void save() {
+        System.out.println("SAVING ITEM "+getName());
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, toJson());
         itemMeta.getPersistentDataContainer().set(uuidKey, PersistentDataType.STRING, getUUID().toString());
