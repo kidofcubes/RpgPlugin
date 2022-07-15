@@ -20,7 +20,7 @@ public abstract class RpgObject {
     //probably shouldnt use strings i think maybe? dunno
     private final Map<RpgClass, List<Stat>> rpgClasses = new HashMap<>();
     private final Map<String, Stat> statMap = new HashMap<>(); //key stat name
-    private final Map<String, List<Stat>> effectiveStats = new HashMap<>(); //key stat name
+    private final Map<Class<? extends Stat>, List<Stat>> effectiveStats = new HashMap<>(); //key stat name
 
     //stats work by checking if a object is using a objects
 
@@ -28,8 +28,8 @@ public abstract class RpgObject {
 
     int level = 0;
 
-    private double maxMana = 100;
-    private double mana = 100;
+    private double maxMana = 20;
+    private double mana = 20;
     UUID parentUUID;
     public boolean temporary = false;
 
@@ -232,8 +232,8 @@ public abstract class RpgObject {
     //region stat stuff
 
     public void addEffectiveStat(Stat stat){
-        if(effectiveStats.putIfAbsent(stat.getName(),new ArrayList<>(List.of(stat)))!=null){
-            effectiveStats.get(stat.getName()).add(stat);
+        if(effectiveStats.putIfAbsent(stat.getClass(),new ArrayList<>(List.of(stat)))!=null){
+            effectiveStats.get(stat.getClass()).add(stat);
         }
 
         if(user!=null){
@@ -243,7 +243,7 @@ public abstract class RpgObject {
         }
     }
     public void removeEffectiveStat(Stat stat){
-        if(effectiveStats.containsKey(stat.getName())) effectiveStats.get(stat.getName()).remove(stat);
+        if(effectiveStats.containsKey(stat.getClass())) effectiveStats.get(stat.getClass()).remove(stat);
 
         if(user!=null){
             user.removeEffectiveStat(stat);
@@ -344,7 +344,7 @@ public abstract class RpgObject {
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
-    public Map<String, List<Stat>> getEffectiveStatsMap() {
+    public Map<Class<? extends Stat>, List<Stat>> getEffectiveStatsMap() {
         return effectiveStats;
     }
 
@@ -353,7 +353,7 @@ public abstract class RpgObject {
      * @return This object's effective stats
      */
     public List<Stat> getEffectiveStats() {
-        Map<String, List<Stat>> effectiveStatsMap = getEffectiveStatsMap();
+        Map<Class<? extends Stat>, List<Stat>> effectiveStatsMap = getEffectiveStatsMap();
         List<Stat> returnStats = new ArrayList<>();
         for (List<Stat> list :
                 effectiveStatsMap.values()) {
@@ -395,8 +395,7 @@ public abstract class RpgObject {
 
     //region saveloadingjson
     public String toJson() {
-        String returnValue = gson.toJson(toContainer());
-        return returnValue;
+        return gson.toJson(toContainer());
     }
 
     public RpgObjectJsonContainer toContainer(){

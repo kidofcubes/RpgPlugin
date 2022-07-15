@@ -152,9 +152,11 @@ public class RpgManager implements Listener {
                 return returnValue;
             } else {
                 returnValue.remove();
+                System.out.println("REMOVED A ENTITY FROM UUID GET");
                 return null;
             }
         } else {
+            System.out.println("COULDNT FIND A ENTITY FROM UUID GET");
             return null;
         }
 

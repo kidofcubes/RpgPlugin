@@ -29,9 +29,12 @@ public class StatManager implements Listener {
     public static void init(){
         BukkitScheduler scheduler = Bukkit.getScheduler();
         scheduler.runTaskTimer(RpgPlugin.plugin, () -> {
-            for (TimedStat timedStat : timedStats) {
-                timedStat.trigger(null);
+            if(timedStats.size()>0){ //static is static for all timedstats eee
+                timedStats.get(0).trigger(null);
             }
+//            for (TimedStat timedStat : timedStats) {
+//                timedStat.trigger(null);
+//            }
         }, 0, 1);
 
 

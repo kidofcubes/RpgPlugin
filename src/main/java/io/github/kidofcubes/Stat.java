@@ -17,10 +17,10 @@ public abstract class Stat implements Listener {
 
     private int level = 0;
 
-    private final List<String> runBeforeStats = runBeforeStats();
+    private final Class<? extends Stat> runBeforeStat = runBeforeStat();
 
-    public List<String> runBeforeStats() {
-        return List.of();
+    public Class<? extends Stat> runBeforeStat() {
+        return null;
     }
 
     private static final Map<String,String> emptyData = new HashMap<>();
@@ -115,11 +115,10 @@ public abstract class Stat implements Listener {
      * @param event
      */
     public void trigger(Event event) {
-
         RpgObject toCheck = checkObject(event);
         if (toCheck != null) {
 
-            List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass().getName(),null);
+            List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass(),null);
             if(statInstances!=null) {
                 for (Stat statInstance : statInstances) {
                     if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
@@ -153,16 +152,30 @@ public abstract class Stat implements Listener {
         }
     }
     public void activateStat(Event event){
-        for (String runBeforeStat : runBeforeStats) {
-            List<Stat> stats = getUser().getEffectiveStatsMap().getOrDefault(runBeforeStat,null);
-            if(stats!=null){
-                for (Stat stat : stats) {
-                    stat.trigger(event);
+        ArrayList<Stat> runBeforeStats = new ArrayList<>();
+        for (Map.Entry<Class<? extends Stat>,List<Stat>> pair : getUser().getEffectiveStatsMap().entrySet()) {
+            if(pair.getValue().size()>0){
+                if(pair.getValue().get(0).runBeforeStat!=null) {
+                    if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
+                        System.out.println("FOUND A "+pair.getValue().get(0).getName()+" FROM "+pair.getValue().get(0).getParent()+" USED BY "+pair.getValue().get(0).getUser()+" TO RUN BEFORE "+getName());
+                        runBeforeStats.addAll(pair.getValue());
+                    }
                 }
             }
         }
+        for (Stat stat : runBeforeStats) {
+            stat.sourceStat=this;
+            stat.activateStat(event);
+        }
         run(event);
+        sourceStat=null;
     }
+
+    public Stat sourceStat = null;
+
+
+
+
 
     public EventPriority priority(){
         return EventPriority.NORMAL;

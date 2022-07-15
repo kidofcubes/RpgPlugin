@@ -1,16 +1,12 @@
 package io.github.kidofcubes;
 
-import io.github.kidofcubes.events.RpgActivateStatEvent;
-import io.github.kidofcubes.managers.RpgManager;
 import org.bukkit.event.Event;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public abstract class TimedStat extends Stat{
-    static final Map<TimedStat,Integer> objectsWithStat = new HashMap<>(); //key stat, value count
+    static final Map<TimedStat,Integer> statInstances = new HashMap<>(); //key stat, value count
 
     /**
      * Override this if you want to support events too
@@ -25,13 +21,14 @@ public abstract class TimedStat extends Stat{
     @Override
     public void onAddStat(RpgObject object) {
         super.onAddStat(object);
-        objectsWithStat.put(this,0);
+        System.out.println("ADDED A STAT ONTO "+object.getName());
+        statInstances.put(this,0);
     }
 
     @Override
     public void onRemoveStat(RpgObject object) {
         super.onRemoveStat(object);
-        objectsWithStat.remove(this);
+        statInstances.remove(this);
     }
 
     @Override
@@ -65,7 +62,7 @@ public abstract class TimedStat extends Stat{
         if(event==null) { //check if timed event
             //if(count>=this.getInterval()){
             //    count=0;
-                for (Map.Entry<TimedStat,Integer> entry: objectsWithStat.entrySet()) {
+                for (Map.Entry<TimedStat,Integer> entry: statInstances.entrySet()) {
                     entry.setValue(entry.getValue()+1);
                     TimedStat statInstance = entry.getKey();
                     if(entry.getValue()>=statInstance.getInterval()){

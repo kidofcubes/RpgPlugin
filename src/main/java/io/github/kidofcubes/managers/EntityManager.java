@@ -25,7 +25,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.util.Vector;
 
@@ -113,10 +115,20 @@ public class EntityManager implements Listener {
 
     @EventHandler
     public void onEntityRemoved(EntityRemoveFromWorldEvent event){
-        System.out.println("ENEITY REMOVE FROM WORL EFTNET");
         if(event.getEntity() instanceof LivingEntity livingEntity) {
             System.out.println("ENEITY REMOVE FROM WORL EFTNET REAL");
-            RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
+            RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity.getUniqueId());
+            if (rpgEntity != null) {
+                System.out.println("ENEITY REMOVE FROM WORL EFTNE REMOVEDT");
+                rpgEntity.remove();
+            }
+        }
+    }
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent event){
+        if(event.getEntity() instanceof Player player) {
+            System.out.println("ENEITY REMOVE FROM WORL EFTNET REAL");
+            RpgEntity rpgEntity = RpgManager.getRpgEntity(player.getUniqueId());
             if (rpgEntity != null) {
                 System.out.println("ENEITY REMOVE FROM WORL EFTNE REMOVEDT");
                 rpgEntity.remove();
@@ -155,6 +167,16 @@ public class EntityManager implements Listener {
             rpgEntity.getLivingEntity().getEquipment()
         }
     }*/
+
+
+    //region health linking
+//    @EventHandler(priority = EventPriority.MONITOR)
+//    public void onHealthChange(EntityRegainHealthEvent event){
+//        if(event.getEntity() instanceof LivingEntity livingEntity){
+//            RpgManager.getRpgEntity(livingEntity).setHealth(livingEntity.getHealth());
+//        }
+//    }
+    //endregion
 
 
 }

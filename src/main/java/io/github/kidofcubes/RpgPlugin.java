@@ -42,8 +42,8 @@ public class RpgPlugin extends JavaPlugin {
             //yuck yaml
             saveDefaultConfig();
             FileConfiguration config = this.getConfig();
-            MapDefaultDamage = config.getBoolean("replaceDefaultDamage");
-            MapDefaultHealing = config.getBoolean("replaceDefaultHealing");
+//            MapDefaultDamage = config.getBoolean("replaceDefaultDamage");
+//            MapDefaultHealing = config.getBoolean("replaceDefaultHealing");
             try {
                 ManaDisplayMethod = ManaDisplayType.valueOf(config.getString("manaDisplayMethod"));
             } catch (Exception ex) {
@@ -67,8 +67,8 @@ public class RpgPlugin extends JavaPlugin {
     }
 
     public static ManaDisplayType ManaDisplayMethod = ManaDisplayType.none;
-    public static boolean MapDefaultDamage = false;
-    public static boolean MapDefaultHealing = false;
+//    public static boolean MapDefaultDamage = false;
+//    public static boolean MapDefaultHealing = false;
 
     @Override
     public void onDisable() {

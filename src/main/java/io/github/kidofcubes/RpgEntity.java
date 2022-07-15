@@ -43,7 +43,7 @@ public class RpgEntity extends RpgObject {
             }
             System.out.println("generic health is now "+livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
             setMaxHealth(livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-            health = livingEntity.getHealth();
+            setHealth(livingEntity.getHealth());
 
         }
         setUUID(livingEntity.getUniqueId());
@@ -202,12 +202,17 @@ public class RpgEntity extends RpgObject {
 
     public void setMaxHealth(double maxHealth) {
         this.maxHealth = maxHealth;
-        System.out.println("MAX HEALTH IS NOW "+maxHealth);
         if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
         getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
+        if(getHealth()>getEffectiveMaxHealth()){
+            setHealth(getEffectiveMaxHealth());
+        }
     }
 
 
+    public double getEffectiveHealth() {
+        return health;
+    }
     public double getHealth() {
         return health;
     }
@@ -218,7 +223,7 @@ public class RpgEntity extends RpgObject {
         }else if(health>this.health){
             //hearts particles maybe later
         }
-        this.health = Math.max(Math.min(health,getMaxHealth()),0);
+        this.health =Math.max(this.health,(Math.min(health,getEffectiveMaxHealth())));
         livingEntity.setHealth(this.health);
         //this.health = health; //overheal tf2 mechanic later maybe?
     }
@@ -252,9 +257,11 @@ public class RpgEntity extends RpgObject {
     @Override
     public void remove() {
         super.remove();
+        System.out.println("ENTITY "+getName()+" GOT REMOVED");
         if(!(getLivingEntity() instanceof Player)){
             getLivingEntity().remove();
         }
+
     }
 
     @Nullable
@@ -296,15 +303,15 @@ public class RpgEntity extends RpgObject {
         RpgEntityJsonContainer container = gson.fromJson(json, RpgEntityJsonContainer.class);
         System.out.println("LOADING MAX HEALTH WAS "+container.maxHealth);
         setMaxHealth(container.maxHealth);
-        System.out.println("LOADING HEALTH WAS "+container.health);
-        setHealth(container.health);
+        //System.out.println("LOADING HEALTH WAS "+container.health);
+        //setHealth(container.health);
     }
 
     @Override
     public RpgObjectJsonContainer toContainer() {
         RpgEntityJsonContainer entityJsonContainer = gson.fromJson(gson.toJson(super.toContainer()),RpgEntityJsonContainer.class);
-        System.out.println("SAVING HEALTH WAS "+getHealth());
-        entityJsonContainer.health = getHealth();
+        //System.out.println("SAVING HEALTH WAS "+getHealth());
+        //entityJsonContainer.health = getHealth();
         System.out.println("SAVING MAX HEALTH WAS "+getMaxHealth());
         entityJsonContainer.maxHealth = getMaxHealth();
         return entityJsonContainer;

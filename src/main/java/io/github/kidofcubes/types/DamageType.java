@@ -67,8 +67,8 @@ public enum DamageType {
     }
 
     public boolean containsDamageCause(DamageCause cause) {
-        for (int i = 0; i < fromDamageCauses.length; i++) {
-            if (fromDamageCauses[i] == cause) return true;
+        for (DamageCause fromDamageCause : fromDamageCauses) {
+            if (fromDamageCause == cause) return true;
         }
         return false;
     }
