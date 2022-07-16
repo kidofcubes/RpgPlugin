@@ -1,5 +1,6 @@
 package io.github.kidofcubes.managers;
 
+import io.github.kidofcubes.RpgEntity;
 import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
 import io.github.kidofcubes.events.RpgEntityDamageEvent;
 import io.github.kidofcubes.events.RpgEntityHealEvent;
@@ -86,15 +87,16 @@ public class EventManager implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityHeal(EntityRegainHealthEvent event) {
         if (event.getEntity() instanceof LivingEntity entity) {
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.CUSTOM) { //ignore custom
-
-
-                RpgEntityHealEvent customEvent = new RpgEntityHealEvent(RpgManager.getRpgEntity(entity), event.getAmount());
-                pluginManager.callEvent(customEvent);
-                event.setAmount(customEvent.getAmount());
+                RpgEntity rpgEntity = RpgManager.getRpgEntity(entity);
+                if(rpgEntity!=null){
+                    System.out.println("REDIRECTED VANNILA HEAL TO RPG HEAL");
+                    rpgEntity.heal(event.getAmount());
+                    event.setCancelled(true);
+                }
             }
         }
     }

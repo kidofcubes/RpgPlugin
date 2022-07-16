@@ -104,10 +104,12 @@ public abstract class RpgObject {
      * @param rpgClass
      */
     public void addRpgClass(RpgClass rpgClass){
+        System.out.println("ADDED RPG CLASS CALLED "+rpgClass.getFullName());
         removeRpgClass(rpgClass);
         List<Stat> listOfStats = rpgClass.classStats();
         rpgClasses.put(rpgClass,listOfStats);
         for (Stat stat : listOfStats) {
+            System.out.println("ADDED A STAT FROM "+rpgClass.getFullName());
             stat.onAddStat(this);
             addEffectiveStat(stat);
         }
@@ -250,6 +252,9 @@ public abstract class RpgObject {
 
         }else{
             stat.onStopUsingStat(this);
+            if(stat.getParent()==this){
+                stat.onRemoveStat(this);
+            }
         }
     }
 
@@ -413,6 +418,7 @@ public abstract class RpgObject {
         }
         for (RpgClass rpgClass :
                 getRpgClasses()) {
+            System.out.println("saving CLASS CALLED "+rpgClass.getFullName());
             container.rpgClasses.add(rpgClass.getFullName());
         }
         return container;
@@ -436,6 +442,7 @@ public abstract class RpgObject {
             }
         }
         for (String entry : container.rpgClasses) {
+            System.out.println("LOADING CLASS CALLED "+entry);
             try {
                 addRpgClass((RpgClass) Class.forName(entry).getDeclaredConstructor().newInstance());
             } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
@@ -454,6 +461,7 @@ public abstract class RpgObject {
      * Removes the object
      */
     public void remove(){
+        RpgManager.removeRpgObject(getUUID());
         prepareForRemove();
     }
     public void prepareForRemove(){
@@ -461,7 +469,6 @@ public abstract class RpgObject {
                 statMap.values()) {
             stat.onRemoveStat(this);
         }*/
-        RpgManager.removeRpgObject(getUUID());
 //        for (Stat stat :
 //                getStats()) {
 //            stat.onRemoveStat(this);
@@ -481,6 +488,12 @@ public abstract class RpgObject {
                 stopUsing(usedObjects.get(i));
             }
         }
+        for (Map.Entry<Class<? extends Stat>,List<Stat>> entry : getEffectiveStatsMap().entrySet()) {
+            for (int i = entry.getValue().size()-1; i > -1; i--) {
+                removeEffectiveStat(entry.getValue().get(i));
+            }
+        }
+
         statMap.putAll(tempStats);
 //        List<Stat> effectiveStatsList = getEffectiveStats();
 //        if(effectiveStatsList.size()>0) {

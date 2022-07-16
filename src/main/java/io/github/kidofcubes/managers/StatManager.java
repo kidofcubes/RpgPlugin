@@ -32,9 +32,6 @@ public class StatManager implements Listener {
             if(timedStats.size()>0){ //static is static for all timedstats eee
                 timedStats.get(0).trigger(null);
             }
-//            for (TimedStat timedStat : timedStats) {
-//                timedStat.trigger(null);
-//            }
         }, 0, 1);
 
 
@@ -103,7 +100,6 @@ public class StatManager implements Listener {
 
     @Nullable
     public static Class<? extends Stat> getRegisteredStatByName(String name) {
-        System.out.println("REGISTER STAT SEARCH IS "+name);
         for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
             if (stat.getSimpleName().equalsIgnoreCase(name)||stat.getName().equalsIgnoreCase(name)) {
                 return stat;

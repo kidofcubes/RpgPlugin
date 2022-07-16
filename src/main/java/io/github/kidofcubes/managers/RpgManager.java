@@ -124,7 +124,6 @@ public class RpgManager implements Listener {
     public static RpgEntity getRpgEntity(LivingEntity livingEntity) {
         RpgEntity returnEntity = getRpgEntity(livingEntity.getUniqueId());
         if (returnEntity != null) {
-            System.out.println("HAD THE ENTITY IN CACHE WITH UUID");
             return returnEntity;
         } else {
             if(RpgEntity.exists(livingEntity)){

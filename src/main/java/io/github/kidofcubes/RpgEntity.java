@@ -87,7 +87,7 @@ public class RpgEntity extends RpgObject {
     public RpgEntityDamageEvent damage(DamageType type, double amount) {
         RpgEntityDamageEvent event = new RpgEntityDamageEvent(this, type, amount);
         event.callEvent();
-        setHealth(getHealth()-event.getTotalDamage());
+        setHealth(getEffectiveHealth()-event.getTotalDamage());
         return event;
     }
 
@@ -95,7 +95,7 @@ public class RpgEntity extends RpgObject {
         if(attacker!=null) {
             RpgEntityDamageByObjectEvent event = new RpgEntityDamageByObjectEvent(this, type, amount, attacker, extraStats);
             event.callEvent();
-            setHealth(getHealth() - event.getTotalDamage());
+            setHealth(getEffectiveHealth() - event.getTotalDamage());
             return event;
         }else{
             return null;
@@ -105,7 +105,7 @@ public class RpgEntity extends RpgObject {
     public RpgEntityHealEvent heal(double amount) {
         RpgEntityHealEvent event = new RpgEntityHealEvent(this, amount);
         event.callEvent();
-        setHealth(getHealth()+event.getAmount());
+        setHealth(getEffectiveHealth()+event.getAmount());
         return event;
     }
 
@@ -113,7 +113,7 @@ public class RpgEntity extends RpgObject {
         if(healer!=null) {
             RpgEntityHealByObjectEvent event = new RpgEntityHealByObjectEvent(this, amount, healer);
             event.callEvent();
-            setHealth(getHealth() + event.getAmount());
+            setHealth(getEffectiveHealth() + event.getAmount());
             return event;
         }
         return null;
@@ -181,7 +181,7 @@ public class RpgEntity extends RpgObject {
 
     /**
      * Gets the livingentity this RpgEntity is linked to
-     * Do not use the health functions on the living entity, use {@link #setHealth(double)} and {@link #getHealth()}
+     * Do not use the health functions on the living entity, use {@link #setHealth(double)} and {@link #getEffectiveHealth()()}
      * @return
      */
     public LivingEntity getLivingEntity() {
@@ -204,27 +204,35 @@ public class RpgEntity extends RpgObject {
         this.maxHealth = maxHealth;
         if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
         getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHealth);
-        if(getHealth()>getEffectiveMaxHealth()){
+        if(getEffectiveHealth()>getEffectiveMaxHealth()){
             setHealth(getEffectiveMaxHealth());
         }
     }
 
 
+
+
     public double getEffectiveHealth() {
-        return health;
+        return getLivingEntity().getHealth();
     }
-    public double getHealth() {
-        return health;
+
+//    public double getHealth(){
+//        return health;
+//    }
+    public void addHealth(double amount){
+        setHealth(getEffectiveHealth()+amount);
     }
 
     public void setHealth(double health) {
-        if(health<this.health){//fake dmg
-            livingEntity.damage(0);
-        }else if(health>this.health){
-            //hearts particles maybe later
+        if(getEffectiveHealth()>0) {
+            if (health < this.health) {//fake dmg
+                livingEntity.damage(0);
+            } else if (health > this.health) {
+                //hearts particles maybe later
+            }
+            this.health = (Math.min(health, getEffectiveMaxHealth()));
+            livingEntity.setHealth(Math.max(this.health, 0));
         }
-        this.health =Math.max(this.health,(Math.min(health,getEffectiveMaxHealth())));
-        livingEntity.setHealth(this.health);
         //this.health = health; //overheal tf2 mechanic later maybe?
     }
 
@@ -258,9 +266,9 @@ public class RpgEntity extends RpgObject {
     public void remove() {
         super.remove();
         System.out.println("ENTITY "+getName()+" GOT REMOVED");
-        if(!(getLivingEntity() instanceof Player)){
-            getLivingEntity().remove();
-        }
+//        if(!(getLivingEntity() instanceof Player)){
+//            getLivingEntity().remove();
+//        }
 
     }
 

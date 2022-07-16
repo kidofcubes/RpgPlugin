@@ -157,7 +157,7 @@ public abstract class Stat implements Listener {
             if(pair.getValue().size()>0){
                 if(pair.getValue().get(0).runBeforeStat!=null) {
                     if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
-                        System.out.println("FOUND A "+pair.getValue().get(0).getName()+" FROM "+pair.getValue().get(0).getParent()+" USED BY "+pair.getValue().get(0).getUser()+" TO RUN BEFORE "+getName());
+                        //System.out.println("FOUND A "+pair.getValue().get(0).getName()+" FROM "+pair.getValue().get(0).getParent()+" USED BY "+pair.getValue().get(0).getUser()+" TO RUN BEFORE "+getName());
                         runBeforeStats.addAll(pair.getValue());
                     }
                 }

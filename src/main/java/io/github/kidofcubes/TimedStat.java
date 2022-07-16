@@ -2,8 +2,7 @@ package io.github.kidofcubes;
 
 import org.bukkit.event.Event;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class TimedStat extends Stat{
     static final Map<TimedStat,Integer> statInstances = new HashMap<>(); //key stat, value count
@@ -62,31 +61,32 @@ public abstract class TimedStat extends Stat{
         if(event==null) { //check if timed event
             //if(count>=this.getInterval()){
             //    count=0;
-                for (Map.Entry<TimedStat,Integer> entry: statInstances.entrySet()) {
-                    entry.setValue(entry.getValue()+1);
-                    TimedStat statInstance = entry.getKey();
-                    if(entry.getValue()>=statInstance.getInterval()){
-                        entry.setValue(0);
-                        //System.out.println("COUNT IS "+count+" AND INTERVAL IS "+statInstance.getInterval()+" ON "+statInstance.getName() +" WHOS PARENT IS "+statInstance.getParent().getName()+" AND USER IS "+statInstance.getUser().getName());
-                        double manaCost = statInstance.getManaCost();
-                        if(manaCost == 0){
-                            statInstance.activateStat(null);
+            HashSet<Map.Entry<TimedStat,Integer>> entries = new HashSet<>(statInstances.entrySet());
+            for (Map.Entry<TimedStat,Integer> entry: entries) {
+                entry.setValue(entry.getValue()+1);
+                TimedStat statInstance = entry.getKey();
+                if(entry.getValue()>=statInstance.getInterval()){
+                    entry.setValue(0);
+                    //System.out.println("COUNT IS "+count+" AND INTERVAL IS "+statInstance.getInterval()+" ON "+statInstance.getName() +" WHOS PARENT IS "+statInstance.getParent().getName()+" AND USER IS "+statInstance.getUser().getName());
+                    double manaCost = statInstance.getManaCost();
+                    if(manaCost == 0){
+                        statInstance.activateStat(null);
+                    }else{
+                        if(manaSourceFromParent()){
+                            if (statInstance.getParent().getMana() >= manaCost) {
+                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
+                                statInstance.activateStat(null);
+                            }
                         }else{
-                            if(manaSourceFromParent()){
-                                if (statInstance.getParent().getMana() >= manaCost) {
-                                    statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
-                                    statInstance.activateStat(null);
-                                }
-                            }else{
-                                if (statInstance.getUser().getMana() >= manaCost) {
-                                    statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
-                                    statInstance.activateStat(null);
-                                }
+                            if (statInstance.getUser().getMana() >= manaCost) {
+                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
+                                statInstance.activateStat(null);
                             }
                         }
                     }
-
                 }
+
+            }
             //}
         }else{
             super.trigger(event);

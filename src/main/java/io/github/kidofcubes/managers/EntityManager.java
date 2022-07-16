@@ -29,6 +29,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -97,7 +98,11 @@ public class EntityManager implements Listener {
                     ClientboundRemoveEntitiesPacket removeEntitiesPacket = new ClientboundRemoveEntitiesPacket(armorstand.getId());
                     for (ServerPlayerConnection connection :
                             connections) {
-                        connection.send(removeEntitiesPacket);
+                        try {
+                            connection.send(removeEntitiesPacket);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                     }
                 }, (long)(1.5*20));
             }
@@ -110,6 +115,13 @@ public class EntityManager implements Listener {
         Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
             System.out.println("initiated a entity which spawned "+event.getEntity());
             RpgManager.getRpgEntity(event.getEntity());
+        }, 1);
+    }
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event){
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
+            System.out.println("initiated a entity which respawned "+event.getPlayer());
+            RpgManager.getRpgEntity(event.getPlayer());
         }, 1);
     }
 
