@@ -133,7 +133,6 @@ public class RpgItem extends RpgObject {
 
     @Override
     public void save() {
-        System.out.println("SAVING ITEM "+getName());
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.getPersistentDataContainer().set(key, PersistentDataType.STRING, toJson());
         itemMeta.getPersistentDataContainer().set(uuidKey, PersistentDataType.STRING, getUUID().toString());

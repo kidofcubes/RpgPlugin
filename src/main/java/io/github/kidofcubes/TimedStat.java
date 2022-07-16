@@ -20,7 +20,6 @@ public abstract class TimedStat extends Stat{
     @Override
     public void onAddStat(RpgObject object) {
         super.onAddStat(object);
-        System.out.println("ADDED A STAT ONTO "+object.getName());
         statInstances.put(this,0);
     }
 
@@ -33,14 +32,11 @@ public abstract class TimedStat extends Stat{
     @Override
     public void onUseStat(RpgObject object) {
         super.onUseStat(object);
-        //statInstances.put(getParent(),this);
     }
 
     @Override
     public void onStopUsingStat(RpgObject object) {
         super.onStopUsingStat(object);
-        //objectsWithStat.remove(getParent());
-        //statInstances.remove(getParent(),this);
     }
 
     public int getInterval(){
@@ -67,7 +63,6 @@ public abstract class TimedStat extends Stat{
                 TimedStat statInstance = entry.getKey();
                 if(entry.getValue()>=statInstance.getInterval()){
                     entry.setValue(0);
-                    //System.out.println("COUNT IS "+count+" AND INTERVAL IS "+statInstance.getInterval()+" ON "+statInstance.getName() +" WHOS PARENT IS "+statInstance.getParent().getName()+" AND USER IS "+statInstance.getUser().getName());
                     double manaCost = statInstance.getManaCost();
                     if(manaCost == 0){
                         statInstance.activateStat(null);

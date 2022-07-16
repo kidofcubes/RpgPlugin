@@ -2,16 +2,12 @@ package io.github.kidofcubes;
 
 
 import io.github.kidofcubes.events.RpgActivateStatEvent;
-import io.github.kidofcubes.managers.StatManager;
-import io.github.kidofcubes.types.StatType;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-
-import static io.github.kidofcubes.RpgPlugin.gson;
 
 public abstract class Stat implements Listener {
 
@@ -55,9 +51,6 @@ public abstract class Stat implements Listener {
         return "Default description";
     }
 
-    public StatType getStatType() {
-        return StatType.stat;
-    }
 
 
     /**
@@ -77,26 +70,22 @@ public abstract class Stat implements Listener {
 
     public void onAddStat(RpgObject object){
         parent = object;
-        System.out.println("ON ADD STAT "+getName()+" ON "+object.getName());
     }
     public void onRemoveStat(RpgObject object){
         parent=null;
-        System.out.println("ON REMOVE STAT "+getName()+" ON "+object.getName());
     }
 
     public void onUseStat(RpgObject object){
         user = object;
-        System.out.println("ON USE STAT"+getName()+" ON "+object.getName());
     }
     public void onStopUsingStat(RpgObject object){
         user=null;
-        System.out.println("ON STOP USE STAT"+getName()+" ON "+object.getName());
     }
 
 
     /**
      * Override this to save things
-     * @return
+     * @return The data to save
      */
     public Map<String, String> saveCustomData() {return emptyData;}
 
@@ -112,7 +101,7 @@ public abstract class Stat implements Listener {
      *   stat on check object
      *   level!=0
      *   check object mana enough
-     * @param event
+     * @param event Event that was passed in
      */
     public void trigger(Event event) {
         RpgObject toCheck = checkObject(event);
@@ -157,7 +146,6 @@ public abstract class Stat implements Listener {
             if(pair.getValue().size()>0){
                 if(pair.getValue().get(0).runBeforeStat!=null) {
                     if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
-                        //System.out.println("FOUND A "+pair.getValue().get(0).getName()+" FROM "+pair.getValue().get(0).getParent()+" USED BY "+pair.getValue().get(0).getUser()+" TO RUN BEFORE "+getName());
                         runBeforeStats.addAll(pair.getValue());
                     }
                 }
@@ -202,10 +190,6 @@ public abstract class Stat implements Listener {
         container.level = level;
         container.customData = saveCustomData();
         return (container);
-    }
-    public void loadFromContainer(StatContainer container){
-        level = container.level;
-        loadCustomData(container.customData);
     }
     public static class StatContainer{
         public int level;

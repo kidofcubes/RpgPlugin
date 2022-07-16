@@ -34,7 +34,7 @@ public class ExtraFunctions {
 
     public static boolean isEmpty(ItemStack itemStack) {
         if (itemStack != null) {
-            return itemStack.getType().isAir();
+            return itemStack.getType().isAir()||itemStack.getType().isEmpty()||itemStack.getType().isEmpty();
         } else {
             return true;
         }

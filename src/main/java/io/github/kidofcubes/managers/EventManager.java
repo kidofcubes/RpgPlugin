@@ -69,23 +69,6 @@ public class EventManager implements Listener {
             }
         }
     }
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onEntityDamageEarly(EntityDamageEvent event) {
-        if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) {
-            System.out.println("EARLY DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" FROM "+damager.getName()+" IS CANCELLED IS "+event.isCancelled());
-        }else{
-            System.out.println("EARLY DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" IS CANCELLED IS "+event.isCancelled());
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onEntityDamageMoniter(EntityDamageEvent event) {
-        if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) {
-            System.out.println("MONITOR DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" FROM "+damager.getName()+" IS CANCELLED IS "+event.isCancelled());
-        }else{
-            System.out.println("MONITOR DAMAGE EVENT ON "+event.getEntity()+" WITH DAMAGE "+event.getDamage()+" IS CANCELLED IS "+event.isCancelled());
-        }
-    }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityHeal(EntityRegainHealthEvent event) {
@@ -93,7 +76,6 @@ public class EventManager implements Listener {
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.CUSTOM) { //ignore custom
                 RpgEntity rpgEntity = RpgManager.getRpgEntity(entity);
                 if(rpgEntity!=null){
-                    System.out.println("REDIRECTED VANNILA HEAL TO RPG HEAL");
                     rpgEntity.heal(event.getAmount());
                     event.setCancelled(true);
                 }

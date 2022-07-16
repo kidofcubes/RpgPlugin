@@ -33,8 +33,6 @@ public class RpgEntityDamageEvent extends Event implements Cancellable, Activate
 
 
     public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull Map<DamageType, Double> amount, @Nullable List<Stat> activateStats) {
-        System.out.println("A DAMAGE EVENT WAS INITED ON "+entity.getName());
-        if(activateStats!=null) System.out.println(" WITH LENGTH OF ACTIVATE STATS "+activateStats.size());
         this.entity = entity;
         initDamage();
         for (Map.Entry<DamageType, Double> pair : amount.entrySet()) {
@@ -45,9 +43,6 @@ public class RpgEntityDamageEvent extends Event implements Cancellable, Activate
                     activateStats) {
                 getActivationStats().put(stat.getClass(),stat);
             }
-        }
-        for (Map.Entry<Class<? extends Stat>, Stat> entry : activationStats.entrySet()) {
-            System.out.println("ACTIVATION STATS HAS A "+entry.getValue().getName());
         }
     }
 

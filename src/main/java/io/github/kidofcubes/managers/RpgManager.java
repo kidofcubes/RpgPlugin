@@ -92,9 +92,7 @@ public class RpgManager implements Listener {
     public static void saveAllEntities() {
         for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
             if (entry.getValue().exists() && !entry.getValue().isTemporary()) {
-                System.out.println("PREPARING FOR REMOVAL "+entry.getValue().getName());
                 entry.getValue().prepareForRemove();
-                System.out.println("SAVING "+entry.getValue().getName());
                 entry.getValue().save();
             }
         }
@@ -104,9 +102,7 @@ public class RpgManager implements Listener {
      */
     public static void saveAllItems() {
         for (Map.Entry<UUID, RpgItem> entry : allItems.entrySet()) {
-            System.out.println("PREPARING FOR REMOVAL "+entry.getValue().getName());
             entry.getValue().prepareForRemove();
-            System.out.println("SAVING "+entry.getValue().getName());
             entry.getValue().save();
         }
     }
@@ -128,10 +124,7 @@ public class RpgManager implements Listener {
         } else {
             if(RpgEntity.exists(livingEntity)){
                 RpgEntity newRpgEntity = new RpgEntity(livingEntity);
-                System.out.println("CREATED A NEW RPG ENTITY "+newRpgEntity.getName());
                 return newRpgEntity;
-            }else{
-                System.out.println("WAS GFING TO CREATE BUT DOESNT EXIST");
             }
         }
         return null;
@@ -151,11 +144,9 @@ public class RpgManager implements Listener {
                 return returnValue;
             } else {
                 returnValue.remove();
-                System.out.println("REMOVED A ENTITY FROM UUID GET");
                 return null;
             }
         } else {
-            System.out.println("COULDNT FIND A ENTITY FROM UUID GET");
             return null;
         }
 

@@ -104,12 +104,10 @@ public abstract class RpgObject {
      * @param rpgClass
      */
     public void addRpgClass(RpgClass rpgClass){
-        System.out.println("ADDED RPG CLASS CALLED "+rpgClass.getFullName());
         removeRpgClass(rpgClass);
         List<Stat> listOfStats = rpgClass.classStats();
         rpgClasses.put(rpgClass,listOfStats);
         for (Stat stat : listOfStats) {
-            System.out.println("ADDED A STAT FROM "+rpgClass.getFullName());
             stat.onAddStat(this);
             addEffectiveStat(stat);
         }
@@ -418,7 +416,6 @@ public abstract class RpgObject {
         }
         for (RpgClass rpgClass :
                 getRpgClasses()) {
-            System.out.println("saving CLASS CALLED "+rpgClass.getFullName());
             container.rpgClasses.add(rpgClass.getFullName());
         }
         return container;
@@ -432,17 +429,18 @@ public abstract class RpgObject {
         maxMana = container.maxMana;
         for (Map.Entry<String, Stat.StatContainer> entry : container.stats.entrySet()) {
             try {
-                Stat stat = StatManager.getRegisteredStatByName(entry.getKey()).getDeclaredConstructor().newInstance();
-                stat.setLevel(entry.getValue().level);
-                stat.loadCustomData(entry.getValue().customData);
-                addStat(stat);
+                Class<? extends Stat> statClass = StatManager.getRegisteredStatByName(entry.getKey());
+                if(statClass!=null) {
+                    Stat stat = statClass.getDeclaredConstructor().newInstance();
+                    stat.setLevel(entry.getValue().level);
+                    stat.loadCustomData(entry.getValue().customData);
+                    addStat(stat);
+                }
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-
                 e.printStackTrace();
             }
         }
         for (String entry : container.rpgClasses) {
-            System.out.println("LOADING CLASS CALLED "+entry);
             try {
                 addRpgClass((RpgClass) Class.forName(entry).getDeclaredConstructor().newInstance());
             } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
@@ -465,14 +463,6 @@ public abstract class RpgObject {
         prepareForRemove();
     }
     public void prepareForRemove(){
-        /*        for (Stat stat :
-                statMap.values()) {
-            stat.onRemoveStat(this);
-        }*/
-//        for (Stat stat :
-//                getStats()) {
-//            stat.onRemoveStat(this);
-//        }
         Map<String, Stat> tempStats = new HashMap<>(getStatsMap());
         List<Stat> statsList = getStats();
         if(statsList.size()>0) {
@@ -495,15 +485,6 @@ public abstract class RpgObject {
         }
 
         statMap.putAll(tempStats);
-//        List<Stat> effectiveStatsList = getEffectiveStats();
-//        if(effectiveStatsList.size()>0) {
-//            for (int i = getEffectiveStats().size() - 1; i > -1; i--) {
-//                removeEffectiveStat(effectiveStatsList.get(i));
-//            }
-//        }
-//        statMap.clear();
-//        effectiveStats.clear();
-//        usedObjects.clear();
     }
 
     @Override

@@ -27,7 +27,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.EntityRegainHealthEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.util.Vector;
@@ -56,7 +55,7 @@ public class EntityManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    public void onDamageMoniter(RpgEntityDamageEvent event) {
+    public void onDamageMonitor(RpgEntityDamageEvent event) {
         if(!event.isCancelled()) {
             if (event instanceof RpgEntityDamageByObjectEvent rpgEntityDamageByObjectEvent) {
                 if (rpgEntityDamageByObjectEvent.getCause() instanceof RpgEntity attacker) {
@@ -67,7 +66,6 @@ public class EntityManager implements Listener {
 
             //MAKE DAMAGE THINGS
             if (event.getTotalDamage() > 0) {
-                long startTime = System.nanoTime();
                 ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
                 ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, nmsWorld);
                 armorstand.setInvisible(true);
@@ -78,7 +76,7 @@ public class EntityManager implements Listener {
                 armorstand.setCustomName(Component.literal(damageToString(event.getDamage())));
 
                 Location eyeLocation = event.getEntity().getLivingEntity().getEyeLocation();
-                Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() + 0.5, Math.random() - 0.5).toVector(); //high up because players could accidentally hit the armorstand
+                Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() + 0.5, Math.random() - 0.5).toVector();
                 armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
                 ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);
                 ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(), armorstand.getEntityData(), false);
@@ -112,26 +110,18 @@ public class EntityManager implements Listener {
     }
     @EventHandler
     public void onEntitySpawn(CreatureSpawnEvent event){
-        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            System.out.println("initiated a entity which spawned "+event.getEntity());
-            RpgManager.getRpgEntity(event.getEntity());
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> RpgManager.getRpgEntity(event.getEntity()), 1);
     }
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event){
-        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            System.out.println("initiated a entity which respawned "+event.getPlayer());
-            RpgManager.getRpgEntity(event.getPlayer());
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> RpgManager.getRpgEntity(event.getPlayer()), 1);
     }
 
     @EventHandler
     public void onEntityRemoved(EntityRemoveFromWorldEvent event){
         if(event.getEntity() instanceof LivingEntity livingEntity) {
-            System.out.println("ENEITY REMOVE FROM WORL EFTNET REAL");
             RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity.getUniqueId());
             if (rpgEntity != null) {
-                System.out.println("ENEITY REMOVE FROM WORL EFTNE REMOVEDT");
                 rpgEntity.remove();
             }
         }
@@ -139,10 +129,8 @@ public class EntityManager implements Listener {
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event){
         if(event.getEntity() instanceof Player player) {
-            System.out.println("ENEITY REMOVE FROM WORL EFTNET REAL");
             RpgEntity rpgEntity = RpgManager.getRpgEntity(player.getUniqueId());
             if (rpgEntity != null) {
-                System.out.println("ENEITY REMOVE FROM WORL EFTNE REMOVEDT");
                 rpgEntity.remove();
             }
         }
@@ -150,45 +138,23 @@ public class EntityManager implements Listener {
 
     @EventHandler
     public void onSwitchItem(PlayerItemHeldEvent event){
-        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            updateInventoryStats(event.getPlayer());
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> updateInventoryStats(event.getPlayer()), 1);
 
     }
     @EventHandler
     public void onPickupItem(EntityPickupItemEvent event){
-
-        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            updateInventoryStats(event.getEntity());
-        }, 1);
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> updateInventoryStats(event.getEntity()), 1);
 
     }
 
 
     private static void updateInventoryStats(LivingEntity livingEntity){
-        RpgManager.getRpgEntity(livingEntity).updateInventoryStats();
+        RpgEntity rpgEntity = RpgManager.getRpgEntity(livingEntity);
+        if(rpgEntity!=null){
+            rpgEntity.updateInventoryStats();
+        }
     }
 
-/*    private Map<UUID,Integer> equipmentHashes = new HashMap<>();
-    public void updateInventories(){
-        for (RpgEntity rpgEntity : RpgManager.getAllRpgEntities().values()) {
-            Integer original = equipmentHashes.getOrDefault(rpgEntity.getUUID(),Integer.MIN_VALUE);
-            if(original==Integer.MIN_VALUE){
-                rpgEntity
-            }
-            rpgEntity.getLivingEntity().getEquipment()
-        }
-    }*/
-
-
-    //region health linking
-//    @EventHandler(priority = EventPriority.MONITOR)
-//    public void onHealthChange(EntityRegainHealthEvent event){
-//        if(event.getEntity() instanceof LivingEntity livingEntity){
-//            RpgManager.getRpgEntity(livingEntity).setHealth(livingEntity.getHealth());
-//        }
-//    }
-    //endregion
 
 
 }

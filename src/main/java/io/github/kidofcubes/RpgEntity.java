@@ -38,10 +38,8 @@ public class RpgEntity extends RpgObject {
             loadFromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING));
         }else{
             if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null){
-                System.out.println("generic health was null");
                 getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
             }
-            System.out.println("generic health is now "+livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
             setMaxHealth(livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
             setHealth(livingEntity.getHealth());
 
@@ -54,33 +52,6 @@ public class RpgEntity extends RpgObject {
         updateInventoryStats();
     }
 
-//    public RpgEntity(LivingEntity livingEntity, boolean tempEntity) {
-//        this(livingEntity, null, tempEntity);
-//    }
-//
-//    public RpgEntity(LivingEntity livingEntity, RpgEntity parent, boolean tempEntity) {
-//        this.livingEntity = livingEntity;
-//        temporary = tempEntity;
-//        if (livingEntity.getPersistentDataContainer().has(key)) {
-//            loadFromJson(livingEntity.getPersistentDataContainer().get(key, PersistentDataType.STRING));
-//        }else{
-//            if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
-//            setMaxHealth(livingEntity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-//            health = livingEntity.getHealth();
-//
-//        }
-//        setUUID(livingEntity.getUniqueId());
-//        for (EntityRelation relation :
-//                EntityRelation.values()) {
-//            relations.put(relation, new ArrayList<>());
-//        }
-//        if (parent != null) {
-//            setParent(parent);
-//            relations.get(EntityRelation.Ally).add(parentUUID);
-//        }
-//        RpgManager.addRpgEntity(getUUID(), this);
-//
-//    }
     //endregion
 
     //region healthfunctions
@@ -157,7 +128,7 @@ public class RpgEntity extends RpgObject {
         }
         if(getParent()!=null) {
             if(getParent() instanceof RpgEntity rpgEntity) {
-                return rpgEntity.getRelation(uuid); //time to seperate whos using and parent :pensive:
+                return rpgEntity.getRelation(uuid);
             }
         }
         return EntityRelation.NEUTRAL;
@@ -191,7 +162,6 @@ public class RpgEntity extends RpgObject {
     public double getMaxHealth() {
         if(maxHealth<=0){
             if(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH)==null) getLivingEntity().registerAttribute(Attribute.GENERIC_MAX_HEALTH);
-            //setMaxHealth(getLivingEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         }
         return maxHealth;
     }
@@ -215,10 +185,6 @@ public class RpgEntity extends RpgObject {
     public double getEffectiveHealth() {
         return getLivingEntity().getHealth();
     }
-
-//    public double getHealth(){
-//        return health;
-//    }
     public void addHealth(double amount){
         setHealth(getEffectiveHealth()+amount);
     }
@@ -259,18 +225,6 @@ public class RpgEntity extends RpgObject {
 
     private final Map<EquipmentSlot,RpgItem> cachedEquipment = new HashMap<>();
 
-    /**
-     * Not the same as kill()
-     */
-    @Override
-    public void remove() {
-        super.remove();
-        System.out.println("ENTITY "+getName()+" GOT REMOVED");
-//        if(!(getLivingEntity() instanceof Player)){
-//            getLivingEntity().remove();
-//        }
-
-    }
 
     @Nullable
     public UUID currentTarget() {
@@ -291,7 +245,6 @@ public class RpgEntity extends RpgObject {
 
 
     public boolean exists() {
-        //System.out.println("isvalid: "+getLivingEntity().isValid()+" isdead: "+livingEntity.isDead()+" health: "+livingEntity.getHealth());
         return exists(getLivingEntity());
     }
 
@@ -301,7 +254,6 @@ public class RpgEntity extends RpgObject {
 
     @Override
     public void save() {
-        System.out.println("SAVING RPGENTITY "+getName());
         livingEntity.getPersistentDataContainer().set(key, PersistentDataType.STRING, toJson());
     }
 
@@ -309,18 +261,12 @@ public class RpgEntity extends RpgObject {
     protected void loadFromJson(String json) {
         super.loadFromJson(json);
         RpgEntityJsonContainer container = gson.fromJson(json, RpgEntityJsonContainer.class);
-        System.out.println("LOADING MAX HEALTH WAS "+container.maxHealth);
         setMaxHealth(container.maxHealth);
-        //System.out.println("LOADING HEALTH WAS "+container.health);
-        //setHealth(container.health);
     }
 
     @Override
     public RpgObjectJsonContainer toContainer() {
         RpgEntityJsonContainer entityJsonContainer = gson.fromJson(gson.toJson(super.toContainer()),RpgEntityJsonContainer.class);
-        //System.out.println("SAVING HEALTH WAS "+getHealth());
-        //entityJsonContainer.health = getHealth();
-        System.out.println("SAVING MAX HEALTH WAS "+getMaxHealth());
         entityJsonContainer.maxHealth = getMaxHealth();
         return entityJsonContainer;
     }
