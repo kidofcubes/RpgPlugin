@@ -1,18 +1,20 @@
 package io.github.kidofcubes.events;
 
+import io.github.kidofcubes.ActivateStats;
 import io.github.kidofcubes.RpgEntity;
+import io.github.kidofcubes.Stat;
 import io.github.kidofcubes.types.DamageType;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class RpgEntityDamageEvent extends Event implements Cancellable {
-
-    //region Event stuff
+public class RpgEntityDamageEvent extends Event implements Cancellable, ActivateStats {
 
     private static final HandlerList handlers = new HandlerList();
     private final Map<DamageType, Double> damage = new HashMap<>();
@@ -22,18 +24,25 @@ public class RpgEntityDamageEvent extends Event implements Cancellable {
 
 
     public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull DamageType type, double amount) {
-        this.entity = entity;
-        initDamage();
+        this(entity,type,amount,null);
+    }
+    public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull DamageType type, double amount, List<Stat> activateStats) {
+        this(entity,new HashMap<>(),activateStats);
         setDamage(type, amount);
     }
-    //endregion
 
 
-    public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull Map<DamageType, Double> amount) {
+    public RpgEntityDamageEvent(@NotNull RpgEntity entity, @NotNull Map<DamageType, Double> amount, @Nullable List<Stat> activateStats) {
         this.entity = entity;
         initDamage();
         for (Map.Entry<DamageType, Double> pair : amount.entrySet()) {
             setDamage(pair.getKey(), pair.getValue());
+        }
+        if(activateStats!=null){
+            for (Stat stat :
+                    activateStats) {
+                getActivationStats().put(stat.getClass(),stat);
+            }
         }
     }
 
@@ -107,5 +116,11 @@ public class RpgEntityDamageEvent extends Event implements Cancellable {
 
     public void setDamage(DamageType type, double newDamage) {
         damage.put(type, newDamage);
+    }
+
+    private final Map<Class<? extends Stat>, Stat> activationStats = new HashMap<>();
+    @Override
+    public Map<Class<? extends Stat>, Stat> getActivationStats() {
+        return activationStats;
     }
 }

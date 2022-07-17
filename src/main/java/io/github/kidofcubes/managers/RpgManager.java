@@ -9,11 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.kidofcubes.RpgPlugin.uuidKey;
 
@@ -21,79 +20,122 @@ public class RpgManager implements Listener {
     private static final Map<UUID, RpgEntity> allEntities = new HashMap<>();
     private static final Map<UUID, RpgItem> allItems = new HashMap<>();
 
+    //not saved
+    //should clean every so often
+    private static final Map<ItemStack, RpgItem> itemsCache = new HashMap<>();
+
     public static void init() {
 
     }
 
+    /**
+     * Deletes all temporary entities and saves everything
+     */
     public static void close() {
         cleanTempEntities();
-        saveAll();
+        saveAllEntities();
+        saveAllItems();
     }
 
     public static void cleanTempEntities() {
-        for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
-            if (entry.getValue().isTemporary()) {
-                entry.getValue().livingEntity.setHealth(0);
-                entry.getValue().livingEntity.remove();
-            }
+        List<RpgEntity> tempRpgEntities = new ArrayList<>();
+        for (RpgEntity rpgEntity :
+                allEntities.values()) {
+            if(rpgEntity.temporary) tempRpgEntities.add(rpgEntity);
         }
-        allEntities.entrySet().removeIf(entry -> entry.getValue().isTemporary());
+        for (RpgEntity rpgEntity: tempRpgEntities) {
+            rpgEntity.remove();
+        }
     }
 
+    public static Map<UUID, RpgEntity> getAllRpgEntities(){
+        return allEntities;
+    }
+    public static Map<UUID, RpgItem> getAllRpgItems(){
+        return allItems;
+    }
+
+
+    /**
+     * Attempts to get a RpgEntity, then a RpgItem, if it can't find any then returns null
+     * @param uuid UUID to search for
+     * @return RpgEntity, RpgItem, or null
+     */
     @Nullable
     public static RpgObject getRpgObject(UUID uuid) {
         RpgEntity returnEntity = allEntities.getOrDefault(uuid, null);
         if (returnEntity != null) {
-            if (returnEntity.exists()) {
-                return returnEntity;
-            } else {
-                allEntities.remove(uuid);
-            }
+            return returnEntity;
+//            if (returnEntity.exists()) {
+//                return returnEntity;
+//            } else {
+//                allEntities.remove(uuid);
+//            }
         }
         return allItems.getOrDefault(uuid, null);
 
     }
 
+    /**
+     * Removes all non-existing RpgEntities, saves all RpgItems then clears the item cache
+     */
     public static void garbageCollect() {
         allEntities.entrySet().removeIf(entry -> !entry.getValue().exists());
         saveAllItems();
-        allItems.entrySet().clear();
+        itemsCache.clear();
+        allItems.clear();
     }
 
-    private static void saveAllEntities() {
+    /**
+     * Saves all non-temporary RpgEntities into the metadata of their respective livingEntities
+     */
+    public static void saveAllEntities() {
         for (Map.Entry<UUID, RpgEntity> entry : allEntities.entrySet()) {
             if (entry.getValue().exists() && !entry.getValue().isTemporary()) {
+                entry.getValue().prepareForRemove();
                 entry.getValue().save();
             }
         }
     }
-
-    private static void saveAllItems() {
+    /**
+     * Saves all RpgItems into the metadata of their respective itemstacks
+     */
+    public static void saveAllItems() {
         for (Map.Entry<UUID, RpgItem> entry : allItems.entrySet()) {
+            entry.getValue().prepareForRemove();
             entry.getValue().save();
         }
     }
-
-    public static void saveAll() {
-        saveAllEntities();
-        saveAllItems();
-    }
-
 
     public static void addRpgEntity(UUID key, RpgEntity rpgEntity) {
         allEntities.put(key, rpgEntity);
     }
 
-
+    /**
+     * Gets a RpgEntity from a livingEntity (will create if doesnt exist yet)
+     * @param livingEntity
+     * @return The RpgEntity of the livingEntity
+     */
+    @Nullable
     public static RpgEntity getRpgEntity(LivingEntity livingEntity) {
         RpgEntity returnEntity = getRpgEntity(livingEntity.getUniqueId());
         if (returnEntity != null) {
             return returnEntity;
         } else {
-            return new RpgEntity(livingEntity);
+            if(RpgEntity.exists(livingEntity)){
+                RpgEntity newRpgEntity = new RpgEntity(livingEntity);
+                return newRpgEntity;
+            }
         }
+        return null;
     }
 
+
+    /**
+     * Gets a RpgEntity from an uuid
+     * @param uuid UUID to search with
+     * @return The found RpgEntity or null if not found
+     */
     @Nullable
     public static RpgEntity getRpgEntity(UUID uuid) {
         RpgEntity returnValue = allEntities.getOrDefault(uuid, null);
@@ -101,7 +143,7 @@ public class RpgManager implements Listener {
             if (returnValue.exists()) {
                 return returnValue;
             } else {
-                allEntities.remove(uuid);
+                returnValue.remove();
                 return null;
             }
         } else {
@@ -110,30 +152,48 @@ public class RpgManager implements Listener {
 
     }
 
-    public static RpgEntity makeTempRpgEntity(LivingEntity livingEntity) {
-        return new RpgEntity(livingEntity, true);
-    }
-
+    /**
+     * Check if there's a RpgEntity bound to an uuid
+     * @param uuid
+     * @return true if theres a RpgEntity that exists with this uuid
+     */
     public static boolean checkEntityExists(UUID uuid) {
         RpgEntity checkEntity = allEntities.getOrDefault(uuid, null);
         if (checkEntity != null) return checkEntity.exists();
         return false;
     }
 
+    /**
+     * Will return null if air
+     * @param itemStack
+     * @return
+     */
+    @Nullable
+    public static RpgItem getItem(ItemStack itemStack) { //reads uuid sometimes
+        RpgItem cachedItem = itemsCache.getOrDefault(itemStack,null);
+        if(cachedItem!=null) return cachedItem;
 
-    public static RpgItem getItem(ItemStack itemStack) { //reads uuid every time we get item, maybe not the smartest way?
         if (itemStack.getItemMeta().getPersistentDataContainer().has(uuidKey, PersistentDataType.STRING)) {
-            RpgItem item = allItems.getOrDefault(UUID.fromString(itemStack.getItemMeta().getPersistentDataContainer().get(uuidKey, PersistentDataType.STRING)), null);
+            RpgItem item = getItem(UUID.fromString(itemStack.getItemMeta().getPersistentDataContainer().get(uuidKey, PersistentDataType.STRING)));
             if (item != null) {
                 return item;
             }
         }
-        return new RpgItem(itemStack);
+        RpgItem rpgItem = new RpgItem(itemStack);
+        itemsCache.put(itemStack,rpgItem);
+        allItems.put(rpgItem.getUUID(),rpgItem);
+        return rpgItem;
+    }
+
+    @Nullable
+    public static RpgItem getItem(UUID uuid) { //reads uuid every time we get item, maybe not the smartest way?
+        return allItems.getOrDefault(uuid,null);
     }
 
 
-    @EventHandler
-    public void onEntityDeath(EntityDeathEvent entityDeathEvent) {
-        allEntities.remove(entityDeathEvent.getEntity().getUniqueId());
+
+
+    public static void removeRpgObject(UUID uuid){
+        if(allEntities.remove(uuid)!=null) allItems.remove(uuid);
     }
 }

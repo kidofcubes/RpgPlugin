@@ -7,6 +7,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -33,7 +34,7 @@ public class ExtraFunctions {
 
     public static boolean isEmpty(ItemStack itemStack) {
         if (itemStack != null) {
-            return itemStack.getType().isAir();
+            return itemStack.getType().isAir()||itemStack.getType().isEmpty()||itemStack.getType().isEmpty();
         } else {
             return true;
         }
@@ -49,32 +50,32 @@ public class ExtraFunctions {
 
     public final static String damageToString(Map<DamageType, Double> damage) {
         TextComponent output = Component.text("");
-        if (damage.get(DamageType.Physical) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Physical), 1) + "❤ ", TextColor.fromCSSHexString("#AA0000")));
+        if (damage.get(DamageType.PHYSICAL) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.PHYSICAL), 1) + "❤ ", TextColor.fromCSSHexString("#AA0000")));
         }
-        if (damage.get(DamageType.Light) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Light), 1) + "❤ ", TextColor.fromCSSHexString("#FFFFFF")));
+        if (damage.get(DamageType.LIGHT) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.LIGHT), 1) + "❤ ", TextColor.fromCSSHexString("#FFFFFF")));
         }
-        if (damage.get(DamageType.Magical) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Magical), 1) + "❤ ", TextColor.fromCSSHexString("#0000AA")));
+        if (damage.get(DamageType.MAGICAL) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.MAGICAL), 1) + "❤ ", TextColor.fromCSSHexString("#0000AA")));
         }
-        if (damage.get(DamageType.Darkness) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Darkness), 1) + "❂ ", TextColor.fromCSSHexString("#555555")));
+        if (damage.get(DamageType.DARKNESS) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.DARKNESS), 1) + "❂ ", TextColor.fromCSSHexString("#555555")));
         }
-        if (damage.get(DamageType.Earth) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Earth), 1) + "✤ ", TextColor.fromCSSHexString("#00AA00")));
+        if (damage.get(DamageType.EARTH) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.EARTH), 1) + "✤ ", TextColor.fromCSSHexString("#00AA00")));
         }
-        if (damage.get(DamageType.Thunder) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Thunder), 1) + "✦ ", TextColor.fromCSSHexString("#FFFF55")));
+        if (damage.get(DamageType.THUNDER) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.THUNDER), 1) + "✦ ", TextColor.fromCSSHexString("#FFFF55")));
         }
-        if (damage.get(DamageType.Water) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Water), 1) + "✽ ", TextColor.fromCSSHexString("#55FFFF")));
+        if (damage.get(DamageType.WATER) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.WATER), 1) + "✽ ", TextColor.fromCSSHexString("#55FFFF")));
         }
-        if (damage.get(DamageType.Fire) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Fire), 1) + "✽ ", TextColor.fromCSSHexString("#FFFF55")));
+        if (damage.get(DamageType.FIRE) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.FIRE), 1) + "✹ ", TextColor.fromCSSHexString("#FF5555")));
         }
-        if (damage.get(DamageType.Air) != 0) {
-            output = output.append(Component.text("-" + round(damage.get(DamageType.Air), 1) + "✽ ", TextColor.fromCSSHexString("#FFFFFF")));
+        if (damage.get(DamageType.AIR) != 0) {
+            output = output.append(Component.text("-" + round(damage.get(DamageType.AIR), 1) + "❋ ", TextColor.fromCSSHexString("#FFFFFF")));
         }
         return LegacyComponentSerializer.legacySection().serialize(output);
     }
@@ -82,5 +83,22 @@ public class ExtraFunctions {
     public static double round(double value, int precision) {
         int scale = (int) Math.pow(10, precision);
         return (double) Math.round(value * scale) / scale;
+    }
+
+    public static Map<String,Stat> joinStatMaps(Map<String,Stat> map1, Map<String,Stat> map2){
+        Map<String,Stat> returnvalue = new HashMap<>(map1);
+        for (Map.Entry<String, Stat> entry :
+                map2.entrySet()) {
+            Stat orig = returnvalue.getOrDefault(entry.getKey(),null);
+            if(orig!=null){
+                if(orig.getLevel()<entry.getValue().getLevel()){
+                    orig.setLevel(entry.getValue().getLevel());
+                }
+            }else{
+                returnvalue.put(entry.getKey(),entry.getValue());
+            }
+
+        }
+        return returnvalue;
     }
 }

@@ -1,18 +1,23 @@
 package io.github.kidofcubes.managers;
 
+import io.github.kidofcubes.RpgEntity;
 import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
 import io.github.kidofcubes.events.RpgEntityDamageEvent;
 import io.github.kidofcubes.events.RpgEntityHealEvent;
 import io.github.kidofcubes.types.DamageType;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityRegainHealthEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.plugin.PluginManager;
 
-import static io.github.kidofcubes.RpgPlugin.plugin;
+import static io.github.kidofcubes.RpgPlugin.*;
 
 
 public class EventManager implements Listener {
@@ -28,8 +33,15 @@ public class EventManager implements Listener {
     }
 
     @EventHandler
-    public void onEntityDamage(EntityDamageEvent event) {
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if(event.getHitEntity()!=null){
 
+        }
+
+    }
+
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
         if (!event.isCancelled()) {
             if (event.getEntity().isDead() || !event.getEntity().isValid() || event.isCancelled()) {
                 return;
@@ -44,30 +56,36 @@ public class EventManager implements Listener {
                     RpgEntityDamageEvent customEvent;
                     if (event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof LivingEntity damager) {
                         customEvent = new RpgEntityDamageByObjectEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()), event.getDamage(), RpgManager.getRpgEntity(damager));
-                    } else {
+                    } else if(event instanceof EntityDamageByEntityEvent entityDamageByEntityEvent && entityDamageByEntityEvent.getDamager() instanceof Projectile projectile && projectile.getShooter() instanceof LivingEntity shooter){
+                        customEvent = new RpgEntityDamageByObjectEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()), event.getDamage(), RpgManager.getRpgEntity(shooter));
+                    }else{
                         customEvent = new RpgEntityDamageEvent(RpgManager.getRpgEntity(entity), DamageType.fromDamageCause(event.getCause()), event.getDamage());
                     }
+                    customEvent.setCancelled(event.isCancelled());
                     pluginManager.callEvent(customEvent);
-
+                    event.setCancelled(customEvent.isCancelled());
                     event.setDamage(customEvent.getTotalDamage());
                 }
             }
         }
     }
 
-
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityHeal(EntityRegainHealthEvent event) {
-        if (event.getEntity() instanceof LivingEntity entity) {//todo check if map normal heals to custom in config
+        if (event.getEntity() instanceof LivingEntity entity) {
             if (event.getRegainReason() != EntityRegainHealthEvent.RegainReason.CUSTOM) { //ignore custom
-
-
-                RpgEntityHealEvent customEvent = new RpgEntityHealEvent(RpgManager.getRpgEntity(entity), event.getAmount());
-                pluginManager.callEvent(customEvent);
-                event.setAmount(customEvent.getAmount());
+                RpgEntity rpgEntity = RpgManager.getRpgEntity(entity);
+                if(rpgEntity!=null){
+                    rpgEntity.heal(event.getAmount());
+                    event.setCancelled(true);
+                }
             }
         }
     }
+
+
+
+
 
 
 }

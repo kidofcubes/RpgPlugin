@@ -1,29 +1,43 @@
 package io.github.kidofcubes;
 
 
-import io.github.kidofcubes.managers.StatManager;
-import io.github.kidofcubes.types.StatType;
+import io.github.kidofcubes.events.RpgActivateStatEvent;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
+import java.util.*;
 
 public abstract class Stat implements Listener {
 
-    public static String description;
+    private int level = 0;
 
-    public static StatType statType;
+    private final Class<? extends Stat> runBeforeStat = runBeforeStat();
 
-    @Nullable
-    public static Class<? extends Stat> fromText(String name) {
-        for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
-            if (stat.getSimpleName().equalsIgnoreCase(name)) {
-                return stat;
-            }
-        }
+    public Class<? extends Stat> runBeforeStat() {
         return null;
     }
+
+    private static final Map<String,String> emptyData = new HashMap<>();
+
+    public RpgObject getParent() {
+        return parent;
+    }
+    public RpgObject getUser() {
+        return user;
+    }
+
+    private RpgObject parent;
+    private RpgObject user;
+    public double getManaCost(){
+        return 0;
+    }
+    public boolean manaSourceFromParent(){
+        return false;
+    }
+
+
 
     public String getName() {
         return this.getClass().getName();
@@ -34,37 +48,153 @@ public abstract class Stat implements Listener {
     }
 
     public String getDescription() {
-        return description;
+        return "Default description";
     }
 
-    public StatType getStatType() {
-        return statType;
-    }
 
-    public void trigger(Event event, int level) {
-        run(event, level);
-    }
-
-    public abstract RpgObject elementToStatCheck(Event event);
 
     /**
-     * @param event an event that's an instanceof one of the events you asked for
-     * @param level the stat level, for things like more damage on sharpness 5 than sharpness 1 (will not give 0)
+     * Gets the level of this stat
+     * default is 0
+     * @return
      */
-    public abstract void run(Event event, int level);
-
-
-    @Override
-    public boolean equals(Object other) {
-        if (other == null) {
-            return false;
-        }
-
-        if (other.getClass() != this.getClass()) {
-            return false;
-        }
-
-        final Stat otherStat = (Stat) other;
-        return Objects.equals(getName(), otherStat.getName());
+    public int getLevel() {
+        return level;
     }
+
+
+    public Stat setLevel(int level) {
+        this.level = level;
+        return this;
+    }
+
+    public void onAddStat(RpgObject object){
+        parent = object;
+    }
+    public void onRemoveStat(RpgObject object){
+        parent=null;
+    }
+
+    public void onUseStat(RpgObject object){
+        user = object;
+    }
+    public void onStopUsingStat(RpgObject object){
+        user=null;
+    }
+
+
+    /**
+     * Override this to save things
+     * @return The data to save
+     */
+    public Map<String, String> saveCustomData() {return emptyData;}
+
+    /**
+     * Override this to run code when saved things are loaded
+     * @param customData
+     */
+    public void loadCustomData(Map<String, String> customData) {}
+
+    /**
+     * Runs checks for event, and runs stat if passes
+     * Checks are:
+     *   stat on check object
+     *   level!=0
+     *   check object mana enough
+     * @param event Event that was passed in
+     */
+    public void trigger(Event event) {
+        RpgObject toCheck = checkObject(event);
+        if (toCheck != null) {
+
+            List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass(),null);
+            if(statInstances!=null) {
+                for (Stat statInstance : statInstances) {
+                    if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
+                        if (!rpgActivateStatEvent.getTriggerStats().contains(getName())) {
+                            continue;
+                        }
+                    }
+                    //mana
+                    double manaCost = statInstance.getManaCost();
+                    if(manaCost == 0){
+                        statInstance.activateStat(event);
+                    }else{
+                        if(manaSourceFromParent()){
+                            if (statInstance.getParent().getMana() >= manaCost) {
+                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
+
+
+                                statInstance.activateStat(event);
+                            }
+                        }else{
+                            if (statInstance.getUser().getMana() >= manaCost) {
+                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
+
+
+                                statInstance.activateStat(event);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    public void activateStat(Event event){
+        ArrayList<Stat> runBeforeStats = new ArrayList<>();
+        for (Map.Entry<Class<? extends Stat>,List<Stat>> pair : getUser().getEffectiveStatsMap().entrySet()) {
+            if(pair.getValue().size()>0){
+                if(pair.getValue().get(0).runBeforeStat!=null) {
+                    if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
+                        runBeforeStats.addAll(pair.getValue());
+                    }
+                }
+            }
+        }
+        for (Stat stat : runBeforeStats) {
+            stat.sourceStat=this;
+            stat.activateStat(event);
+        }
+        run(event);
+        sourceStat=null;
+    }
+
+    public Stat sourceStat = null;
+
+
+
+
+
+    public EventPriority priority(){
+        return EventPriority.NORMAL;
+    }
+
+    public RpgObject checkObject(Event event){return null;}
+
+    /**
+     * Override this to run code when your stat is activated
+     * @param event an event that's an instanceof one of the events you asked for
+     */
+    public void run(Event event){}
+
+    public void join(Stat stat){
+        setLevel(stat.getLevel()+getLevel());
+    }
+    public void remove(Stat stat){
+        setLevel(getLevel()-stat.getLevel());
+    }
+
+
+    public StatContainer asContainer(){
+        StatContainer container = new StatContainer();
+        container.level = level;
+        container.customData = saveCustomData();
+        return (container);
+    }
+    public static class StatContainer{
+        public int level;
+        public Map<String,String> customData;
+    }
+
+
 }

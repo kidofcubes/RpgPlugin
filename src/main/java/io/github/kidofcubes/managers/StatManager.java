@@ -1,26 +1,55 @@
 package io.github.kidofcubes.managers;
 
+import io.github.kidofcubes.RpgPlugin;
 import io.github.kidofcubes.Stat;
-import io.github.kidofcubes.types.StatRegisteredListener;
+import io.github.kidofcubes.TimedStat;
+import io.github.kidofcubes.StatRegisteredListener;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.scheduler.BukkitScheduler;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InvalidClassException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class StatManager implements Listener {
 
     private static final List<Class<? extends Stat>> registeredStats = new ArrayList<>();
+    private static final List<TimedStat> timedStats = new ArrayList<>();
 
+    public static void init(){
+        BukkitScheduler scheduler = Bukkit.getScheduler();
+        scheduler.runTaskTimer(RpgPlugin.plugin, () -> {
+            if(timedStats.size()>0){ //static is static for all timedstats eee
+                timedStats.get(0).trigger(null);
+            }
+        }, 0, 1);
+
+
+    }
+
+
+    /**
+     * Registers a stat to listen for events
+     * @param stat The stat instance
+     * @param listenEvents A list of events it will listen for
+     */
     public static void register(Stat stat, List<Class<? extends Event>> listenEvents) {
         if (!registeredStats.contains(stat.getClass())) {
+            if(stat instanceof TimedStat timedStat){
+                timedStats.add(timedStat);
+                timedStats.sort(Comparator.comparing(Stat::priority));
+            }
+
             for (Class<? extends Event> listenEvent : listenEvents) {
                 try {
                     Method method = getRegistrationClass(listenEvent).getDeclaredMethod("getHandlerList");
@@ -39,10 +68,15 @@ public class StatManager implements Listener {
         }
     }
 
+    /**
+     * Unregisters a stat (unimplemented) (real)
+     * @param stat The stat to be unregistered
+     */
     //todo unimplemented (real)
     public static void unregister(Stat stat) {
 
     }
+
 
     public static List<Class<? extends Stat>> getRegisteredStats() {
         return Collections.unmodifiableList(registeredStats);
@@ -62,6 +96,16 @@ public class StatManager implements Listener {
                 throw new IllegalPluginAccessException("Unable to find handler list for event " + clazz.getName() + ". Static getHandlerList method required!");
             }
         }
+    }
+
+    @Nullable
+    public static Class<? extends Stat> getRegisteredStatByName(String name) {
+        for (Class<? extends Stat> stat : StatManager.getRegisteredStats()) {
+            if (stat.getSimpleName().equalsIgnoreCase(name)||stat.getName().equalsIgnoreCase(name)) {
+                return stat;
+            }
+        }
+        return null;
     }
 
 }
