@@ -3,9 +3,7 @@ package io.github.kidofcubes;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class RpgClass { //unneeded class maybe idk i dont like how instances dont do anything
-    //i really do not know how to do this help
-    //using classes for everything feels jank no cap because instances and stuff
+public abstract class RpgClass {
     private int level;
     private final static List<Stat> emptyStats = new ArrayList<>();
     private final static List<Class<? extends RpgClass>> emptyClasses = new ArrayList<>();

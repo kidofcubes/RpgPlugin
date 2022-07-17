@@ -66,62 +66,59 @@ public class RpgItem extends RpgObject {
         return itemStack;
     }
 
-    //test
+    @Override
+    public void removeRpgClass(RpgClass rpgClass) {
+        super.removeRpgClass(rpgClass);
+        save();
+    }
 
+    @Override
+    public void removeStat(String stat) {
+        super.removeStat(stat);
+        save();
+    }
 
-//    @Override
-//    public void removeRpgClass(RpgClass rpgClass) {
-//        super.removeRpgClass(rpgClass);
-//        save();
-//    }
-//
-//    @Override
-//    public void removeStat(String stat) {
-//        super.removeStat(stat);
-//        save();
-//    }
-//
-//    @Override
-//    public void addRpgClass(RpgClass rpgClass) {
-//        super.addRpgClass(rpgClass);
-//        save();
-//    }
-//
-//    @Override
-//    public void addStat(Stat stat) {
-//        super.addStat(stat);
-//        save();
-//    }
-//
-//    @Override
-//    public void setUUID(UUID uuid) {
-//        super.setUUID(uuid);
-//        save();
-//    }
-//
-//    @Override
-//    public void setMana(double mana) {
-//        super.setMana(mana);
-//        save();
-//    }
-//
-//    @Override
-//    public void setMaxMana(double maxMana) {
-//        super.setMaxMana(maxMana);
-//        save();
-//    }
-//
-//    @Override
-//    public void setParent(RpgObject parent) {
-//        super.setParent(parent);
-//        save();
-//    }
-//
-//    @Override
-//    public void setLevel(int level) {
-//        super.setLevel(level);
-//        save();
-//    }
+    @Override
+    public void addRpgClass(RpgClass rpgClass) {
+        super.addRpgClass(rpgClass);
+        save();
+    }
+
+    @Override
+    public void addStat(Stat stat) {
+        super.addStat(stat);
+        save();
+    }
+
+    @Override
+    public void setUUID(UUID uuid) {
+        super.setUUID(uuid);
+        save();
+    }
+
+    @Override
+    public void setMana(double mana) {
+        super.setMana(mana);
+        save();
+    }
+
+    @Override
+    public void setMaxMana(double maxMana) {
+        super.setMaxMana(maxMana);
+        save();
+    }
+
+    @Override
+    public void setParent(RpgObject parent) {
+        super.setParent(parent);
+        save();
+    }
+
+    @Override
+    public void setLevel(int level) {
+        super.setLevel(level);
+        save();
+    }
 
     @NotNull
     @Override
