@@ -17,8 +17,8 @@ import net.minecraft.world.entity.decoration.ArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_19_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -66,7 +66,7 @@ public class EntityManager implements Listener {
 
             //MAKE DAMAGE THINGS
             if (event.getTotalDamage() > 0) {
-                ServerLevel nmsWorld = ((CraftWorld) Bukkit.getWorlds().get(0)).getHandle();
+                ServerLevel nmsWorld = ((CraftWorld)event.getEntity().getLivingEntity().getWorld()).getHandle();
                 ArmorStand armorstand = new ArmorStand(EntityType.ARMOR_STAND, nmsWorld);
                 armorstand.setInvisible(true);
                 armorstand.setCustomNameVisible(true);
@@ -79,7 +79,7 @@ public class EntityManager implements Listener {
                 Vector spawnpos = eyeLocation.add(Math.random() - 0.5, Math.random() + 0.5, Math.random() - 0.5).toVector();
                 armorstand.setPos(spawnpos.getX(), spawnpos.getY(), spawnpos.getZ());
                 ClientboundAddEntityPacket packet = new ClientboundAddEntityPacket(armorstand);
-                ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(), armorstand.getEntityData(), false);
+                ClientboundSetEntityDataPacket entityDataPacket = new ClientboundSetEntityDataPacket(armorstand.getId(), Objects.requireNonNullElse(armorstand.getEntityData().getNonDefaultValues(),List.of()));
                 //why am i using packets?????????????? dunno so the armorstand doesnt exist server side maybe?
 
                 List<ServerPlayerConnection> connections = new ArrayList<>();
