@@ -16,10 +16,6 @@ repositories {
 
 }
 
-dependencies {
-    paperDevBundle("1.19-R0.1-SNAPSHOT")
-}
-
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
@@ -28,6 +24,7 @@ tasks.withType<JavaCompile> {
 }
 dependencies {
     paperDevBundle("1.19.3-R0.1-SNAPSHOT")
+    implementation("net.bytebuddy:byte-buddy:1.12.20")
     // paperweightDevBundle("com.example.paperfork", "1.19.3-R0.1-SNAPSHOT")
 
     // You will need to manually specify the full dependency if using the groovy gradle dsl
@@ -62,6 +59,9 @@ tasks {
       outputJar.set(layout.buildDirectory.file("libs/PaperweightTestPlugin-${project.version}.jar"))
     }
      */
+    jar {
+        from (configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    }
 }
 
 // Configure plugin.yml generation

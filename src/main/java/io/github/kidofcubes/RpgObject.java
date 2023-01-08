@@ -1,34 +1,28 @@
 package io.github.kidofcubes;
 
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.github.kidofcubes.events.RpgActivateStatEvent;
-import io.github.kidofcubes.events.RpgEntityDamageByObjectEvent;
-import io.github.kidofcubes.managers.RpgManager;
 import io.github.kidofcubes.managers.StatManager;
-import io.github.kidofcubes.types.DamageType;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
-import static io.github.kidofcubes.RpgPlugin.gson;
-
 
 //dodgy code
-public abstract interface RpgObject {
+public interface RpgObject {
 
     //region gettersetters
 
 
     boolean isLoaded();
 
-    void setUUID(UUID uuid);
-
     UUID getUUID();
 
-    @NotNull
-    public abstract String getName();
+    String getName();
 
 
     int getLevel();
@@ -38,10 +32,6 @@ public abstract interface RpgObject {
 
     double getMana();
     void setMana(double mana);
-
-    double getMaxMana();
-
-    void setMaxMana(double maxMana);
 
 
     //endregion
@@ -54,7 +44,6 @@ public abstract interface RpgObject {
      * @param rpgClass
      */
     void addRpgClass(RpgClass rpgClass);
-    RpgClass getRpgClass(RpgClass rpgClass);
     RpgClass getRpgClass(String rpgClass);
     void removeRpgClass(String rpgClass);
 
@@ -62,7 +51,7 @@ public abstract interface RpgObject {
     //endregion
     //region usingstuff
 
-    void own(RpgObject rpgObject);
+    void use(RpgObject rpgObject);
     void stopUsing(RpgObject rpgObject);
     boolean usedBy(RpgObject rpgObject);
     //endregion
@@ -87,6 +76,9 @@ public abstract interface RpgObject {
     public boolean hasStat(String stat);
     @Nullable
     public Stat getStat(String stat);
+
+
+    public List<Stat> getStats();
 
     /**
      * Removes a stat (if the stat is not found, won't do anything)
@@ -134,22 +126,53 @@ public abstract interface RpgObject {
 //        return null;
 //    }
 
-    /**
-     * Calls a RpgActivateStatEvent with this as the parent
-     * @param statName The name of the stat to activate
-     */
-    default void activateStat(String statName) {
-        getActivateStatEvent(List.of(statName)).callEvent();
-    }
-
-    default RpgActivateStatEvent getActivateStatEvent(List<String> statNames) {
-        return new RpgActivateStatEvent(this, statNames);
-    }
+//    /**
+//     * Calls a RpgActivateStatEvent with this as the parent
+//     * @param statName The name of the stat to activate
+//     */
+//    default void activateStat(String statName) {
+//        getActivateStatEvent(List.of(statName)).callEvent();
+//    }
+//
+//    default RpgActivateStatEvent getActivateStatEvent(List<String> statNames) {
+//        return new RpgActivateStatEvent(this, statNames);
+//    }
 
     //region saveloadingjson
-    public String toJson();
 
-    void loadFromJson(String json);
+
+    default JsonObject toJson() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("level",getLevel());
+        jsonObject.addProperty("mana",getMana());
+        Map<String,Stat.StatContainer> map = new HashMap<>();
+        for (Stat stat : getStats()) {
+            map.put(stat.getClass().getName(), stat.asContainer());
+        }
+
+        jsonObject.add("stats",RpgPlugin.gson.toJsonTree(map));
+
+        return jsonObject;
+    }
+
+    default void loadFromJson(JsonObject jsonObject) {
+        setLevel(jsonObject.get("level").getAsInt());
+        setMana(jsonObject.get("mana").getAsInt());
+        Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();
+        for (Map.Entry<String,JsonElement> entry : map.entrySet()) {
+            try {
+                Class<? extends Stat> statClass = StatManager.getRegisteredStatByName(entry.getKey());
+                if(statClass!=null) {
+                    Stat stat = statClass.getDeclaredConstructor().newInstance();
+                    (entry.getValue().getAsJsonObject()).get("level").getAsInt();
+                    stat.loadCustomData((entry.getValue().getAsJsonObject()).getAsJsonObject("customData"));
+                    addStat(stat,true);
+                }
+            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 //        RpgObjectJsonContainer container = gson.fromJson(json, RpgObjectJsonContainer.class);
 //        level = container.level;
 //        name = container.name;
@@ -182,14 +205,4 @@ public abstract interface RpgObject {
 //        }
 
     //endregion
-
-    /**
-     * Deletes the object
-     */
-    public void remove();
-    public void prepareForRemove();
-    /**
-     * Saves this object to the world
-     */
-    void save();
 }

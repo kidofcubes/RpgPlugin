@@ -1,6 +1,7 @@
 package io.github.kidofcubes;
 
 
+import com.google.gson.JsonObject;
 import io.github.kidofcubes.events.RpgActivateStatEvent;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -10,6 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public abstract class Stat implements Listener {
+
+    public Stat(){
+
+    }
 
     private int level = 0;
 
@@ -87,13 +92,13 @@ public abstract class Stat implements Listener {
      * Override this to save things
      * @return The data to save
      */
-    public Map<String, String> saveCustomData() {return emptyData;}
+    public JsonObject serialize() {return new JsonObject();}
 
     /**
-     * Override this to run code when saved things are loaded
-     * @param customData
+     * Override this to load stat json
+     * @param savedData
      */
-    public void loadCustomData(Map<String, String> customData) {}
+    public void loadCustomData(JsonObject savedData) {}
 
     /**
      * Runs checks for event, and runs stat if passes
@@ -107,50 +112,50 @@ public abstract class Stat implements Listener {
         RpgObject toCheck = checkObject(event);
         if (toCheck != null) {
 
-            List<Stat> statInstances = toCheck.getEffectiveStatsMap().getOrDefault(this.getClass(),null);
-            if(statInstances!=null) {
-                for (Stat statInstance : statInstances) {
-                    if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
-                        if (!rpgActivateStatEvent.getTriggerStats().contains(getName())) {
-                            continue;
-                        }
-                    }
-                    //mana
-                    double manaCost = statInstance.getManaCost();
-                    if(manaCost == 0){
-                        statInstance.activateStat(event);
-                    }else{
-                        if(manaSourceFromParent()){
-                            if (statInstance.getParent().getMana() >= manaCost) {
-                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
-
-
-                                statInstance.activateStat(event);
-                            }
-                        }else{
-                            if (statInstance.getUser().getMana() >= manaCost) {
-                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
-
-
-                                statInstance.activateStat(event);
-                            }
-                        }
-                    }
-                }
-            }
+//            List<Stat> statInstances = toCheck.getUsedStats().getOrDefault(this.getClass(),null);
+//            if(statInstances!=null) {
+//                for (Stat statInstance : statInstances) {
+//                    if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
+//                        if (!rpgActivateStatEvent.getTriggerStats().contains(getName())) {
+//                            continue;
+//                        }
+//                    }
+//                    //mana
+//                    double manaCost = statInstance.getManaCost();
+//                    if(manaCost == 0){
+//                        statInstance.activateStat(event);
+//                    }else{
+//                        if(manaSourceFromParent()){
+//                            if (statInstance.getParent().getMana() >= manaCost) {
+//                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
+//
+//
+//                                statInstance.activateStat(event);
+//                            }
+//                        }else{
+//                            if (statInstance.getUser().getMana() >= manaCost) {
+//                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
+//
+//
+//                                statInstance.activateStat(event);
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
     }
     public void activateStat(Event event){
         ArrayList<Stat> runBeforeStats = new ArrayList<>();
-        for (Map.Entry<Class<? extends Stat>,List<Stat>> pair : getUser().getEffectiveStatsMap().entrySet()) {
-            if(pair.getValue().size()>0){
-                if(pair.getValue().get(0).runBeforeStat!=null) {
-                    if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
-                        runBeforeStats.addAll(pair.getValue());
-                    }
-                }
-            }
-        }
+//        for (Map.Entry<Class<? extends Stat>,List<Stat>> pair : getUser().getEffectiveStatsMap().entrySet()) {
+//            if(pair.getValue().size()>0){
+//                if(pair.getValue().get(0).runBeforeStat!=null) {
+//                    if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
+//                        runBeforeStats.addAll(pair.getValue());
+//                    }
+//                }
+//            }
+//        }
         for (Stat stat : runBeforeStats) {
             stat.sourceStat=this;
             stat.activateStat(event);
@@ -188,12 +193,12 @@ public abstract class Stat implements Listener {
     public StatContainer asContainer(){
         StatContainer container = new StatContainer();
         container.level = level;
-        container.customData = saveCustomData();
+        container.customData = serialize();
         return (container);
     }
     public static class StatContainer{
         public int level;
-        public Map<String,String> customData;
+        public JsonObject customData;
     }
 
 
