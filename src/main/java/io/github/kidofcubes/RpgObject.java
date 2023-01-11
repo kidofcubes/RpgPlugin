@@ -155,7 +155,7 @@ public interface RpgObject {
         return jsonObject;
     }
 
-    default void loadFromJson(JsonObject jsonObject) {
+    default RpgObject loadFromJson(JsonObject jsonObject) {
         setLevel(jsonObject.get("level").getAsInt());
         setMana(jsonObject.get("mana").getAsInt());
         Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();
@@ -172,6 +172,7 @@ public interface RpgObject {
                 e.printStackTrace();
             }
         }
+        return this;
     }
 //        RpgObjectJsonContainer container = gson.fromJson(json, RpgObjectJsonContainer.class);
 //        level = container.level;

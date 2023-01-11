@@ -5,8 +5,11 @@ import io.github.kidofcubes.managers.StatManager;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
@@ -14,18 +17,22 @@ import java.util.logging.Logger;
 public class RpgPlugin extends JavaPlugin {
     private static Logger logger;
     public static NamespacedKey key;
-    public static NamespacedKey uuidKey;
     protected static Gson gson;
     public static RpgPlugin plugin;
 
-    @Override
-    public void onEnable() {
+    public RpgPlugin() {
+        super();
         logger = getLogger();
         gson = new Gson();
         key = new NamespacedKey(this, "RpgPluginData");
-        uuidKey = new NamespacedKey(this, "RpgPluginUUID");
         plugin = this;
+        RpgInjector rpgInjector = new RpgInjector();
+        rpgInjector.init();
 
+    }
+
+    @Override
+    public void onEnable() {
 
         Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
             getServer().getPluginManager().registerEvents(new RpgInjector(), plugin);
@@ -49,6 +56,10 @@ public class RpgPlugin extends JavaPlugin {
 //            RpgManager.init();
 //            EntityManager.init();
         }, 0);
+        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
+            RpgPlugin.plugin.getCommand("testcommand").setExecutor(new TestCommand());
+            System.out.println("COMMAND IS READYYY");
+        },20*5);
 
 
     }

@@ -13,7 +13,7 @@ public abstract class TimedStat extends Stat{
      * @return
      */
     @Override
-    public RpgObject checkObject(Event event) {
+    public RpgObject getParent(Event event) {
         return null;
     }
 

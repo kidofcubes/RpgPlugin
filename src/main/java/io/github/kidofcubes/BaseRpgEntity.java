@@ -3,8 +3,10 @@ package io.github.kidofcubes;
 import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
+import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R2.entity.CraftLivingEntity;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -23,6 +25,8 @@ public class BaseRpgEntity extends CraftLivingEntity implements RpgEntity {
 
     Map<String,RpgClass> rpgClasses = new HashMap<>();
 
+    Map<String,Stat> stats = new HashMap<>();
+
 //    private List<Stat,>
 
     @Override
@@ -33,7 +37,7 @@ public class BaseRpgEntity extends CraftLivingEntity implements RpgEntity {
     @Override
     public void setHealth(double health) {
         super.setHealth(health);
-        System.out.println("RPG ENTITY HEALTH CHANGED");
+        System.out.println("RPG ENTITY HEALTH CHANGED"); //DOESNT WORK IDK
     }
 
     @Override
@@ -51,6 +55,7 @@ public class BaseRpgEntity extends CraftLivingEntity implements RpgEntity {
         if(!c.getString("rpgentity").equals("")){
             loadFromJson(RpgPlugin.gson.fromJson(c.getString("rpgentity"),JsonObject.class));
         }
+
     }
 
     @Override
@@ -134,30 +139,32 @@ public class BaseRpgEntity extends CraftLivingEntity implements RpgEntity {
 
     }
 
+
+
     @Override
     public void addStat(Stat stat, boolean force) {
-
+        stats.put(stat.getName(),stat);
     }
 
     @Override
     public boolean hasStat(String stat) {
-        return false;
+        return stats.containsKey(stat);
     }
 
     @Nullable
     @Override
     public Stat getStat(String stat) {
-        return null;
+        return stats.get(stat);
     }
 
     @Override
     public List<Stat> getStats() {
-        return List.of();
+        return stats.values().stream().toList();
     }
 
     @Override
     public void removeStat(String stat) {
-
+        stats.remove(stat);
     }
 
     @Override

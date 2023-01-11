@@ -87,18 +87,12 @@ public abstract class Stat implements Listener {
         user=null;
     }
 
-
     /**
-     * Override this to save things
-     * @return The data to save
+     * Returns the RpgObject which will have its stat instance activated
+     * @param event
+     * @return
      */
-    public JsonObject serialize() {return new JsonObject();}
-
-    /**
-     * Override this to load stat json
-     * @param savedData
-     */
-    public void loadCustomData(JsonObject savedData) {}
+    public abstract RpgObject getParent(Event event);
 
     /**
      * Runs checks for event, and runs stat if passes
@@ -109,9 +103,11 @@ public abstract class Stat implements Listener {
      * @param event Event that was passed in
      */
     public void trigger(Event event) {
-        RpgObject toCheck = checkObject(event);
+        RpgObject toCheck = getParent(event);
         if (toCheck != null) {
-
+            if(toCheck.hasStat(getName())){
+                toCheck.getStat(getName()).activateStat(event);
+            }
 //            List<Stat> statInstances = toCheck.getUsedStats().getOrDefault(this.getClass(),null);
 //            if(statInstances!=null) {
 //                for (Stat statInstance : statInstances) {
@@ -164,6 +160,8 @@ public abstract class Stat implements Listener {
         sourceStat=null;
     }
 
+
+
     public Stat sourceStat = null;
 
 
@@ -174,10 +172,9 @@ public abstract class Stat implements Listener {
         return EventPriority.NORMAL;
     }
 
-    public RpgObject checkObject(Event event){return null;}
-
     /**
-     * Override this to run code when your stat is activated
+     * Override this to run code when your stat is successfully activated
+     *
      * @param event an event that's an instanceof one of the events you asked for
      */
     public void run(Event event){}
@@ -188,6 +185,19 @@ public abstract class Stat implements Listener {
     public void remove(Stat stat){
         setLevel(getLevel()-stat.getLevel());
     }
+
+
+    /**
+     * Override this to save things
+     * @return The data to save
+     */
+    public JsonObject serialize() {return new JsonObject();}
+
+    /**
+     * Override this to load stat json
+     * @param savedData
+     */
+    public void loadCustomData(JsonObject savedData) {}
 
 
     public StatContainer asContainer(){

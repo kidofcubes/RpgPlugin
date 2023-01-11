@@ -1,4 +1,8 @@
-//package io.github.kidofcubes;
+package io.github.kidofcubes;
+
+import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.inventory.ItemStack;
+
 //
 //import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 //import org.bukkit.inventory.ItemStack;
@@ -13,6 +17,12 @@
 //import static io.github.kidofcubes.RpgPlugin.uuidKey;
 //
 //
+public interface RpgItem{
+}
+
+
+
+
 ////note, create and destroy on whims
 //public class RpgItem extends RpgObject {
 //    public ItemStack item;
