@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 
 public class RpgPlugin extends JavaPlugin {
     private static Logger logger;
-    public static NamespacedKey key;
     protected static Gson gson;
     public static RpgPlugin plugin;
 
@@ -24,7 +23,6 @@ public class RpgPlugin extends JavaPlugin {
         super();
         logger = getLogger();
         gson = new Gson();
-        key = new NamespacedKey(this, "RpgPluginData");
         plugin = this;
         RpgInjector rpgInjector = new RpgInjector();
         rpgInjector.init();
@@ -33,7 +31,6 @@ public class RpgPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-
         Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
             getServer().getPluginManager().registerEvents(new RpgInjector(), plugin);
 //            getServer().getPluginManager().registerEvents(new EntityManager(), plugin);
@@ -43,10 +40,10 @@ public class RpgPlugin extends JavaPlugin {
             saveDefaultConfig();
             FileConfiguration config = this.getConfig();
             try {
-                ManaDisplayMethod = ManaDisplayType.valueOf(config.getString("manaDisplayMethod"));
+//                ManaDisplayMethod = ManaDisplayType.valueOf(config.getString("manaDisplayMethod"));
             } catch (Exception ex) {
-                ManaDisplayMethod = ManaDisplayType.none;
-                logger.info("manaDisplayMethod was not one of: "+ Arrays.toString(ManaDisplayType.values()));
+//                ManaDisplayMethod = ManaDisplayType.none;
+//                logger.info("manaDisplayMethod was not one of: "+ Arrays.toString(ManaDisplayType.values()));
             }
 
 //            StatManager.register(new DamageModifier(), List.of(RpgEntityDamageEvent.class));
@@ -56,19 +53,15 @@ public class RpgPlugin extends JavaPlugin {
 //            RpgManager.init();
 //            EntityManager.init();
         }, 0);
-        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            RpgPlugin.plugin.getCommand("testcommand").setExecutor(new TestCommand());
-            System.out.println("COMMAND IS READYYY");
-        },20*5);
+        RpgPlugin.plugin.getCommand("testcommand").setExecutor(new TestCommand());
+        System.out.println("COMMAND IS READYYY");
+//        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
+//        },20*5);
 
 
     }
-    public enum ManaDisplayType{
-        none,
-        level
-    }
 
-    public static ManaDisplayType ManaDisplayMethod = ManaDisplayType.none;
+
 
     @Override
     public void onDisable() {

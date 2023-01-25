@@ -18,6 +18,8 @@ import org.bukkit.inventory.ItemStack;
 //
 //
 public interface RpgItem{
+    public void addTest(String test);
+    public String getAsJSON();
 }
 
 

@@ -1,49 +1,26 @@
 package io.github.kidofcubes;
 
-import com.google.common.reflect.ClassPath;
 import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.agent.ByteBuddyAgent;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-import net.bytebuddy.dynamic.loading.ClassReloadingStrategy;
 import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.bytecode.assign.primitive.PrimitiveTypeAwareAssigner;
-import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.pool.TypePool;
-import net.minecraft.world.item.ItemStack;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R2.CraftServer;
 import org.bukkit.craftbukkit.v1_19_R2.entity.CraftLivingEntity;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemFactory;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntitySpawnEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.plugin.java.PluginClassLoader;
+import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarFile;
+import java.net.*;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 import static org.apache.commons.io.FileUtils.getFile;
@@ -60,6 +37,16 @@ public class RpgInjector implements Listener {
 //                livingEntity.getHandle().load(livingEntity.getHandle().saveWithoutId(new CompoundTag()));
                 livingEntity.getHandle().restoreFrom(livingEntity.getHandle());
             }
+        }
+    }
+
+    static Field ItemMetaField;
+    static {
+        try {
+            ItemMetaField = ItemStack.class.getDeclaredField("meta");
+            ItemMetaField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
         }
     }
     @EventHandler
@@ -119,7 +106,14 @@ public class RpgInjector implements Listener {
         System.out.println("class loader of testcmd "+TestCommand.class.getClassLoader());
         System.out.println("class loader of testcmd parent "+TestCommand.class.getClassLoader().getParent());
         System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-//        String thing = "org.bukkit.inventory.ItemStack";
+        ;
+        for(URL url : ((URLClassLoader) Bukkit.class.getClassLoader()).getURLs()){
+            System.out.println("A URL IS "+url);
+        }
+//            System.out.println(connection.getJarFile().getName());
+//            System.out.println(connection.getJarFileURL());
+//            System.out.println(connection.getURL());
+        //        String thing = "org.bukkit.inventory.ItemStack";
 //        ByteBuddyAgent.install();
 //        new ByteBuddy().redefine(CraftItemStack.class, ClassFileLocator.ForClassLoader.of(org.bukkit.Bukkit.class.getClassLoader()))
 ////                .method(named("getMaxStackSize"))
