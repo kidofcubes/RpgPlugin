@@ -161,7 +161,6 @@ public interface RpgObject {
         }
 
         jsonObject.add("stats",gson.toJsonTree(map));
-
         return gson.toJson(jsonObject);
     }
 

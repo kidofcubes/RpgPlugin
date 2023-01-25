@@ -1,10 +1,6 @@
 package io.github.kidofcubes;
 
-import io.github.kidofcubes.ActivateStats;
-import io.github.kidofcubes.RpgPlugin;
-import io.github.kidofcubes.Stat;
 import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
 import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,15 +13,14 @@ public class StatRegisteredListener extends RegisteredListener {
     List<Class<? extends Event>> listenEvents;
 
     public StatRegisteredListener(Stat stat, List<Class<? extends Event>> listenEvents) throws InvalidClassException {
-        super(stat, null, stat.priority(), RpgPlugin.plugin, false);
+        super(stat, null, stat.priority(),GlobalVariables.plugin, false);
         this.listenEvents = listenEvents;
         this.stat = stat;
     }
 
 
     @Override
-    public void callEvent(@NotNull Event event)  //whats performance
-    {
+    public void callEvent(@NotNull Event event) {
         if(event instanceof ActivateStats activateStats){
             Stat statToRun = activateStats.getActivationStats().getOrDefault(stat.getClass(),null);
             if(statToRun!=null){

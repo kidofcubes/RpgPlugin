@@ -1,10 +1,12 @@
 package io.github.kidofcubes;
 
+import net.minecraft.nbt.ByteArrayTag;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,8 +20,8 @@ public class RpgLivingEntity implements RpgEntity {
         CraftPersistentDataContainer persistentDataContainer = (CraftPersistentDataContainer) livingEntity.getPersistentDataContainer();
         if(((RpgObjectHolder)persistentDataContainer).getObject()==null){
             if(persistentDataContainer.getRaw().containsKey(RpgObject.metadataKey.toString())){ //contains data, init rpglivingentity from data
-                RpgObjectTag tag = (RpgObjectTag)(persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString());
-                ((RpgObjectHolder) persistentDataContainer).setObject(new RpgLivingEntity(livingEntity).loadFromJson(tag.getLoadedText()));
+                String json = new String(((ByteArrayTag)((persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString()))).getAsByteArray(), StandardCharsets.UTF_8);
+                ((RpgObjectHolder) persistentDataContainer).setObject(new RpgLivingEntity(livingEntity).loadFromJson(json));
             }else{ //no previous data, init new rpglivingentity
 
                 ((RpgObjectHolder)persistentDataContainer).setObject(new RpgLivingEntity(livingEntity));
@@ -50,7 +52,7 @@ public class RpgLivingEntity implements RpgEntity {
 
     @Override
     public String getName() {
-        return "RPGENTITIY";
+        return "RpgLivingEntity";
     }
     @Override
     public boolean isLoaded() {

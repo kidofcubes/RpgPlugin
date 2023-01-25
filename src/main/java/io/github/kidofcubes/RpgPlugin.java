@@ -15,24 +15,17 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class RpgPlugin extends JavaPlugin {
-    private static Logger logger;
-    protected static Gson gson;
-    public static RpgPlugin plugin;
+
 
     public RpgPlugin() {
         super();
-        logger = getLogger();
-        gson = new Gson();
-        plugin = this;
-        RpgInjector rpgInjector = new RpgInjector();
-        rpgInjector.init();
-
+        GlobalVariables.logger=getLogger();
+        GlobalVariables.plugin=this;
     }
 
     @Override
     public void onEnable() {
-        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-            getServer().getPluginManager().registerEvents(new RpgInjector(), plugin);
+        Bukkit.getScheduler().runTaskLater(this, () -> {
 //            getServer().getPluginManager().registerEvents(new EntityManager(), plugin);
 //            getServer().getPluginManager().registerEvents(new EventManager(), plugin);
 //            getServer().getPluginManager().registerEvents(new RpgManager(), plugin);
@@ -53,7 +46,7 @@ public class RpgPlugin extends JavaPlugin {
 //            RpgManager.init();
 //            EntityManager.init();
         }, 0);
-        RpgPlugin.plugin.getCommand("testcommand").setExecutor(new TestCommand());
+        getCommand("testcommand").setExecutor(new TestCommand());
         System.out.println("COMMAND IS READYYY");
 //        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
 //        },20*5);

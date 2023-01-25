@@ -1,5 +1,6 @@
 package io.github.kidofcubes;
 
+import io.github.kidofcubes.managers.StatManager;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
@@ -15,6 +16,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -63,6 +65,37 @@ public class RpgifierAgent {
 //                    .with(AgentBuilder.RedefinitionStrategy.RETRANSFORMATION) //woah these mean things better not touch them until i need them
 //                    .with(AgentBuilder.InitializationStrategy.NoOp.INSTANCE)
 //                    .with(AgentBuilder.TypeStrategy.Default.REDEFINE)
+
+                    .type(named("org.bukkit.Bukkit"))
+                    .transform((builder, typeDescription, classLoader, module, protectionDomain) -> {
+                        try {
+                            for(URL url: ((URLClassLoader)classLoader).getURLs()){
+                                instrumentation.appendToSystemClassLoaderSearch((new JarFile(new File(url.toURI()))));
+                            }
+                        } catch (URISyntaxException | IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObject.class), ClassFileLocator.ForClassLoader.read(RpgObject.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgClass.class), ClassFileLocator.ForClassLoader.read(RpgClass.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(Stat.class), ClassFileLocator.ForClassLoader.read(Stat.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(Stat.StatContainer.class), ClassFileLocator.ForClassLoader.read(Stat.StatContainer.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItem.class), ClassFileLocator.ForClassLoader.read(RpgItem.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItemStack.class), ClassFileLocator.ForClassLoader.read(RpgItemStack.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgEntity.class), ClassFileLocator.ForClassLoader.read(RpgEntity.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgLivingEntity.class), ClassFileLocator.ForClassLoader.read(RpgLivingEntity.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectHolder.class), ClassFileLocator.ForClassLoader.read(RpgObjectHolder.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.TypeThing.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.TypeThing.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(StatManager.class), ClassFileLocator.ForClassLoader.read(StatManager.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(StatRegisteredListener.class), ClassFileLocator.ForClassLoader.read(StatRegisteredListener.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(TimedStat.class), ClassFileLocator.ForClassLoader.read(TimedStat.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(ActivateStats.class), ClassFileLocator.ForClassLoader.read(ActivateStats.class)));
+                        new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(GlobalVariables.class), ClassFileLocator.ForClassLoader.read(GlobalVariables.class)));
+
+                        return builder;
+                    })
+
+
                     .type(named("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer"))
 
                     .transform(new AgentBuilder.Transformer() {
@@ -70,64 +103,16 @@ public class RpgifierAgent {
 
                         @Override
                         public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
-
-
-                            System.out.println("KSHKDJA NEW THING AHKFJHADFKJLA");
-
-//                            return builder.implement(RpgObjectHolder.class);
-
-//                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(TestInterface.class), ClassFileLocator.ForClassLoader.read(TestInterface.class)));
-//                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(CraftPersistentDataContainer.class), ClassFileLocator.ForClassLoader.read(RpgPersistentDataContainer.class)));
-//                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgPersistentDataContainer.class), ClassFileLocator.ForClassLoader.read(RpgPersistentDataContainer.class)));
-                            builder=builder.implement(RpgObjectHolder.class);
-//                            return new ByteBuddy().redefine(RpgPersistentDataContainer.class).name("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer");
-//                            return new ByteBuddy().redefine(RpgPersistentDataContainer.class).name("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer");
-//                            builder=new ByteBuddy().rebase(CraftPersistentDataContainer.class).implement(TestInterface.class).method(isDeclaredBy(RpgObjectHolder.class))
-//                                    .intercept(to(RpgObjectHolder.class));
-//                            builder=builder.method(any()).intercept()
-//                            for(Method method:RpgPersistentDataContainer.class.getDeclaredMethods()){
-//                                builder.method(named(method.getName())).intercept(MethodCall.invoke(method));
-//                            }
-                            //instance
-//                            try {
-//                                builder=builder.constructor(takesArguments(2)).intercept(SuperMethodCall.INSTANCE.andThen(MethodCall.invoke(RpgPersistentDataContainer.class.getMethod("onConstructor", Map.class)).withField("customDataTags")));
-//                                builder=builder.method(named("toTagCompound")).intercept(MethodCall.invoke(RpgPersistentDataContainer.class.getMethod("toTagCompound", CompoundTag.class,Object.class))
-//                                        .withMethodCall(MethodCall.invokeSuper())
-//                                        .withThis());
-//                            } catch (NoSuchMethodException e) {
-//                                throw new RuntimeException(e);
-//                            }
-                            builder=builder.defineField("instance",RpgObject.class);
-                            builder=builder.method(named("getObject")).intercept(FieldAccessor.ofField("instance"));
-                            builder=builder.method(named("setObject")).intercept(FieldAccessor.ofField("instance"));
-//                            builder=builder.method(named("setObject")).intercept(FieldAccessor.setField("instance"));
-//                                builder=builder.method(named("getObject")).intercept(MethodCall.invoke(RpgPersistentDataContainer.class.getDeclaredMethod("getObject")));
-//                                builder=builder.method(named("setObject")).intercept(MethodCall.invoke(RpgPersistentDataContainer.class.getDeclaredMethod("setObject", TestInterface.class)).withAllArguments());
-                            return builder;
+                            return builder.implement(RpgObjectHolder.class)
+                                .defineField("instance",RpgObject.class)
+                                .method(named("getObject")).intercept(FieldAccessor.ofField("instance"))
+                                .method(named("setObject")).intercept(FieldAccessor.ofField("instance"));
                         }
                     })
                     .type(named("org.bukkit.inventory.ItemStack"))
                     .transform(new AgentBuilder.Transformer() {
                         @Override
                         public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
-                            try {
-                                for(URL url: ((URLClassLoader)classLoader).getURLs()){
-                                    instrumentation.appendToSystemClassLoaderSearch((new JarFile(new File(url.toURI()))));
-                                }
-                            } catch (URISyntaxException | IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObject.class), ClassFileLocator.ForClassLoader.read(RpgObject.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItem.class), ClassFileLocator.ForClassLoader.read(RpgItem.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectHolder.class), ClassFileLocator.ForClassLoader.read(RpgObjectHolder.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItemStack.class), ClassFileLocator.ForClassLoader.read(RpgItemStack.class)));
-//                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgPlugin.class), ClassFileLocator.ForClassLoader.read(RpgPlugin.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.TypeThing.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.TypeThing.class)));
-
-
-
-
                             try {
                                 return
                                         builder
@@ -136,6 +121,24 @@ public class RpgifierAgent {
                                                         .withField("meta").withThis())
                                         .method(isDeclaredBy(RpgItem.class).or(isDeclaredBy(RpgObject.class)))
                                                 .intercept(toMethodReturnOf("getRpgItemInstance"))
+                                        ;
+                            } catch (NoSuchMethodException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    })
+                    .type(named("org.bukkit.craftbukkit.v1_19_R2.entity.CraftLivingEntity"))
+                    .transform(new AgentBuilder.Transformer() {
+                        @Override
+                        public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
+                            try {
+                                return
+                                        builder
+                                                .implement(RpgEntity.class)
+                                                .defineMethod("getRpgEntityInstance",RpgEntity.class).intercept(MethodCall.invoke(RpgLivingEntity.class.getMethod("getRpgEntityInstance", LivingEntity.class))
+                                                        .withThis())
+                                                .method(isDeclaredBy(RpgEntity.class).or(isDeclaredBy(RpgObject.class)))
+                                                .intercept(toMethodReturnOf("getRpgEntityInstance"))
                                         ;
                             } catch (NoSuchMethodException e) {
                                 throw new RuntimeException(e);

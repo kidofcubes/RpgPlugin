@@ -1,9 +1,6 @@
 package io.github.kidofcubes.managers;
 
-import io.github.kidofcubes.RpgPlugin;
-import io.github.kidofcubes.Stat;
-import io.github.kidofcubes.TimedStat;
-import io.github.kidofcubes.StatRegisteredListener;
+import io.github.kidofcubes.*;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -28,7 +25,7 @@ public class StatManager implements Listener {
 
     public static void init(){
         BukkitScheduler scheduler = Bukkit.getScheduler();
-        scheduler.runTaskTimer(RpgPlugin.plugin, () -> {
+        scheduler.runTaskTimer(GlobalVariables.plugin, () -> {
             if(timedStats.size()>0){ //static is static for all timedstats eee
                 timedStats.get(0).trigger(null);
             }

@@ -1,11 +1,13 @@
 package io.github.kidofcubes;
 
+import net.minecraft.nbt.ByteArrayTag;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +17,17 @@ public class RpgItemStack implements RpgItem{
     public static RpgItem getRpgItemInstance(ItemMeta itemMeta, ItemStack thing){
         if(itemMeta==null){
             itemMeta=thing.getItemMeta();
+            if(itemMeta==null){
+                throw new IllegalStateException("Cannot rpg-ify " + thing.getType());
+            }
             thing.setItemMeta(itemMeta);
         }
+
         CraftPersistentDataContainer persistentDataContainer = (CraftPersistentDataContainer) itemMeta.getPersistentDataContainer();
         if(((RpgObjectHolder)persistentDataContainer).getObject()==null){
             if(persistentDataContainer.getRaw().containsKey(RpgObject.metadataKey.toString())){ //contains data, init rpgitem from data
-                RpgObjectTag tag = (RpgObjectTag)(persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString());
-                ((RpgObjectHolder) itemMeta.getPersistentDataContainer()).setObject(new RpgItemStack(thing).loadFromJson(tag.getLoadedText()));
+                String json = new String(((ByteArrayTag)((persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString()))).getAsByteArray(), StandardCharsets.UTF_8);
+                ((RpgObjectHolder) persistentDataContainer).setObject(new RpgItemStack(thing).loadFromJson(json));
             }else{ //no previous data, init new rpgitem
 
                 ((RpgObjectHolder)itemMeta.getPersistentDataContainer()).setObject(new RpgItemStack(thing));

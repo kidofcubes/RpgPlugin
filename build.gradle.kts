@@ -94,6 +94,7 @@ tasks {
 // Configure plugin.yml generation
 bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
+//    main = "io.github.kidofcubes.Main"
     main = "io.github.kidofcubes.RpgPlugin"
     apiVersion = "1.19"
     authors = listOf("KidOfCubes")
