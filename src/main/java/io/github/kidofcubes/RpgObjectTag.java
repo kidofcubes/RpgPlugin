@@ -54,11 +54,11 @@ public class RpgObjectTag extends ByteArrayTag {
         }
     };
 
-    TestInterface reference;
+    RpgObject reference;
 //    String text;
 
 
-    public RpgObjectTag(TestInterface reference) {
+    public RpgObjectTag(RpgObject reference) {
 //        super(reference.getAsJSON().getBytes(StandardCharsets.UTF_8));
         super(new byte[]{});
         this.reference=reference;
@@ -81,7 +81,7 @@ public class RpgObjectTag extends ByteArrayTag {
     @Override
     public byte[] getAsByteArray() {
         if(reference!=null) {
-            return reference.getAsJSON().getBytes(StandardCharsets.UTF_8);
+            return reference.toJson().getBytes(StandardCharsets.UTF_8);
         }else{
             System.out.println("THAT WASNT SUPPOSED TO HAPPEN");
             return new byte[]{};

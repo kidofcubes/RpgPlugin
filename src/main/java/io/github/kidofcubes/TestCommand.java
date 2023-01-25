@@ -19,23 +19,23 @@ public class TestCommand  implements CommandExecutor {
         if(new ItemStack(Material.DIAMOND_AXE) instanceof RpgItem rpgItem){
 
         }
-        System.out.println("itemstack instanc eof TestInterface? "+(new ItemStack(Material.DIAMOND_AXE) instanceof TestInterface));
+        System.out.println("itemstack instanc eof RpgItem? "+(new ItemStack(Material.DIAMOND_AXE) instanceof RpgItem));
         ItemStack newItemStack = new ItemStack(Material.DIAMOND_AXE);
         System.out.println("before it was "+newItemStack.hashCode());
-        if(newItemStack instanceof TestInterface rpgItem){
-            System.out.println("uhh "+rpgItem.getAsJSON());
+        if(newItemStack instanceof RpgItem rpgItem){
+            System.out.println("uhh "+rpgItem.toJson());
             System.out.println("the class was "+rpgItem.getClass());
-            System.out.println("uhh0 "+rpgItem.getAsJSON());
-            rpgItem.addTest("among us");
-            System.out.println("uhh1 "+rpgItem.getAsJSON());
-            rpgItem.addTest("among us2");
-            System.out.println("uhh2 "+rpgItem.getAsJSON());
+            System.out.println("uhh0 "+rpgItem.toJson());
+            rpgItem.setLevel(69);
+            System.out.println("uhh1 "+rpgItem.toJson());
+            rpgItem.setMana(420);
+            System.out.println("uhh2 "+rpgItem.toJson());
             System.out.println("and uhjhfdkajdfhkjlasd "+ ((CraftPersistentDataContainer)newItemStack.getItemMeta().getPersistentDataContainer()).toTagCompound().getAsString());
             ItemStack newnewItemStack = newItemStack.clone();
-            if(newnewItemStack instanceof TestInterface newrpgItem){
+            if(newnewItemStack instanceof RpgItem newrpgItem){
                 System.out.println("IT IS STILL RPG ITEM");
                 System.out.println("AND UHH "+newnewItemStack.getItemMeta());
-                System.out.println("AND THE NEW RPG ITEM HAS "+newrpgItem.getAsJSON());
+                System.out.println("AND THE NEW RPG ITEM HAS "+newrpgItem.toJson());
             }
             System.out.println("and now we want "+ newItemStack.clone());
         }

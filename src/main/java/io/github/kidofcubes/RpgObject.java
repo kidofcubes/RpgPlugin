@@ -1,19 +1,22 @@
 package io.github.kidofcubes;
 
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.github.kidofcubes.events.RpgActivateStatEvent;
 import io.github.kidofcubes.managers.StatManager;
+import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 
 //dodgy code
 public interface RpgObject {
+    NamespacedKey metadataKey = new NamespacedKey("rpg_plugin", "metadata");
+    Gson gson = new Gson();
 
     //region gettersetters
 
@@ -78,6 +81,11 @@ public interface RpgObject {
     public Stat getStat(String stat);
 
 
+    /**
+     * Returns non-modifiable list of stats
+     * @return
+     */
+    @NotNull
     public List<Stat> getStats();
 
     /**
@@ -88,17 +96,19 @@ public interface RpgObject {
 
 
     /**
-     * Gets this object's used stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
+     * Gets this object's used stats (non-modifiable) (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's used stats
      */
-    public Map<Class<? extends Stat>, List<Stat>> getUsedStatsMap();
+    @NotNull
+    public Map<Class<? extends Stat>, List<Stat>> getUsedStats();
 
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
-    default public List<Stat> getUsedStats() {
-        Map<Class<? extends Stat>, List<Stat>> effectiveStatsMap = getUsedStatsMap();
+    @NotNull
+    default public List<Stat> getUsedStatsList() {
+        Map<Class<? extends Stat>, List<Stat>> effectiveStatsMap = getUsedStats();
         List<Stat> returnStats = new ArrayList<>();
         for (List<Stat> list :
                 effectiveStatsMap.values()) {
@@ -141,7 +151,7 @@ public interface RpgObject {
     //region saveloadingjson
 
 
-    default JsonObject toJson() {
+    default String toJson() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("level",getLevel());
         jsonObject.addProperty("mana",getMana());
@@ -150,12 +160,13 @@ public interface RpgObject {
             map.put(stat.getClass().getName(), stat.asContainer());
         }
 
-        jsonObject.add("stats",RpgPlugin.gson.toJsonTree(map));
+        jsonObject.add("stats",gson.toJsonTree(map));
 
-        return jsonObject;
+        return gson.toJson(jsonObject);
     }
 
-    default RpgObject loadFromJson(JsonObject jsonObject) {
+    default RpgObject loadFromJson(String json) {
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         setLevel(jsonObject.get("level").getAsInt());
         setMana(jsonObject.get("mana").getAsInt());
         Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();

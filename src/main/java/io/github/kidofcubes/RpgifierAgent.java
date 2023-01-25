@@ -8,6 +8,7 @@ import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.implementation.*;
+import net.bytebuddy.matcher.ElementMatchers;
 import net.bytebuddy.utility.JavaConstant;
 import net.bytebuddy.utility.JavaModule;
 import net.minecraft.nbt.CompoundTag;
@@ -77,7 +78,7 @@ public class RpgifierAgent {
 
 //                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(TestInterface.class), ClassFileLocator.ForClassLoader.read(TestInterface.class)));
 //                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(CraftPersistentDataContainer.class), ClassFileLocator.ForClassLoader.read(RpgPersistentDataContainer.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgPersistentDataContainer.class), ClassFileLocator.ForClassLoader.read(RpgPersistentDataContainer.class)));
+//                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgPersistentDataContainer.class), ClassFileLocator.ForClassLoader.read(RpgPersistentDataContainer.class)));
                             builder=builder.implement(RpgObjectHolder.class);
 //                            return new ByteBuddy().redefine(RpgPersistentDataContainer.class).name("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer");
 //                            return new ByteBuddy().redefine(RpgPersistentDataContainer.class).name("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer");
@@ -96,7 +97,7 @@ public class RpgifierAgent {
 //                            } catch (NoSuchMethodException e) {
 //                                throw new RuntimeException(e);
 //                            }
-                            builder=builder.defineField("instance",TestInterface.class);
+                            builder=builder.defineField("instance",RpgObject.class);
                             builder=builder.method(named("getObject")).intercept(FieldAccessor.ofField("instance"));
                             builder=builder.method(named("setObject")).intercept(FieldAccessor.ofField("instance"));
 //                            builder=builder.method(named("setObject")).intercept(FieldAccessor.setField("instance"));
@@ -116,10 +117,10 @@ public class RpgifierAgent {
                             } catch (URISyntaxException | IOException e) {
                                 throw new RuntimeException(e);
                             }
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(TestInterface.class), ClassFileLocator.ForClassLoader.read(TestInterface.class)));
+                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObject.class), ClassFileLocator.ForClassLoader.read(RpgObject.class)));
+                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItem.class), ClassFileLocator.ForClassLoader.read(RpgItem.class)));
                             new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectHolder.class), ClassFileLocator.ForClassLoader.read(RpgObjectHolder.class)));
                             new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItemStack.class), ClassFileLocator.ForClassLoader.read(RpgItemStack.class)));
-                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(BaseRpgItem.class), ClassFileLocator.ForClassLoader.read(BaseRpgItem.class)));
 //                            new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgPlugin.class), ClassFileLocator.ForClassLoader.read(RpgPlugin.class)));
                             new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.class)));
                             new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.TypeThing.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.TypeThing.class)));
@@ -130,17 +131,11 @@ public class RpgifierAgent {
                             try {
                                 return
                                         builder
-                                        .implement(TestInterface.class)
-//                                        new ByteBuddy().rebase(ItemStack.class)
-                                        .defineField("rpgItemInstance",TestInterface.class)
-//                                        .constructor(any()).intercept(MethodCall.invoke(RpgItemStack.class.getMethod("constructor",Object[].class)).withArgumentArray()
-//                                                        .andThen(SuperMethodCall.INSTANCE)
-//                                                        .andThen(FieldAccessor.ofField("rpgItemInstance")))
-                                        .defineMethod("getRpgItemInstance",TestInterface.class).intercept(MethodCall.invoke(RpgItemStack.class.getMethod("getRpgItemInstance", ItemMeta.class, ItemStack.class))
+                                        .implement(RpgItem.class)
+                                        .defineMethod("getRpgItemInstance",RpgItem.class).intercept(MethodCall.invoke(RpgItemStack.class.getMethod("getRpgItemInstance", ItemMeta.class, ItemStack.class))
                                                         .withField("meta").withThis())
-                                        .method(isDeclaredBy(TestInterface.class))
+                                        .method(isDeclaredBy(RpgItem.class).or(isDeclaredBy(RpgObject.class)))
                                                 .intercept(toMethodReturnOf("getRpgItemInstance"))
-//                                        .intercept(FieldAccessor.ofField("itemMeta"))
                                         ;
                             } catch (NoSuchMethodException e) {
                                 throw new RuntimeException(e);

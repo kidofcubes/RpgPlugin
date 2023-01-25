@@ -162,28 +162,29 @@ public class RpgInjector implements Listener {
 
 
     public void rpgify(CraftLivingEntity livingEntity) throws NoSuchFieldException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        if(livingEntity instanceof RpgEntity){
-            return;
-        }
 
-        BaseRpgEntity instance = new BaseRpgEntity((CraftServer) livingEntity.getServer(),livingEntity.getHandle());
-        DynamicType.Builder<? extends CraftLivingEntity> thing = new ByteBuddy()
-                .subclass(livingEntity.getClass(), ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
-
-        //theres a better way to do this, but its 2 am
-        //i cannot stress enough how much i dont like this solution
-        for (Method method : BaseRpgEntity.class.getDeclaredMethods()) {
-            thing=thing.method(namedIgnoreCase(method.getName())).intercept(MethodDelegation.to(instance));
-        }
-        thing=thing.implement(RpgEntity.class).intercept(MethodCall.invokeSelf().on(instance).withAllArguments());
-        Class<? extends CraftLivingEntity> newClass = thing.make().load(getClass().getClassLoader()).getLoaded();
-
-        Field field = net.minecraft.world.entity.Entity.class.getDeclaredField("bukkitEntity");
-        field.setAccessible(true); // Force to access the field
-        field.set(livingEntity.getHandle(),
-                newClass.getDeclaredConstructors()[0].newInstance(
-                        livingEntity.getServer(),
-                        livingEntity.getHandle().getClass().cast(livingEntity.getHandle())
-                ));
+//        if(livingEntity instanceof RpgEntity){
+//            return;
+//        }
+//
+//        BaseRpgEntity instance = new BaseRpgEntity((CraftServer) livingEntity.getServer(),livingEntity.getHandle());
+//        DynamicType.Builder<? extends CraftLivingEntity> thing = new ByteBuddy()
+//                .subclass(livingEntity.getClass(), ConstructorStrategy.Default.IMITATE_SUPER_CLASS);
+//
+//        //theres a better way to do this, but its 2 am
+//        //i cannot stress enough how much i dont like this solution
+//        for (Method method : BaseRpgEntity.class.getDeclaredMethods()) {
+//            thing=thing.method(namedIgnoreCase(method.getName())).intercept(MethodDelegation.to(instance));
+//        }
+//        thing=thing.implement(RpgEntity.class).intercept(MethodCall.invokeSelf().on(instance).withAllArguments());
+//        Class<? extends CraftLivingEntity> newClass = thing.make().load(getClass().getClassLoader()).getLoaded();
+//
+//        Field field = net.minecraft.world.entity.Entity.class.getDeclaredField("bukkitEntity");
+//        field.setAccessible(true); // Force to access the field
+//        field.set(livingEntity.getHandle(),
+//                newClass.getDeclaredConstructors()[0].newInstance(
+//                        livingEntity.getServer(),
+//                        livingEntity.getHandle().getClass().cast(livingEntity.getHandle())
+//                ));
     }
 }

@@ -17,9 +17,7 @@ import org.bukkit.inventory.ItemStack;
 //import static io.github.kidofcubes.RpgPlugin.uuidKey;
 //
 //
-public interface RpgItem{
-    public void addTest(String test);
-    public String getAsJSON();
+public interface RpgItem extends RpgObject{
 }
 
 
