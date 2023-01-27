@@ -24,8 +24,8 @@ public abstract class TimedStat extends Stat{
     }
 
     @Override
-    public void onRemoveStat(RpgObject object) {
-        super.onRemoveStat(object);
+    public void onRemoveStat() {
+        super.onRemoveStat();
         statInstances.remove(this);
     }
 
@@ -35,8 +35,8 @@ public abstract class TimedStat extends Stat{
     }
 
     @Override
-    public void onStopUsingStat(RpgObject object) {
-        super.onStopUsingStat(object);
+    public void onStopUsingStat() {
+        super.onStopUsingStat();
     }
 
     public int getInterval(){
@@ -67,17 +67,16 @@ public abstract class TimedStat extends Stat{
                     if(manaCost == 0){
                         statInstance.activateStat(null);
                     }else{
-                        if(manaSourceFromParent()){
-                            if (statInstance.getParent().getMana() >= manaCost) {
-                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
-                                statInstance.activateStat(null);
-                            }
-                        }else{
-                            if (statInstance.getUser().getMana() >= manaCost) {
-                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
-                                statInstance.activateStat(null);
-                            }
+                        double cost=statInstance.getManaCost();
+                        if(statInstance.getParent().getMana()+(statInstance.getParent()==statInstance.getUser() ? 0 : statInstance.getUser().getMana())<cost){
+                            return;
                         }
+                        cost-=statInstance.getParent().getMana();
+                        statInstance.getParent().setMana(Math.max(statInstance.getParent().getMana()-statInstance.getManaCost(),0));
+                        if(cost>0){
+                            statInstance.getUser().setMana(statInstance.getUser().getMana()-cost);
+                        }
+                        statInstance.activateStat(null);
                     }
                 }
 

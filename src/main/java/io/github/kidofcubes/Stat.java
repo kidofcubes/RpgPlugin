@@ -12,15 +12,9 @@ import java.util.*;
 
 public abstract class Stat implements Listener {
 
-    public Stat(){
-
-    }
-
     private int level = 0;
 
-    private final Class<? extends Stat> runBeforeStat = runBeforeStat();
-
-    public Class<? extends Stat> runBeforeStat() {
+    public Class<? extends Stat> dependentStat() {
         return null;
     }
 
@@ -37,9 +31,6 @@ public abstract class Stat implements Listener {
     private RpgObject user;
     public double getManaCost(){
         return 0;
-    }
-    public boolean manaSourceFromParent(){
-        return false;
     }
 
 
@@ -76,14 +67,14 @@ public abstract class Stat implements Listener {
     public void onAddStat(RpgObject object){
         parent = object;
     }
-    public void onRemoveStat(RpgObject object){
+    public void onRemoveStat(){
         parent=null;
     }
 
     public void onUseStat(RpgObject object){
         user = object;
     }
-    public void onStopUsingStat(RpgObject object){
+    public void onStopUsingStat(){
         user=null;
     }
 
@@ -98,64 +89,30 @@ public abstract class Stat implements Listener {
      * Runs checks for event, and runs stat if passes
      * Checks are:
      *   stat on check object
-     *   level!=0
-     *   check object mana enough
+     *   check object + user mana enough
      * @param event Event that was passed in
      */
     public void trigger(Event event) {
         RpgObject toCheck = getParent(event);
         if (toCheck != null) {
             if(toCheck.hasStat(getName())){
-                toCheck.getStat(getName()).activateStat(event);
+                //check if we can activate the stat
+                Stat stat = toCheck.getStat(getName());
+
+                double cost=stat.getManaCost();
+                if(stat.getParent().getMana()+(toCheck==stat.getUser() ? 0 : stat.getUser().getMana())<cost){
+                    return;
+                }
+                cost-=stat.getParent().getMana();
+                toCheck.setMana(Math.max(toCheck.getMana()-stat.getManaCost(),0));
+                if(cost>0){
+                    stat.getUser().setMana(stat.getUser().getMana()-cost);
+                }
+                stat.activateStat(event);
             }
-//            List<Stat> statInstances = toCheck.getUsedStats().getOrDefault(this.getClass(),null);
-//            if(statInstances!=null) {
-//                for (Stat statInstance : statInstances) {
-//                    if (event instanceof RpgActivateStatEvent rpgActivateStatEvent) {
-//                        if (!rpgActivateStatEvent.getTriggerStats().contains(getName())) {
-//                            continue;
-//                        }
-//                    }
-//                    //mana
-//                    double manaCost = statInstance.getManaCost();
-//                    if(manaCost == 0){
-//                        statInstance.activateStat(event);
-//                    }else{
-//                        if(manaSourceFromParent()){
-//                            if (statInstance.getParent().getMana() >= manaCost) {
-//                                statInstance.getParent().setMana(statInstance.getParent().getMana() - manaCost);
-//
-//
-//                                statInstance.activateStat(event);
-//                            }
-//                        }else{
-//                            if (statInstance.getUser().getMana() >= manaCost) {
-//                                statInstance.getUser().setMana(statInstance.getUser().getMana() - manaCost);
-//
-//
-//                                statInstance.activateStat(event);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
     }
     public void activateStat(Event event){
-        ArrayList<Stat> runBeforeStats = new ArrayList<>();
-//        for (Map.Entry<Class<? extends Stat>,List<Stat>> pair : getUser().getEffectiveStatsMap().entrySet()) {
-//            if(pair.getValue().size()>0){
-//                if(pair.getValue().get(0).runBeforeStat!=null) {
-//                    if (this.getClass().isAssignableFrom(pair.getValue().get(0).runBeforeStat)) {
-//                        runBeforeStats.addAll(pair.getValue());
-//                    }
-//                }
-//            }
-//        }
-        for (Stat stat : runBeforeStats) {
-            stat.sourceStat=this;
-            stat.activateStat(event);
-        }
         run(event);
         sourceStat=null;
     }

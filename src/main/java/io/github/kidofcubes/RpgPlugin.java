@@ -38,18 +38,8 @@ public class RpgPlugin extends JavaPlugin {
 //                ManaDisplayMethod = ManaDisplayType.none;
 //                logger.info("manaDisplayMethod was not one of: "+ Arrays.toString(ManaDisplayType.values()));
             }
-
-//            StatManager.register(new DamageModifier(), List.of(RpgEntityDamageEvent.class));
-
-
-
-//            RpgManager.init();
-//            EntityManager.init();
         }, 0);
-        getCommand("testcommand").setExecutor(new TestCommand());
-        System.out.println("COMMAND IS READYYY");
-//        Bukkit.getScheduler().runTaskLater(RpgPlugin.plugin, () -> {
-//        },20*5);
+
 
 
     }

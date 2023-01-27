@@ -16,6 +16,10 @@ import java.util.*;
 //dodgy code
 public interface RpgObject {
     NamespacedKey metadataKey = new NamespacedKey("rpg_plugin", "metadata");
+    NamespacedKey typeStorageKey = new NamespacedKey("rpg_plugin", "type");
+
+
+
     Gson gson = new Gson();
 
     //region gettersetters
@@ -77,8 +81,14 @@ public interface RpgObject {
     public void addStat(Stat stat, boolean force);
 
     public boolean hasStat(String stat);
-    @Nullable
-    public Stat getStat(String stat);
+
+    /**
+     * Gets the stat instance named {@code statName}
+     * @param statName The name of the stat to retrieve
+     * @return
+     */
+    @NotNull
+    public Stat getStat(String statName);
 
 
     /**
@@ -165,7 +175,9 @@ public interface RpgObject {
     }
 
     default RpgObject loadFromJson(String json) {
-        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        JsonElement jsonElement=gson.fromJson(json, JsonElement.class);
+        JsonObject jsonObject=gson.fromJson(json, JsonObject.class);
+        JsonObject jsonObject2 = jsonElement.getAsJsonObject();
         setLevel(jsonObject.get("level").getAsInt());
         setMana(jsonObject.get("mana").getAsInt());
         Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();

@@ -6,21 +6,22 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import net.minecraft.nbt.*;
+import org.jetbrains.annotations.NotNull;
 
 
-//i dont know what im doing, theres probably unnecessary code in here but it works and im not changing it
+//I don't know what im doing, there's probably unnecessary code in here, but it works and im not changing it
 public class RpgObjectTag extends ByteArrayTag {
     public static final TagType<ByteArrayTag> TYPE = new TypeThing();
 
 
     static class TypeThing implements TagType.VariableSize<ByteArrayTag> {
         @Override
-        public RpgObjectTag load(DataInput input, int depth, NbtAccounter tracker) throws IOException {
+        public @NotNull RpgObjectTag load(DataInput input, int depth, NbtAccounter tracker) throws IOException {
             tracker.accountBytes(24L);
             int j = input.readInt();
             com.google.common.base.Preconditions.checkArgument( j < 1 << 24); // Spigot
 
-            tracker.accountBytes(1L * (long) j);
+            tracker.accountBytes(j);
             byte[] abyte = new byte[j];
 
             input.readFully(abyte);
@@ -28,7 +29,7 @@ public class RpgObjectTag extends ByteArrayTag {
         }
 
         @Override
-        public StreamTagVisitor.ValueResult parse(DataInput input, StreamTagVisitor visitor) throws IOException {
+        public StreamTagVisitor.@NotNull ValueResult parse(DataInput input, StreamTagVisitor visitor) throws IOException {
             int i = input.readInt();
             byte[] abyte = new byte[i];
 
@@ -38,19 +39,19 @@ public class RpgObjectTag extends ByteArrayTag {
 
         @Override
         public void skip(DataInput input) throws IOException {
-            input.skipBytes(input.readInt() * 1);
+            input.skipBytes(input.readInt());
         }
 
         @Override
-        public String getName() {
-            return "RPGBYTE[]";
+        public @NotNull String getName() {
+            return "RpgHolderTag";
         }
 
         @Override
-        public String getPrettyName() {
-            return "TAG_RPGByte_Array";
+        public @NotNull String getPrettyName() {
+            return "Rpg object holder tag";
         }
-    };
+    }
 
     RpgObject reference;
     String datum;
@@ -60,56 +61,35 @@ public class RpgObjectTag extends ByteArrayTag {
         }else{
             return datum.getBytes(StandardCharsets.UTF_8);
         }
-    };
-//    String text;
+    }
 
 
     public RpgObjectTag(RpgObject reference) {
-//        super(reference.getAsJSON().getBytes(StandardCharsets.UTF_8));
         super(new byte[]{});
         this.reference=reference;
 
     }
     public RpgObjectTag(String json) {
-//        super(reference.getAsJSON().getBytes(StandardCharsets.UTF_8));
-//        super(json.getBytes(StandardCharsets.UTF_8));
         super(new byte[]{});
         datum=json;
-//        this.text=json;
 
     }
 
     @Override
-    public Tag copy() {
+    public @NotNull Tag copy() {
 
         if(reference!=null){
-            System.out.println("copied a tag with a reference");
             return new RpgObjectTag(reference.toJson());
         }
-        System.out.println("copied a tag with no referece but data "+new String(getAsByteArray()));
         return new RpgObjectTag(new String(getAsByteArray()));
     }
-//    public RpgObjectTag(byte[] value) {
-//        super(value);
-//    }
-//
-//    public RpgObjectTag(List<Byte> value) {
-//        super(value);
-//    }
-
     @Override
-    public byte[] getAsByteArray() {
-        if(reference!=null) {
-            System.out.println("pulled a fast one on ya, gave you the json instead");
-            return getAsBytes();
-        }else{
-            System.out.println("THAT WASNT SUPPOSED TO HAPPEN===========================================================================");
-            return getAsBytes();
-        }
+    public byte @NotNull [] getAsByteArray() {
+        return getAsBytes();
     }
 
     @Override
-    public TagType<ByteArrayTag> getType() {
+    public @NotNull TagType<ByteArrayTag> getType() {
         return RpgObjectTag.TYPE;
     }
 
@@ -137,13 +117,13 @@ public class RpgObjectTag extends ByteArrayTag {
     }
 
     @Override
-    public String toString() {
-        return "ITS ME THE RPGTAG "+super.toString();
+    public @NotNull String toString() {
+        return "RPG_TAG {"+super.toString()+"}";
     }
 
     @Override
     public boolean equals(Object object) {
-        return this == object ? true : object instanceof RpgObjectTag && Arrays.equals(this.getAsBytes(), ((RpgObjectTag) object).getAsBytes());
+        return this == object || object instanceof RpgObjectTag && Arrays.equals(this.getAsBytes(), ((RpgObjectTag) object).getAsBytes());
     }
 
     @Override
@@ -163,32 +143,32 @@ public class RpgObjectTag extends ByteArrayTag {
 
     @Override
     public ByteTag get(int i) {
-        throw new UnsupportedOperationException("THIS IS A RPGOBJECTTAG");
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public ByteTag set(int i, ByteTag nbttagbyte) {
-        throw new UnsupportedOperationException("THIS IS A RPGOBJECTTAG");
+    public @NotNull ByteTag set(int i, @NotNull ByteTag nbttagbyte) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public void add(int i, ByteTag nbttagbyte) {
-        throw new UnsupportedOperationException("THIS IS A RPGOBJECTTAG");
+    public void add(int i, @NotNull ByteTag nbttagbyte) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean setTag(int index, Tag element) {
-        throw new UnsupportedOperationException("THIS IS A RPGOBJECTTAG");
+    public boolean setTag(int index, @NotNull Tag element) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean addTag(int index, Tag element) {
-        throw new UnsupportedOperationException("THIS IS A RPGOBJECTTAG");
+    public boolean addTag(int index, @NotNull Tag element) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public ByteTag remove(int i) {
-        throw new UnsupportedOperationException("THIS IS A RPGOBJECTTAG");
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -197,7 +177,7 @@ public class RpgObjectTag extends ByteArrayTag {
     }
 
     @Override
-    public StreamTagVisitor.ValueResult accept(StreamTagVisitor visitor) {
+    public StreamTagVisitor.@NotNull ValueResult accept(StreamTagVisitor visitor) {
         return visitor.visit(getAsBytes());
     }
 }

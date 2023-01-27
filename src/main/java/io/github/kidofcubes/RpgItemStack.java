@@ -1,12 +1,19 @@
 package io.github.kidofcubes;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import io.github.kidofcubes.managers.StatManager;
 import net.minecraft.nbt.ByteArrayTag;
+import net.minecraft.nbt.StringTag;
+import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -14,27 +21,114 @@ import java.util.Map;
 import java.util.UUID;
 
 public class RpgItemStack implements RpgItem{
-    public static RpgItem getRpgItemInstance(ItemMeta itemMeta, ItemStack thing){
-        if(itemMeta==null){
-            itemMeta=thing.getItemMeta();
+
+    private static final Field itemMetaField;
+
+    static {
+        try {
+            itemMetaField = ItemStack.class.getDeclaredField("meta");
+            itemMetaField.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private static CraftPersistentDataContainer getPersistentDataContainer(ItemStack itemstack){
+        try {
+            System.out.println("GETTING THE PERSISTENT DATA CONTAINER OF "+itemstack.hashCode());
+            ItemMeta itemMeta = ((ItemMeta) itemMetaField.get(itemstack));
             if(itemMeta==null){
-                throw new IllegalStateException("Cannot rpg-ify " + thing.getType());
+                System.out.println("WAS NO PREVIOUS ITEMMETA FOR "+itemstack.hashCode());
+                itemMeta=itemstack.getItemMeta();
+                System.out.println("THE NEW META WE MADE IS "+itemMeta);
+                if(itemMeta==null){
+                    throw new IllegalStateException("Cannot attach RpgItem to  " + itemstack.getType());
+                }
+                itemMetaField.set(itemstack,itemMeta);
+                System.out.println("WE GOT THE META AGAIN AND ITS "+((ItemMeta) itemMetaField.get(itemstack)));
+                itemstack.setItemMeta(itemstack.getItemMeta());
+                System.out.println("WE GOT THE META AGAIN AGAIN AND ITS "+((ItemMeta) itemMetaField.get(itemstack)));
+                ItemMeta magick = itemstack.getItemMeta();
+                magick.setDisplayName("among us");
+                itemstack.setItemMeta(magick);
+                System.out.println("WE GOT THE META AGAIN AGAIN AND ITS "+((ItemMeta) itemMetaField.get(itemstack)));
+            }else{
+                System.out.println("REAL META OF "+itemstack.hashCode()+" IS "+itemMeta);
             }
-            thing.setItemMeta(itemMeta);
+            CraftPersistentDataContainer container = (CraftPersistentDataContainer) itemMeta.getPersistentDataContainer();
+            System.out.println("THE PERSISTENT DATA CONTAINER WE ARE GOING TO RETURN CODE IS "+container);
+            return container;
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
+    }
 
-        CraftPersistentDataContainer persistentDataContainer = (CraftPersistentDataContainer) itemMeta.getPersistentDataContainer();
-        if(((RpgObjectHolder)persistentDataContainer).getObject()==null){
-            if(persistentDataContainer.getRaw().containsKey(RpgObject.metadataKey.toString())){ //contains data, init rpgitem from data
-                String json = new String(((ByteArrayTag)((persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString()))).getAsByteArray(), StandardCharsets.UTF_8);
-                ((RpgObjectHolder) persistentDataContainer).setObject(new RpgItemStack(thing).loadFromJson(json));
-            }else{ //no previous data, init new rpgitem
+    //group code into smth to do with craftpersistentdatacontainers
 
-                ((RpgObjectHolder)itemMeta.getPersistentDataContainer()).setObject(new RpgItemStack(thing));
-                ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer()).getRaw().put(RpgObject.metadataKey.toString(),new RpgObjectTag(((RpgObjectHolder)itemMeta.getPersistentDataContainer()).getObject()));
+    public static void setRpgItemInstance(ItemStack itemstack, RpgItem rpgItem){
+        CraftPersistentDataContainer dataContainer = getPersistentDataContainer(itemstack);
+        System.out.println("OK WE ARE ABOUT TO START "+dataContainer);
+        dataContainer.getRaw().put(RpgObject.metadataKey.asString(), new RpgObjectTag(rpgItem));
+        System.out.println("ADDED THE TAG WTF "+dataContainer);
+        ((RpgObjectHolder) dataContainer).setObject(rpgItem);
+        System.out.println("VERIFY THE OBJECT OF DATACONTAINER "+((RpgObjectHolder) dataContainer)+ " IS: "+((RpgObjectHolder) dataContainer).getObject());
+        System.out.println("SET THE OBJECT OF "+dataContainer + " ON "+itemstack.hashCode());
+    }
+
+    public static void setRpgItemType(ItemStack itemstack, NamespacedKey identifier) throws ClassNotFoundException{
+        CraftPersistentDataContainer persistentDataContainer = getPersistentDataContainer(itemstack);
+        StringTag originalType = ((StringTag)persistentDataContainer.getRaw().get(RpgObject.typeStorageKey.asString()));
+        if(originalType!=null){
+            if(originalType.getAsString().equals(identifier.asString())){
+                return;
             }
         }
-        return (RpgItem) ((RpgObjectHolder)itemMeta.getPersistentDataContainer()).getObject(); //were just assuming
+        if(identifier==null&&originalType==null){
+            return;
+        }
+        if(RpgRegistry.containsItemType(identifier)){
+            persistentDataContainer.getRaw().put(RpgObject.typeStorageKey.asString(),StringTag.valueOf(identifier.asString()));
+
+            if(((RpgObjectHolder) persistentDataContainer).getObject()!=null){ //if its already loaded, reload it
+                setRpgItemInstance(itemstack, RpgRegistry.getItemType(identifier).apply(itemstack).loadFromJson(((RpgObjectHolder) persistentDataContainer).getObject().toJson()));
+            }
+        }else{
+            throw new ClassNotFoundException("Couldn't load RpgItem type "+identifier.asString()+" from registry");
+        }
+    }
+
+    public static RpgItem getRpgItemInstance(ItemStack itemstack) throws ClassNotFoundException { //if itemstack has a type already, init that type instead, if not, init default
+        System.out.println("GETTING ITEM INSTANCE OF "+itemstack.displayName());
+        CraftPersistentDataContainer persistentDataContainer = getPersistentDataContainer(itemstack);
+        if(((RpgObjectHolder)persistentDataContainer).getObject()==null){ //init object if not found
+            System.out.println("DIDNT FIND PREVIOUS OBJECT");
+            if(persistentDataContainer.getRaw().containsKey(RpgObject.typeStorageKey.toString())){ //has a special type
+                System.out.println("HAS SPECIAL TYPE");
+                NamespacedKey type=NamespacedKey.fromString(persistentDataContainer.getRaw().get(RpgObject.typeStorageKey.toString()).getAsString());
+                if(RpgRegistry.containsItemType(type)){
+                    if(persistentDataContainer.getRaw().containsKey(RpgObject.metadataKey.toString())) {
+                        setRpgItemInstance(itemstack, RpgRegistry.getItemType(type).apply(itemstack).loadFromJson(
+                                new String(((ByteArrayTag)((persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString()))).getAsByteArray(), StandardCharsets.UTF_8)));
+                    }else{
+                        setRpgItemInstance(itemstack,RpgRegistry.getItemType(type).apply(itemstack));
+                    }
+                }else{
+                    throw new ClassNotFoundException("Couldn't load RpgItem type "+type+" from registry");
+                }
+            }else{
+                System.out.println("NO SPECIAL TYPE");
+                if(persistentDataContainer.getRaw().containsKey(RpgObject.metadataKey.toString())) {
+                    System.out.println("HAS PREVIOUS DATA");
+                    setRpgItemInstance(itemstack, new RpgItemStack(itemstack).loadFromJson(
+                            new String(((ByteArrayTag)((persistentDataContainer).getRaw().get(RpgObject.metadataKey.toString()))).getAsByteArray(), StandardCharsets.UTF_8)));
+                }else{
+                    System.out.println("NO PREVIOUS DATA, NEW ITEMSTACK GO");
+                    setRpgItemInstance(itemstack,new RpgItemStack(itemstack));
+                }
+            }
+        }
+        System.out.println("OUR DATA CONTAINER IS STILL "+persistentDataContainer);
+        System.out.println("RETURNING RPGITEM "+((RpgObjectHolder)persistentDataContainer).getObject().toJson());
+        return (RpgItem) ((RpgObjectHolder)persistentDataContainer).getObject(); //it probably should be a rpgitem unless someone(probably me) broke something
     }
 
     private final ItemStack itemStack;
@@ -50,8 +144,6 @@ public class RpgItemStack implements RpgItem{
     Map<String,RpgClass> rpgClasses = new HashMap<>();
 
     Map<String,Stat> stats = new HashMap<>();
-
-//    private List<Stat,>
 
     @Override
     public String getName() {
@@ -142,6 +234,8 @@ public class RpgItemStack implements RpgItem{
 
     @Override
     public void addStat(Stat stat, boolean force) {
+        stat.onAddStat(this);
+        stat.onUseStat(this);
         stats.put(stat.getName(),stat);
     }
 
@@ -150,9 +244,8 @@ public class RpgItemStack implements RpgItem{
         return stats.containsKey(stat);
     }
 
-    @Nullable
     @Override
-    public Stat getStat(String stat) {
+    public @NotNull Stat getStat(String stat) {
         return stats.get(stat);
     }
 
@@ -163,11 +256,17 @@ public class RpgItemStack implements RpgItem{
 
     @Override
     public void removeStat(String stat) {
-        stats.remove(stat);
+        System.out.println("REMOVING ITEM STAT");
+        Stat statInstance = stats.remove(stat);
+        if(statInstance!=null){
+            statInstance.onRemoveStat();
+            statInstance.onStopUsingStat();
+        }
     }
 
     @Override
     public @NotNull Map<Class<? extends Stat>, List<Stat>> getUsedStats() {
         return Map.of();
     }
+
 }
