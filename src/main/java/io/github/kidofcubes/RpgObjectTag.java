@@ -10,8 +10,18 @@ import org.jetbrains.annotations.NotNull;
 
 
 //I don't know what im doing, there's probably unnecessary code in here, but it works and im not changing it
-public class RpgObjectTag extends ByteArrayTag {
+public class RpgObjectTag extends ByteArrayTag implements RpgObjectHolder{
     public static final TagType<ByteArrayTag> TYPE = new TypeThing();
+
+    @Override
+    public void setObject(RpgObject thing) {
+        reference = thing;
+    }
+
+    @Override
+    public RpgObject getObject() {
+        return reference;
+    }
 
 
     static class TypeThing implements TagType.VariableSize<ByteArrayTag> {
@@ -56,13 +66,23 @@ public class RpgObjectTag extends ByteArrayTag {
     RpgObject reference;
     String datum;
     public byte[] getAsBytes(){
+        if(getJsonData()==null){
+            return new byte[]{};
+        }
+        return getJsonData().getBytes(StandardCharsets.UTF_8);
+    }
+    @Override
+    public String getJsonData(){
         if(reference!=null){
-            return reference.toJson().getBytes(StandardCharsets.UTF_8);
+            return reference.toJson();
         }else{
-            return datum.getBytes(StandardCharsets.UTF_8);
+            return datum;
         }
     }
-
+    public RpgObjectTag(ByteArrayTag orig){
+        super(new byte[]{});
+        datum=new String(orig.getAsByteArray(),StandardCharsets.UTF_8);
+    }
 
     public RpgObjectTag(RpgObject reference) {
         super(new byte[]{});
@@ -72,6 +92,9 @@ public class RpgObjectTag extends ByteArrayTag {
     public RpgObjectTag(String json) {
         super(new byte[]{});
         datum=json;
+    }
+    public RpgObjectTag() {
+        super(new byte[]{});
 
     }
 

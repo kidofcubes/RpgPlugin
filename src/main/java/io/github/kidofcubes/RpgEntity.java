@@ -1,6 +1,9 @@
 package io.github.kidofcubes;
 
 
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
+
 //add entity specific stuff here later
 public interface RpgEntity extends RpgObject {
 
@@ -8,4 +11,5 @@ public interface RpgEntity extends RpgObject {
         RpgObject.super.loadFromJson(json);
         return this;
     }
+    public RpgEntity self();
 }

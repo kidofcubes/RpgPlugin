@@ -63,7 +63,7 @@ public class RpgifierAgent {
                             Stat.class,Stat.StatContainer.class, StatManager.class, StatRegisteredListener.class, TimedStat.class, ActivateStats.class,
                             RpgItem.class, RpgItemStack.class,
                             RpgEntity.class, RpgLivingEntity.class,
-                            RpgObjectHolder.class,RpgObjectTag.class,RpgObjectTag.TypeThing.class,
+                            RpgObjectHolder.class,RpgObjectTag.class,RpgObjectTag.TypeThing.class,RpgRegistry.class,
                             GlobalVariables.class};
 //                    Map<TypeDescription,byte[]> loadedData = new HashMap<>();
                     for (Class<?> clazz : classes) {

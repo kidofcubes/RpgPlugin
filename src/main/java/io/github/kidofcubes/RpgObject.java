@@ -15,9 +15,11 @@ import java.util.*;
 
 //dodgy code
 public interface RpgObject {
+
     NamespacedKey metadataKey = new NamespacedKey("rpg_plugin", "metadata");
     NamespacedKey typeStorageKey = new NamespacedKey("rpg_plugin", "type");
 
+    NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
 
 
     Gson gson = new Gson();
