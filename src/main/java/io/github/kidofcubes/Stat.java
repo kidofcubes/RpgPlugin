@@ -2,13 +2,13 @@ package io.github.kidofcubes;
 
 
 import com.google.gson.JsonObject;
-import io.github.kidofcubes.events.RpgActivateStatEvent;
+import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class Stat implements Listener {
 
@@ -39,15 +39,13 @@ public abstract class Stat implements Listener {
         return this.getClass().getName();
     }
 
-    public String getShortName() {
-        return this.getClass().getSimpleName();
-    }
-
     public String getDescription() {
         return "Default description";
     }
 
-
+    public abstract NamespacedKey getIdentifier();
+    //return new NamespacedKey(getPlugin(),getClass().getName().replaceAll("\\$","_").toLowerCase());
+    //return new NamespacedKey(getClass().getPackage().getName().replaceAll("\\.","_").toLowerCase(),getClass().getName().replaceAll("\\$","_").toLowerCase());
 
     /**
      * Gets the level of this stat
@@ -95,9 +93,9 @@ public abstract class Stat implements Listener {
     public void trigger(Event event) {
         RpgObject toCheck = getParent(event);
         if (toCheck != null) {
-            if(toCheck.hasStat(getName())){
+            if(toCheck.hasStat(getIdentifier())){
                 //check if we can activate the stat
-                Stat stat = toCheck.getStat(getName());
+                Stat stat = toCheck.getStat(getIdentifier());
 
                 double cost=stat.getManaCost();
                 if(cost!=0) {
@@ -116,15 +114,7 @@ public abstract class Stat implements Listener {
     }
     public void activateStat(Event event){
         run(event);
-        sourceStat=null;
     }
-
-
-
-    public Stat sourceStat = null;
-
-
-
 
 
     public EventPriority priority(){

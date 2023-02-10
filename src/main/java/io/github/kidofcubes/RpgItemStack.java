@@ -1,24 +1,17 @@
 package io.github.kidofcubes;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.github.kidofcubes.managers.StatManager;
-import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static io.github.kidofcubes.RpgObjectTag.RpgObjectTagKey;
@@ -105,11 +98,11 @@ public class RpgItemStack implements RpgItem{
 
     Map<String,RpgClass> rpgClasses = new HashMap<>();
 
-    Map<String,Stat> stats = new HashMap<>();
+    Map<NamespacedKey,Stat> stats = new HashMap<>();
 
     @Override
     public String getName() {
-        return "RPGOBJECT";
+        return "RPG ItemStack";
     }
     @Override
     public boolean isLoaded() {
@@ -195,20 +188,20 @@ public class RpgItemStack implements RpgItem{
 
 
     @Override
-    public void addStat(Stat stat, boolean force) {
+    public void addStat(NamespacedKey key, Stat stat) {
         stat.onAddStat(this);
         stat.onUseStat(this);
-        stats.put(stat.getName(),stat);
+        stats.put(key,stat);
     }
 
     @Override
-    public boolean hasStat(String stat) {
-        return stats.containsKey(stat);
+    public boolean hasStat(NamespacedKey key) {
+        return stats.containsKey(key);
     }
 
     @Override
-    public @NotNull Stat getStat(String stat) {
-        return stats.get(stat);
+    public @NotNull Stat getStat(NamespacedKey key) {
+        return stats.get(key);
     }
 
     @Override
@@ -217,9 +210,8 @@ public class RpgItemStack implements RpgItem{
     }
 
     @Override
-    public void removeStat(String stat) {
-        System.out.println("REMOVING ITEM STAT");
-        Stat statInstance = stats.remove(stat);
+    public void removeStat(NamespacedKey key) {
+        Stat statInstance = stats.remove(key);
         if(statInstance!=null){
             statInstance.onRemoveStat();
             statInstance.onStopUsingStat();
@@ -227,8 +219,28 @@ public class RpgItemStack implements RpgItem{
     }
 
     @Override
-    public @NotNull Map<Class<? extends Stat>, List<Stat>> getUsedStats() {
+    public @NotNull Map<NamespacedKey, List<Stat>> getUsedStats() {
         return Map.of();
+    }
+
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonObject = RpgItem.super.toJson();
+        jsonObject.remove("type");
+        if(getLevel()==0){
+            jsonObject.remove("level");
+        }
+        if(getMana()==0){
+            jsonObject.remove("mana");
+        }
+        return jsonObject;
+    }
+
+    @Override
+    public RpgItem loadFromJson(@NotNull JsonObject jsonObject) {
+        jsonObject.remove("type");
+        return RpgItem.super.loadFromJson(jsonObject);
     }
 
     @Override

@@ -1,15 +1,17 @@
 package io.github.kidofcubes;
 
 
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
+import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
 
 //add entity specific stuff here later
 public interface RpgEntity extends RpgObject {
 
-    default RpgEntity loadFromJson(String json) {
-        RpgObject.super.loadFromJson(json);
-        return this;
+    default RpgEntity loadFromJson(String json){
+        return (RpgEntity) RpgObject.super.loadFromJson(json);
+    }
+    default RpgEntity loadFromJson(@NotNull JsonObject json){
+        return (RpgEntity) RpgObject.super.loadFromJson(json);
     }
 
     default RpgEntity self(){

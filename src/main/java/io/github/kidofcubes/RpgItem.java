@@ -1,14 +1,15 @@
 package io.github.kidofcubes;
 
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
+import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
 
 public interface RpgItem extends RpgObject{
-    default RpgItem loadFromJson(String json) {
-        RpgObject.super.loadFromJson(json);
-        return this;
+    default RpgItem loadFromJson(String json){
+        return (RpgItem) RpgObject.super.loadFromJson(json);
     }
-
+    default RpgItem loadFromJson(@NotNull JsonObject json){
+        return (RpgItem) RpgObject.super.loadFromJson(json);
+    }
     default RpgItem self(){
         return this;
     }

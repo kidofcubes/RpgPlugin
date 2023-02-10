@@ -4,22 +4,20 @@ package io.github.kidofcubes;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.github.kidofcubes.managers.StatManager;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 
 //dodgy code
 public interface RpgObject {
 
-    NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
+    public static final NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
 
 
-    Gson gson = new Gson();
+    public static final Gson gson = new Gson();
 
     void setRpgType(NamespacedKey namespacedKey);
 
@@ -73,27 +71,33 @@ public interface RpgObject {
      * @return The parent of this object
      */
     @Nullable
-    public RpgObject getParent();
+    RpgObject getParent();
 
 
-    public void setParent(RpgObject parent);
+    void setParent(RpgObject parent);
 
 
     //region stat stuff
 
-    //todo fix class stat removing and stuff
 
-    public void addStat(Stat stat, boolean force);
 
-    public boolean hasStat(String stat);
+    void addStat(NamespacedKey key, Stat stat);
+    default void addStat(NamespacedKey key){
+        addStat(key,RpgRegistry.initStat(key));
+    }
+    default void addStat(Stat stat){
+        addStat(stat.getIdentifier(),stat);
+    }
+
+    boolean hasStat(NamespacedKey key);
 
     /**
-     * Gets the stat instance named {@code statName}
-     * @param statName The name of the stat to retrieve
+     * Gets the stat instance under {@code key}
+     * @param key The key of the to be retrieved stat
      * @return
      */
     @NotNull
-    public Stat getStat(String statName);
+    Stat getStat(NamespacedKey key);
 
 
     /**
@@ -101,13 +105,13 @@ public interface RpgObject {
      * @return
      */
     @NotNull
-    public List<Stat> getStats();
+    List<Stat> getStats();
 
     /**
      * Removes a stat (if the stat is not found, won't do anything)
-     * @param stat The stat name
+     * @param key The stat key
      */
-    public void removeStat(String stat);
+    void removeStat(NamespacedKey key);
 
 
     /**
@@ -115,15 +119,15 @@ public interface RpgObject {
      * @return This object's used stats
      */
     @NotNull
-    public Map<Class<? extends Stat>, List<Stat>> getUsedStats();
+    Map<NamespacedKey, List<Stat>> getUsedStats();
 
     /**
      * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
      * @return This object's effective stats
      */
     @NotNull
-    default public List<Stat> getUsedStatsList() {
-        Map<Class<? extends Stat>, List<Stat>> effectiveStatsMap = getUsedStats();
+    default List<Stat> getUsedStatsList() {
+        Map<NamespacedKey, List<Stat>> effectiveStatsMap = getUsedStats();
         List<Stat> returnStats = new ArrayList<>();
         for (List<Stat> list :
                 effectiveStatsMap.values()) {
@@ -141,10 +145,10 @@ public interface RpgObject {
 //     * @param amount The base damage of the attack
 //     * @param victim The victim of the attack
 //     */
-//    public RpgEntityDamageByObjectEvent attack(double amount, RpgEntity victim) {
+//    RpgEntityDamageByObjectEvent attack(double amount, RpgEntity victim) {
 //        return attack(DamageType.PHYSICAL, amount,victim,null);
 //    }
-//    public RpgEntityDamageByObjectEvent attack(DamageType damageType, double amount, RpgEntity victim, List<Stat> extraStats){
+//    RpgEntityDamageByObjectEvent attack(DamageType damageType, double amount, RpgEntity victim, List<Stat> extraStats){
 //        if(victim!=null) {
 //            return victim.damage(damageType, amount, this, extraStats);
 //        }
@@ -168,15 +172,19 @@ public interface RpgObject {
 
     default JsonObject toJson() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("type", getRpgType().asString());
+        if(getRpgType()!=defaultTypeKey) {
+            jsonObject.addProperty("type", getRpgType().asString());
+        }
         jsonObject.addProperty("level",getLevel());
         jsonObject.addProperty("mana",getMana());
-        Map<String,Stat.StatContainer> map = new HashMap<>();
-        for (Stat stat : getStats()) {
-            map.put(stat.getClass().getName(), stat.asContainer());
-        }
+        if(getStats().size()!=0) {
+            Map<String, Stat.StatContainer> map = new HashMap<>();
+            for (Stat stat : getStats()) {
+                map.put(stat.getClass().getName(), stat.asContainer());
+            }
 
-        jsonObject.add("stats",gson.toJsonTree(map));
+            jsonObject.add("stats", gson.toJsonTree(map));
+        }
         return (jsonObject);
     }
 
@@ -187,55 +195,30 @@ public interface RpgObject {
         return loadFromJson(gson.fromJson(json,JsonObject.class));
     }
     default RpgObject loadFromJson(@NotNull JsonObject jsonObject) {
-        setLevel(jsonObject.get("level").getAsInt());
-        setMana(jsonObject.get("mana").getAsInt());
-        Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();
-        for (Map.Entry<String,JsonElement> entry : map.entrySet()) {
-            try {
-                Class<? extends Stat> statClass = StatManager.getRegisteredStatByName(entry.getKey());
-                if(statClass!=null) {
-                    Stat stat = statClass.getDeclaredConstructor().newInstance();
-                    (entry.getValue().getAsJsonObject()).get("level").getAsInt();
+        if(jsonObject.has("type")){
+            setRpgType(NamespacedKey.fromString(jsonObject.get("type").getAsString()));
+        }
+        if(jsonObject.has("level")){
+            setLevel(jsonObject.get("level").getAsInt());
+        }
+        if(jsonObject.has("mana")){
+            setMana(jsonObject.get("mana").getAsDouble());
+        }
+        if(jsonObject.has("stats")){
+            Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();
+            for (Map.Entry<String,JsonElement> entry : map.entrySet()) {
+                NamespacedKey key = NamespacedKey.fromString(entry.getKey());
+                if(RpgRegistry.isRegisteredStat(key)) {
+                    assert key != null;
+                    Stat stat = RpgRegistry.initStat(key);
                     stat.loadCustomData((entry.getValue().getAsJsonObject()).getAsJsonObject("customData"));
-                    addStat(stat,true);
+                    addStat(key, stat);
                 }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
             }
         }
+
         return this;
     }
-//        RpgObjectJsonContainer container = gson.fromJson(json, RpgObjectJsonContainer.class);
-//        level = container.level;
-//        name = container.name;
-//        mana = container.mana;
-//        maxMana = container.maxMana;
-//        for (Map.Entry<String, Stat.StatContainer> entry : container.stats.entrySet()) {
-//            try {
-//                Class<? extends Stat> statClass = StatManager.getRegisteredStatByName(entry.getKey());
-//                if(statClass!=null) {
-//                    Stat stat = statClass.getDeclaredConstructor().newInstance();
-//                    stat.setLevel(entry.getValue().level);
-//                    stat.loadCustomData(entry.getValue().customData);
-//                    addStat(stat);
-//                }
-//            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        for (String entry : container.rpgClasses) {
-//            try {
-//                addRpgClass((RpgClass) Class.forName(entry).getDeclaredConstructor().newInstance());
-//            } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        if(container.parentUUID!=null) {
-//            parentUUID = UUID.fromString(container.parentUUID);
-//        }else{
-//            parentUUID = null;
-//        }
-
     //endregion
     default RpgObject self(){
         return this;

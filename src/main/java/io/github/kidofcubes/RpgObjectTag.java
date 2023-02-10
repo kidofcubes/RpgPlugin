@@ -65,17 +65,12 @@ public class RpgObjectTag extends CompoundTag {
     public RpgObjectTag(@Nullable CompoundTag compoundTag){
         super();
         if(compoundTag!=null) {
-            System.out.println("MADE NEW RPGOBJECT TAG FROM "+compoundTag.getAsString());
             if (compoundTag.contains(typeKey.asString())) {
-                System.out.println("IT HAD PREVIOUS TYPE THING WOW "+compoundTag.getString(typeKey.asString()));
                 putString(typeKey.asString(), compoundTag.getString(typeKey.asString()));
             }
             if (compoundTag.contains(dataKey.asString())) {
-                System.out.println("IT HAD PREVIOUS DATA WOOHOO "+new String(compoundTag.getByteArray(dataKey.asString()),StandardCharsets.UTF_8));
                 put(dataKey.asString(), new DynamicallySavedTag<RpgObject>(compoundTag.getByteArray(dataKey.asString())));
             }
-        }else{
-            System.out.println("PASSED IN ME A NULL COMPOUND TAG");
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.kidofcubes;
 
+import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
@@ -7,7 +8,10 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 
 public class RpgLivingEntity implements RpgEntity {
@@ -36,7 +40,6 @@ public class RpgLivingEntity implements RpgEntity {
 
     @NotNull
     public static RpgEntity getInstance(LivingEntity livingEntity) { //if livingentity has a type already, init that type instead, if not, init default
-//        System.out.println("GOT THE INSTANCE OF "+livingEntity.getName());
         RpgObjectTag holder = getHolder(livingEntity);
         if(holder.getObject()==null){ //init object if not found
             NamespacedKey type = holder.getSavedType();
@@ -59,12 +62,12 @@ public class RpgLivingEntity implements RpgEntity {
         this.livingEntity=livingEntity;
     }
 
-    private int level=0;
+    private int level=1;
     private double mana=0;
 
     Map<String,RpgClass> rpgClasses = new HashMap<>();
 
-    Map<String,Stat> stats = new HashMap<>();
+    Map<NamespacedKey,Stat> stats = new HashMap<>();
 
     @Override
     public String getName() {
@@ -155,20 +158,20 @@ public class RpgLivingEntity implements RpgEntity {
 
 
     @Override
-    public void addStat(Stat stat, boolean force) {
+    public void addStat(NamespacedKey key, Stat stat) {
         stat.onAddStat(this);
         stat.onUseStat(this);
-        stats.put(stat.getName(),stat);
+        stats.put(key,stat);
     }
 
     @Override
-    public boolean hasStat(String stat) {
-        return stats.containsKey(stat);
+    public boolean hasStat(NamespacedKey key) {
+        return stats.containsKey(key);
     }
 
     @Override
-    public @NotNull Stat getStat(String stat) {
-        return stats.get(stat);
+    public @NotNull Stat getStat(NamespacedKey key) {
+        return stats.get(key);
     }
 
     @Override
@@ -177,8 +180,8 @@ public class RpgLivingEntity implements RpgEntity {
     }
 
     @Override
-    public void removeStat(String stat) {
-        Stat statInstance = stats.remove(stat);
+    public void removeStat(NamespacedKey key) {
+        Stat statInstance = stats.remove(key);
         if(statInstance!=null){
             statInstance.onRemoveStat();
             statInstance.onStopUsingStat();
@@ -186,12 +189,31 @@ public class RpgLivingEntity implements RpgEntity {
     }
 
     @Override
-    public @NotNull Map<Class<? extends Stat>, List<Stat>> getUsedStats() {
+    public @NotNull Map<NamespacedKey, List<Stat>> getUsedStats() {
         return Map.of();
     }
 
     @Override
     public RpgEntity self() {
         return this;
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject jsonObject = RpgEntity.super.toJson();
+        jsonObject.remove("type");
+        if(getLevel()==0){
+            jsonObject.remove("level");
+        }
+        if(getMana()==0){
+            jsonObject.remove("mana");
+        }
+        return jsonObject;
+    }
+
+    @Override
+    public RpgEntity loadFromJson(@NotNull JsonObject jsonObject) {
+        jsonObject.remove("type");
+        return RpgEntity.super.loadFromJson(jsonObject);
     }
 }

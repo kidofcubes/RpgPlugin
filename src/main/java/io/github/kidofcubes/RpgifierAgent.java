@@ -1,12 +1,11 @@
 package io.github.kidofcubes;
 
-import io.github.kidofcubes.managers.StatManager;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
-import net.bytebuddy.implementation.*;
+import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.utility.JavaModule;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -14,14 +13,15 @@ import org.bukkit.inventory.ItemStack;
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.net.*;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.jar.JarFile;
 
-import static net.bytebuddy.implementation.MethodDelegation.to;
-import static net.bytebuddy.implementation.MethodDelegation.toMethodReturnOf;
-import static net.bytebuddy.matcher.ElementMatchers.*;
+import static net.bytebuddy.matcher.ElementMatchers.isDeclaredBy;
+import static net.bytebuddy.matcher.ElementMatchers.named;
 
 public class RpgifierAgent {
     public static void premain(String arguments, Instrumentation instrumentation) {
@@ -44,46 +44,22 @@ public class RpgifierAgent {
                     }
 
                     //todo gooden this class injector stuff
-                    Class<?>[] classes = new Class[]{RpgObject.class, RpgClass.class,
-                            Stat.class,Stat.StatContainer.class, StatManager.class, StatRegisteredListener.class, TimedStat.class, ActivateStats.class,
-                            RpgItem.class, RpgItemStack.class,
-                            RpgEntity.class, RpgLivingEntity.class,
-                            DynamicallySavedTag.class, DynamicallySavedTag.TypeThing.class,RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class,
-                            GlobalVariables.class};
-//                    Map<TypeDescription,byte[]> loadedData = new HashMap<>();
+                    Class<?>[] classes = new Class[0];
+                    try {
+                        classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName("io.github.kidofcubes.RpgObject$1"), //y
+                                Stat.class,Stat.StatContainer.class, RpgRegistry.RegisteredStatListener.class,
+                                RpgItem.class, RpgItemStack.class,
+                                RpgEntity.class, RpgLivingEntity.class,
+                                DynamicallySavedTag.class, DynamicallySavedTag.TypeThing.class,RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class};
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
                     for (Class<?> clazz : classes) {
-//                        System.out.println("LOADING "+clazz.getName());
-//                        loadedData.put(TypeDescription.ForLoadedType.of(clazz),ClassFileLocator.ForClassLoader.read(clazz));
                         new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(clazz), ClassFileLocator.ForClassLoader.read(clazz)));
                     }
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(loadedData);
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObject.class), ClassFileLocator.ForClassLoader.read(RpgObject.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgClass.class), ClassFileLocator.ForClassLoader.read(RpgClass.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(Stat.class), ClassFileLocator.ForClassLoader.read(Stat.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(Stat.StatContainer.class), ClassFileLocator.ForClassLoader.read(Stat.StatContainer.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItem.class), ClassFileLocator.ForClassLoader.read(RpgItem.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgItemStack.class), ClassFileLocator.ForClassLoader.read(RpgItemStack.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgEntity.class), ClassFileLocator.ForClassLoader.read(RpgEntity.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgLivingEntity.class), ClassFileLocator.ForClassLoader.read(RpgLivingEntity.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectHolder.class), ClassFileLocator.ForClassLoader.read(RpgObjectHolder.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(RpgObjectTag.TypeThing.class), ClassFileLocator.ForClassLoader.read(RpgObjectTag.TypeThing.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(StatManager.class), ClassFileLocator.ForClassLoader.read(StatManager.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(StatRegisteredListener.class), ClassFileLocator.ForClassLoader.read(StatRegisteredListener.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(TimedStat.class), ClassFileLocator.ForClassLoader.read(TimedStat.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(ActivateStats.class), ClassFileLocator.ForClassLoader.read(ActivateStats.class)));
-//                    new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(GlobalVariables.class), ClassFileLocator.ForClassLoader.read(GlobalVariables.class)));
 
                     return builder;
                 })
-
-
-//                .type(named("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer"))
-//
-//                .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder.implement(RpgObjectHolder.class)
-//                    .defineField("instance",RpgObject.class)
-//                    .method(named("getObject")).intercept(FieldAccessor.ofField("instance"))
-//                    .method(named("setObject")).intercept(FieldAccessor.ofField("instance")))
                 .type(named("org.bukkit.inventory.ItemStack"))
                 .transform((builder, typeDescription, classLoader, module, protectionDomain) -> {
                     try {
