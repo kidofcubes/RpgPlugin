@@ -16,16 +16,15 @@ import java.util.*;
 //dodgy code
 public interface RpgObject {
 
-    NamespacedKey metadataKey = new NamespacedKey("rpg_plugin", "metadata");
-    NamespacedKey typeStorageKey = new NamespacedKey("rpg_plugin", "type");
-
     NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
 
 
     Gson gson = new Gson();
 
-    //region gettersetters
+    void setRpgType(NamespacedKey namespacedKey);
 
+    @NotNull
+    NamespacedKey getRpgType();
 
     boolean isLoaded();
 
@@ -43,7 +42,11 @@ public interface RpgObject {
     void setMana(double mana);
 
 
-    //endregion
+
+
+
+
+
     //region classes
 
     List<RpgClass> getRpgClasses();
@@ -163,8 +166,9 @@ public interface RpgObject {
     //region saveloadingjson
 
 
-    default String toJson() {
+    default JsonObject toJson() {
         JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("type", getRpgType().asString());
         jsonObject.addProperty("level",getLevel());
         jsonObject.addProperty("mana",getMana());
         Map<String,Stat.StatContainer> map = new HashMap<>();
@@ -173,13 +177,16 @@ public interface RpgObject {
         }
 
         jsonObject.add("stats",gson.toJsonTree(map));
-        return gson.toJson(jsonObject);
+        return (jsonObject);
     }
 
     default RpgObject loadFromJson(String json) {
-        JsonElement jsonElement=gson.fromJson(json, JsonElement.class);
-        JsonObject jsonObject=gson.fromJson(json, JsonObject.class);
-        JsonObject jsonObject2 = jsonElement.getAsJsonObject();
+        if(json.equals("")){
+            return this;
+        }
+        return loadFromJson(gson.fromJson(json,JsonObject.class));
+    }
+    default RpgObject loadFromJson(@NotNull JsonObject jsonObject) {
         setLevel(jsonObject.get("level").getAsInt());
         setMana(jsonObject.get("mana").getAsInt());
         Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();
@@ -230,4 +237,7 @@ public interface RpgObject {
 //        }
 
     //endregion
+    default RpgObject self(){
+        return this;
+    }
 }

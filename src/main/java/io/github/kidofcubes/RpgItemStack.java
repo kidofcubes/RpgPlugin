@@ -6,9 +6,11 @@ import io.github.kidofcubes.managers.StatManager;
 import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -18,6 +20,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+
+import static io.github.kidofcubes.RpgObjectTag.RpgObjectTagKey;
 
 public class RpgItemStack implements RpgItem{
 
@@ -32,30 +36,39 @@ public class RpgItemStack implements RpgItem{
         }
     }
 
-    @NotNull
-    private static String getType(ItemStack itemStack){
-        StringTag stringTag = (StringTag) ((CraftPersistentDataContainer)itemStack.getItemMeta().getPersistentDataContainer()).getRaw().getOrDefault(RpgObject.typeStorageKey.asString(),null);
-        if(stringTag!=null){
-            return stringTag.getAsString();
-        }else{
-            return RpgObject.defaultTypeKey.asString();
-        }
+    @Override
+    public void setRpgType(NamespacedKey namespacedKey) {
+        getHolder(itemStack).setSavedType(namespacedKey);
     }
 
-    private static Object getTagHolder(ItemStack itemStack){
-        if(itemStack instanceof CraftItemStack craftItemStack){
+    @Override
+    public @NotNull NamespacedKey getRpgType() {
+        return getHolder(itemStack).getSavedType();
+    }
+
+    @NotNull
+    public static RpgObjectTag getHolder(ItemStack itemstack){
+        if(itemstack instanceof CraftItemStack craftItemStack){
             if(craftItemStack.handle.getTag()==null){
                 craftItemStack.handle.setTag(new CompoundTag());
             }
-            return craftItemStack.handle.getTag();
+            CompoundTag tag = craftItemStack.handle.getTag();
+            if(!(tag.get(RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
+                tag.put(RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTagKey.asString())));
+            }
+            return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTagKey.asString()));
         }else{ //assume its default itemstack
             try {
-                ItemMeta itemMeta = (ItemMeta) itemMetaField.get(itemStack);
+                ItemMeta itemMeta = (ItemMeta) itemMetaField.get(itemstack);
                 if(itemMeta==null){
-                    itemMeta=itemStack.getItemMeta();
-                    itemStack.setItemMeta(itemMeta);
+                    itemMeta=itemstack.getItemMeta();
+                    itemstack.setItemMeta(itemMeta);
                 }
-                return ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer());
+                Map<String, Tag> tag = ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer()).getRaw();
+                if(!(tag.get(RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
+                    tag.put(RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTagKey.asString())));
+                }
+                return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTagKey.asString()));
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -63,98 +76,21 @@ public class RpgItemStack implements RpgItem{
     }
 
     @NotNull
-    private static RpgObjectHolder getHolder(ItemStack itemstack){
-        Object tagHolder = getTagHolder(itemstack);
-        if(tagHolder instanceof CompoundTag compoundTag){
-            if(!compoundTag.contains(RpgObject.metadataKey.asString())){
-                compoundTag.put(RpgObject.metadataKey.asString(),new RpgObjectTag());
+    public static RpgItem getInstance(ItemStack itemStack) throws ClassNotFoundException { //if livingentity has a type already, init that type instead, if not, init default
+        RpgObjectTag holder = getHolder(itemStack);
+        if(holder.getObject()==null){ //init object if not found
+            NamespacedKey type = holder.getSavedType();
+            if(RpgRegistry.containsTypeConstructor(RpgItem.class,type)){
+                holder.setObject(RpgRegistry.getTypeConstructor(RpgItem.class,type).apply(itemStack));
+            }else{ //didnt find type function then init default
+                holder.setObject(RpgRegistry.getTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey).apply(itemStack));
             }
-            if(!(compoundTag.get(RpgObject.metadataKey.toString()) instanceof RpgObjectTag)){
-                compoundTag.put(RpgObject.metadataKey.toString(),new RpgObjectTag((ByteArrayTag) Objects.requireNonNull(compoundTag.get(RpgObject.metadataKey.toString()))));
-            }
-            return (RpgObjectTag) Objects.requireNonNull(compoundTag.get(RpgObject.metadataKey.asString()));
-        }else if(tagHolder instanceof CraftPersistentDataContainer persistentDataContainer){
-            ByteArrayTag tag = (ByteArrayTag) persistentDataContainer.getRaw().getOrDefault(RpgObject.metadataKey.asString(),null);
-            if(tag==null){
-                tag=new RpgObjectTag();
-                persistentDataContainer.getRaw().put(RpgObject.metadataKey.asString(),tag);
-            }
-
-            if(!(tag instanceof RpgObjectTag)){
-                tag = new RpgObjectTag(tag);
-                persistentDataContainer.getRaw().put(RpgObject.metadataKey.toString(),tag);
-            }
-            return (RpgObjectHolder) tag;
         }
-        throw new RuntimeException("this should never happen");
+        return (RpgItem) holder.getObject();
     }
 
-    //group code into smth to do with craftpersistentdatacontainers
-
-    public static void setRpgItemInstance(ItemStack itemstack, RpgItem rpgItem){
-        RpgObjectHolder dataContainer = getHolder(itemstack);
-        System.out.println("OK WE ARE ABOUT TO START "+dataContainer);
-        dataContainer.setObject(rpgItem);
-        System.out.println("ADDED THE TAG WTF "+dataContainer);
-        System.out.println("VERIFY THE OBJECT OF DATACONTAINER "+((RpgObjectHolder) dataContainer)+ " IS: "+((RpgObjectHolder) dataContainer).getObject());
-        System.out.println("SET THE OBJECT OF "+dataContainer + " ON "+itemstack.hashCode());
-    }
-
-    public static void setRpgItemType(ItemStack itemstack, @Nullable NamespacedKey identifier) throws ClassNotFoundException{
-        if(identifier==null){
-            identifier=defaultTypeKey;
-        }
-        String originalType = getType(itemstack);
-        if(originalType.equals(identifier.asString())){
-            return;
-        }
-
-        RpgObjectHolder holder = getHolder(itemstack);
-        Object tagHolder = getTagHolder(itemstack);
-        RpgItem newInstance = RpgRegistry.getItemType(identifier).apply(itemstack);
-
-        if(holder.getJsonData()!=null){
-            newInstance.loadFromJson(holder.getJsonData());
-        }
-        if(tagHolder instanceof CompoundTag compoundTag){
-            compoundTag.put(RpgObject.typeStorageKey.asString(),StringTag.valueOf(identifier.asString()));
-        }else if(tagHolder instanceof CraftPersistentDataContainer persistentDataContainer){
-            persistentDataContainer.getRaw().put(RpgObject.typeStorageKey.asString(),StringTag.valueOf(identifier.asString()));
-        }
-    }
-
-    public static RpgItem getRpgItemInstance(ItemStack itemstack) throws ClassNotFoundException { //if itemstack has a type already, init that type instead, if not, init default
-        System.out.println("GETTING ITEM INSTANCE OF "+itemstack.displayName());
-        RpgObjectHolder holder = getHolder(itemstack);
-        String typeString=getType(itemstack);
-        if((holder).getObject()==null){ //init object if not found
-            System.out.println("DIDNT FIND PREVIOUS OBJECT");
-            if(typeString!=null){ //has a special type
-                System.out.println("HAS SPECIAL TYPE");
-                NamespacedKey type=NamespacedKey.fromString(typeString);
-                if(RpgRegistry.containsItemType(type)){
-                    if(holder.getJsonData()!=null) {
-                        setRpgItemInstance(itemstack, RpgRegistry.getItemType(type).apply(itemstack).loadFromJson(holder.getJsonData()));
-                    }else{
-                        setRpgItemInstance(itemstack,RpgRegistry.getItemType(type).apply(itemstack));
-                    }
-                }else{
-                    throw new ClassNotFoundException("Couldn't load RpgItem type "+type+" from registry");
-                }
-            }else{
-                System.out.println("NO SPECIAL TYPE");
-                if(holder.getJsonData()!=null) {
-                    System.out.println("HAS PREVIOUS DATA");
-                    setRpgItemInstance(itemstack, new RpgItemStack(itemstack).loadFromJson(holder.getJsonData()));
-                }else{
-                    System.out.println("NO PREVIOUS DATA, NEW ITEMSTACK GO");
-                    setRpgItemInstance(itemstack,new RpgItemStack(itemstack));
-                }
-            }
-        }
-        System.out.println("OUR DATA CONTAINER IS STILL "+holder);
-        System.out.println("RETURNING RPGITEM "+holder.getObject().toJson());
-        return (RpgItem) holder.getObject(); //it probably should be a rpgitem unless someone(probably me) broke something
+    public static void unloadInstance(ItemStack itemstack) {
+        getHolder(itemstack).unload();
     }
 
     private final ItemStack itemStack;

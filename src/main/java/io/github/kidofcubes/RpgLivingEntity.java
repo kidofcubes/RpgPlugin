@@ -1,112 +1,56 @@
 package io.github.kidofcubes;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import io.github.kidofcubes.managers.StatManager;
-import net.minecraft.nbt.ByteArrayTag;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.StringTag;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 
 public class RpgLivingEntity implements RpgEntity {
-
-
-    public static void setRpgEntityInstance(LivingEntity livingEntity, RpgEntity rpgEntity){
-        System.out.println("START SETENTITYINSTANCE");
-        getHolder(livingEntity).setObject(rpgEntity);
-        System.out.println("MID SETENTITYINSTANCE");
-//        ((CraftPersistentDataContainer) livingEntity.getPersistentDataContainer()).getRaw().put(RpgObject.metadataKey.asString(), new RpgObjectTag(rpgEntity));
-        System.out.println("END SETENTITYINSTANCE");
+    @Override
+    public void setRpgType(NamespacedKey namespacedKey) {
+        getHolder(livingEntity).setSavedType(namespacedKey);
     }
 
-    public static void setRpgEntityType(LivingEntity livingEntity, @Nullable NamespacedKey identifier) throws ClassNotFoundException{
-        if(identifier==null){
-            identifier=RpgObject.defaultTypeKey;
-        }
-        RpgObjectHolder holder = getHolder(livingEntity);
-        String originalType = getType(livingEntity);
-        if(originalType.equals(identifier.asString())){
-            return;
-        }
-        if(RpgRegistry.containsEntityType(identifier)){
-            ((CraftPersistentDataContainer)livingEntity.getPersistentDataContainer()).getRaw().put(RpgObject.typeStorageKey.asString(),StringTag.valueOf(identifier.asString()));
-            RpgEntity newInstance = RpgRegistry.getEntityType(identifier).apply(livingEntity);
-            if(holder.getObject()!=null){ //if its already loaded, reload it
-                System.out.println("LOAD FRON JSON IN TYPE");
-                newInstance.loadFromJson(holder.getObject().toJson());
-            }
-            setRpgEntityInstance(livingEntity, newInstance);
-        }else{
-            throw new ClassNotFoundException("Couldn't load RpgEntity type "+identifier.asString()+" from registry");
-        }
+    @Override
+    public @NotNull NamespacedKey getRpgType() {
+        return getHolder(livingEntity).getSavedType();
     }
 
     @NotNull
-    private static RpgObjectHolder getHolder(LivingEntity livingEntity){
+    public static RpgObjectTag getHolder(LivingEntity livingEntity){
 
         CraftPersistentDataContainer persistentDataContainer = (CraftPersistentDataContainer) livingEntity.getPersistentDataContainer();
-        if(!persistentDataContainer.getRaw().containsKey(RpgObject.metadataKey.asString())){
-            persistentDataContainer.getRaw().put(RpgObject.metadataKey.toString(),new RpgObjectTag());
+        if(!persistentDataContainer.getRaw().containsKey(RpgObjectTag.RpgObjectTagKey.asString())){
+            persistentDataContainer.getRaw().put(RpgObjectTag.RpgObjectTagKey.asString(),new CompoundTag());
         }
-        if(!(persistentDataContainer.getRaw().get(RpgObject.metadataKey.toString()) instanceof RpgObjectTag)){
-            persistentDataContainer.getRaw().put(RpgObject.metadataKey.toString(),new RpgObjectTag((ByteArrayTag) persistentDataContainer.getRaw().get(RpgObject.metadataKey.toString())));
+        if (!(persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString()) instanceof RpgObjectTag)) {
+            persistentDataContainer.getRaw().put(RpgObjectTag.RpgObjectTagKey.toString(), new RpgObjectTag((CompoundTag) persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString())));
         }
-        return (RpgObjectHolder) persistentDataContainer.getRaw().get(RpgObject.metadataKey.toString());
+        return (RpgObjectTag) persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString());
     }
 
     @NotNull
-    private static String getType(LivingEntity livingEntity){
-        StringTag stringTag = (StringTag) ((CraftPersistentDataContainer)livingEntity.getPersistentDataContainer()).getRaw().getOrDefault(RpgObject.typeStorageKey.asString(),null);
-        if(stringTag!=null){
-            return stringTag.getAsString();
-        }else{
-            return RpgObject.defaultTypeKey.asString();
-        }
-    }
-
-
-
-    public static RpgEntity getRpgEntityInstance(LivingEntity livingEntity) throws ClassNotFoundException { //if livingentity has a type already, init that type instead, if not, init default
-        System.out.println("GOT THE INSTANCE OF "+livingEntity.getName());
-        RpgObjectHolder holder = getHolder(livingEntity);
-        String stringType = getType(livingEntity);
+    public static RpgEntity getInstance(LivingEntity livingEntity) { //if livingentity has a type already, init that type instead, if not, init default
+//        System.out.println("GOT THE INSTANCE OF "+livingEntity.getName());
+        RpgObjectTag holder = getHolder(livingEntity);
         if(holder.getObject()==null){ //init object if not found
-            if(stringType!=null){ //has a special type
-                NamespacedKey type=NamespacedKey.fromString(stringType);
-                if(RpgRegistry.containsEntityType(type)){
-                    if(holder.getJsonData()!=null) {
-                        System.out.println("WE HAVE THE TYPE THATS "+type.asString()+" JSON IS "+holder.getJsonData());
-                        setRpgEntityInstance(livingEntity, (RpgEntity) RpgRegistry.getEntityType(type).apply(livingEntity).loadFromJson(holder.getJsonData()));
-                    }else{
-                        setRpgEntityInstance(livingEntity,RpgRegistry.getEntityType(type).apply(livingEntity));
-                    }
-                }else{
-                    throw new ClassNotFoundException("Couldn't load RpgEntity type "+type+" from registry");
-                }
-            }else{
-                if(holder.getJsonData()!=null) {
-                    System.out.println("WE DONT HAVE THE TYPE AND JSON IS "+holder.getJsonData());
-                    setRpgEntityInstance(livingEntity, (RpgEntity) new RpgLivingEntity(livingEntity).loadFromJson(holder.getJsonData()));
-                }else{
-                    setRpgEntityInstance(livingEntity,new RpgLivingEntity(livingEntity));
-                }
+            NamespacedKey type = holder.getSavedType();
+            if(RpgRegistry.containsTypeConstructor(RpgEntity.class,type)){
+                holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class,type).apply(livingEntity));
+            }else{ //didnt find type function then init default
+                holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class,RpgObject.defaultTypeKey).apply(livingEntity));
             }
         }
-        RpgEntity temp = (RpgEntity) holder.getObject();
-        System.out.println("END OF GET INSTANCE OF "+livingEntity.getName());
-        return temp;
+        return (RpgEntity) holder.getObject();
+    }
+
+    public static void unloadInstance(LivingEntity livingEntity) {
+        getHolder(livingEntity).unload();
     }
 
     protected final LivingEntity livingEntity;
@@ -122,12 +66,11 @@ public class RpgLivingEntity implements RpgEntity {
 
     Map<String,Stat> stats = new HashMap<>();
 
-//    private List<Stat,>
-
     @Override
     public String getName() {
         return "RpgLivingEntity";
     }
+
     @Override
     public boolean isLoaded() {
         return true;

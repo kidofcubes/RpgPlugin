@@ -100,13 +100,15 @@ public abstract class Stat implements Listener {
                 Stat stat = toCheck.getStat(getName());
 
                 double cost=stat.getManaCost();
-                if(stat.getParent().getMana()+(toCheck==stat.getUser() ? 0 : stat.getUser().getMana())<cost){
-                    return;
-                }
-                cost-=stat.getParent().getMana();
-                toCheck.setMana(Math.max(toCheck.getMana()-stat.getManaCost(),0));
-                if(cost>0){
-                    stat.getUser().setMana(stat.getUser().getMana()-cost);
+                if(cost!=0) {
+                    if (stat.getParent().getMana() + (toCheck == stat.getUser() ? 0 : stat.getUser().getMana()) < cost) {
+                        return;
+                    }
+                    cost -= stat.getParent().getMana();
+                    toCheck.setMana(Math.max(toCheck.getMana() - stat.getManaCost(), 0));
+                    if (cost > 0) {
+                        stat.getUser().setMana(stat.getUser().getMana() - cost);
+                    }
                 }
                 stat.activateStat(event);
             }

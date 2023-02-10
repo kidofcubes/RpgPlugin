@@ -11,5 +11,8 @@ public interface RpgEntity extends RpgObject {
         RpgObject.super.loadFromJson(json);
         return this;
     }
-    public RpgEntity self();
+
+    default RpgEntity self(){
+        return this;
+    }
 }

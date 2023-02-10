@@ -1,37 +1,22 @@
 package io.github.kidofcubes;
 
 import io.github.kidofcubes.managers.StatManager;
-import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
-import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.implementation.*;
-import net.bytebuddy.implementation.bind.annotation.AllArguments;
-import net.bytebuddy.implementation.bind.annotation.Origin;
-import net.bytebuddy.matcher.ElementMatchers;
-import net.bytebuddy.utility.JavaConstant;
 import net.bytebuddy.utility.JavaModule;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
-import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.net.*;
 import java.security.ProtectionDomain;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.jar.JarFile;
 
 import static net.bytebuddy.implementation.MethodDelegation.to;
@@ -63,7 +48,7 @@ public class RpgifierAgent {
                             Stat.class,Stat.StatContainer.class, StatManager.class, StatRegisteredListener.class, TimedStat.class, ActivateStats.class,
                             RpgItem.class, RpgItemStack.class,
                             RpgEntity.class, RpgLivingEntity.class,
-                            RpgObjectHolder.class,RpgObjectTag.class,RpgObjectTag.TypeThing.class,RpgRegistry.class,
+                            DynamicallySavedTag.class, DynamicallySavedTag.TypeThing.class,RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class,
                             GlobalVariables.class};
 //                    Map<TypeDescription,byte[]> loadedData = new HashMap<>();
                     for (Class<?> clazz : classes) {
@@ -93,12 +78,12 @@ public class RpgifierAgent {
                 })
 
 
-                .type(named("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer"))
-
-                .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder.implement(RpgObjectHolder.class)
-                    .defineField("instance",RpgObject.class)
-                    .method(named("getObject")).intercept(FieldAccessor.ofField("instance"))
-                    .method(named("setObject")).intercept(FieldAccessor.ofField("instance")))
+//                .type(named("org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer"))
+//
+//                .transform((builder, typeDescription, classLoader, module, protectionDomain) -> builder.implement(RpgObjectHolder.class)
+//                    .defineField("instance",RpgObject.class)
+//                    .method(named("getObject")).intercept(FieldAccessor.ofField("instance"))
+//                    .method(named("setObject")).intercept(FieldAccessor.ofField("instance")))
                 .type(named("org.bukkit.inventory.ItemStack"))
                 .transform((builder, typeDescription, classLoader, module, protectionDomain) -> {
                     try {
@@ -107,7 +92,7 @@ public class RpgifierAgent {
                                         .implement(RpgItem.class)
                                         .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgItem.class)))
                                         .intercept(MethodCall.invokeSelf()
-                                                .onMethodCall(MethodCall.invoke(RpgItemStack.class.getMethod("getRpgItemInstance", ItemStack.class)).withThis()).withAllArguments()
+                                                .onMethodCall(MethodCall.invoke(RpgItemStack.class.getMethod("getInstance", ItemStack.class)).withThis()).withAllArguments()
                                         )
                                 ;
                     } catch (NoSuchMethodException e) {
@@ -124,7 +109,7 @@ public class RpgifierAgent {
                                             .implement(RpgEntity.class)
                                             .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgEntity.class)))
                                             .intercept(MethodCall.invokeSelf()
-                                                    .onMethodCall(MethodCall.invoke(RpgLivingEntity.class.getMethod("getRpgEntityInstance", LivingEntity.class)).withThis()).withAllArguments()
+                                                    .onMethodCall(MethodCall.invoke(RpgLivingEntity.class.getMethod("getInstance", LivingEntity.class)).withThis()).withAllArguments()
                                             )
 
                                     ;

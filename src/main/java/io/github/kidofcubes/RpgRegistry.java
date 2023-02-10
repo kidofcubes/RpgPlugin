@@ -3,10 +3,7 @@ package io.github.kidofcubes;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -15,45 +12,34 @@ import java.util.function.Function;
 import static io.github.kidofcubes.RpgObject.defaultTypeKey;
 
 public class RpgRegistry { //why?
+    private final static Map<Class<? extends RpgObject>,Map<NamespacedKey, Function<?,? extends RpgObject>>> typeConstructors = new HashMap<>();
 
-    private final static Map<NamespacedKey, Function<LivingEntity,RpgEntity>> registeredEntityTypes = new HashMap<>();
-
-
-    public static void registerEntityType(Function<LivingEntity,RpgEntity> generatorFunction, NamespacedKey identifier){
-        registeredEntityTypes.put(identifier,generatorFunction);
-    }
-    public static boolean containsEntityType(NamespacedKey identifier){
-        if(identifier==null){
+    public static boolean containsTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type){
+        if(type==null){
             return false;
         }
-        return registeredEntityTypes.containsKey(identifier);
-    }
-    @NotNull
-    public static Function<LivingEntity,RpgEntity> getEntityType(NamespacedKey identifier){ //wow look at me not nulling all over the place
-        return Objects.requireNonNull(registeredEntityTypes.get(identifier), "Specified type doesn't exist in map");
-    }
-    public static Iterable<NamespacedKey> getLoadedEntityTypes(){
-        return registeredEntityTypes.keySet();
+        if(!typeConstructors.containsKey(clazz)){
+            return false;
+        }
+        return typeConstructors.get(clazz).containsKey(type);
     }
 
-    private final static Map<NamespacedKey, Function<ItemStack,RpgItem>> registeredItemTypes = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    public static <T,Z extends RpgObject> Function<T, Z> getTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type){
+        return (Function<T, Z>) Objects.requireNonNull(typeConstructors.get(clazz).get(type), "Specified type doesn't exist in map");
+    }
+    public static <T,Z extends RpgObject> void registerTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type, Function<T,Z> constructor){
+        typeConstructors.putIfAbsent(clazz,new HashMap<>());
+        typeConstructors.get(clazz).put(type,constructor);
+    }
 
-    public static void registerItemType(Function<ItemStack,RpgItem> generatorFunction, NamespacedKey identifier){
-        registeredItemTypes.put(identifier,generatorFunction);
-    }
-    public static boolean containsItemType(NamespacedKey identifier){
-        return registeredItemTypes.containsKey(identifier);
-    }
-    @NotNull
-    public static Function<ItemStack,RpgItem> getItemType(NamespacedKey identifier){
-        return Objects.requireNonNull(registeredItemTypes.get(identifier), "Specified type doesn't exist in map");
-    }
-    public static Iterable<NamespacedKey> getLoadedItemTypes(){
-        return registeredItemTypes.keySet();
-    }
     static {
-        registeredEntityTypes.put(defaultTypeKey,RpgLivingEntity::new);
-        registeredItemTypes.put(defaultTypeKey,RpgItemStack::new);
+        registerTypeConstructor(RpgEntity.class,defaultTypeKey,(LivingEntity thing) -> {
+            return new RpgLivingEntity(thing).loadFromJson(RpgLivingEntity.getHolder(thing).getJson());
+        });
+        registerTypeConstructor(RpgItem.class,defaultTypeKey,(ItemStack thing) -> {
+            return new RpgItemStack(thing).loadFromJson(RpgItemStack.getHolder(thing).getJson());
+        });
     }
 
 }
