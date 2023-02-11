@@ -5,5 +5,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "RpgPlugin"
+rootProject.name = "rpgplugin"
 

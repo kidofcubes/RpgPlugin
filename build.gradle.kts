@@ -30,11 +30,6 @@ dependencies {
     paperDevBundle("1.19.3-R0.1-SNAPSHOT")
     implementation("net.bytebuddy:byte-buddy:1.12.21")
     implementation("net.bytebuddy:byte-buddy-agent:1.12.21")
-    // paperweightDevBundle("com.example.paperfork", "1.19.3-R0.1-SNAPSHOT")
-
-    // You will need to manually specify the full dependency if using the groovy gradle dsl
-    // (paperDevBundle and paperweightDevBundle functions do not work in groovy)
-    // paperweightDevelopmentBundle("io.papermc.paper:dev-bundle:1.19.3-R0.1-SNAPSHOT")
 }
 
 tasks {
@@ -61,23 +56,16 @@ tasks {
     reobfJar {
       // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
       // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
-      outputJar.set(layout.buildDirectory.file("/HDD2TB/Testing Version Servers/1.19.3Paper/plugins/RpgPlugin-${project.version}.jar"))
+      outputJar.set(layout.buildDirectory.file("/HDD2TB/Testing Version Servers/1.19.3Paper/plugins/rpgplugin-${project.version}.jar"))
     }
 
     jar {
         from (configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         manifest {
-            attributes["Agent-Class"] = "io.github.kidofcubes.RpgifierAgent"
-//            attributes["Agent-Class"] = "net.bytebuddy.agent.Installer"
+            attributes["Agent-Class"] = "io.github.kidofcubes.rpgplugin.RpgifierAgent"
             attributes["Can-Redefine-Classes"] = true
-//            attributes["Import-Package"] = "com.sun.tools.attach;resolution:=optional,com.ibm.tools.attach;resolution:=optional"
-//            attributes["Require-Capability"] = "osgi.ee;filter:=\"(&(osgi.ee=JavaSE)(version=1.5))\""
-//            attributes["Can-Set-Native-Method-Prefix"] = true
-//            attributes["Tool"] = "Bnd-6.3.1.202206071316"
-//            attributes["Export-Package"] = "net.bytebuddy.agent;uses:=\"net.bytebuddy.agent.utility.nullability\";version=\"1.12.21\",net.bytebuddy.agent.utility.nullability;version=\"1.12.21\""
-            attributes["Premain-Class"] = "io.github.kidofcubes.RpgifierAgent"
-//            attributes["Premain-Class"] = "net.bytebuddy.agent.Installer"
+            attributes["Premain-Class"] = "io.github.kidofcubes.rpgplugin.RpgifierAgent"
             attributes["Can-Retransform-Classes"] = true
         }
     }
@@ -94,17 +82,10 @@ tasks {
 // Configure plugin.yml generation
 bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
-//    main = "io.github.kidofcubes.Main"
-    main = "io.github.kidofcubes.RpgPlugin"
+    main = "io.github.kidofcubes.rpgplugin.RpgPlugin"
     apiVersion = "1.19"
     authors = listOf("KidOfCubes")
     commands {
-        register("testcommand") {
-            description = "This is a test command!"
-            aliases = listOf("t")
-            usage = "Just run the command!"
-            // permissionMessage = "You may not test this command!"
-        }
         // ...
     }
 }
@@ -114,11 +95,4 @@ publishing {
             from(components["java"])
         }
     }
-
-//    repositories {
-//        maven {
-//            name = "myRepo"
-//            url = uri(layout.buildDirectory.dir("repo"))
-//        }
-//    }
 }

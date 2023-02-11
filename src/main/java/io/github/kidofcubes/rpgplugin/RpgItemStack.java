@@ -1,4 +1,4 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
@@ -13,8 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;
-
-import static io.github.kidofcubes.RpgObjectTag.RpgObjectTagKey;
 
 public class RpgItemStack implements RpgItem{
 
@@ -46,10 +44,10 @@ public class RpgItemStack implements RpgItem{
                 craftItemStack.handle.setTag(new CompoundTag());
             }
             CompoundTag tag = craftItemStack.handle.getTag();
-            if(!(tag.get(RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
-                tag.put(RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTagKey.asString())));
+            if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
+                tag.put(RpgObjectTag.RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
             }
-            return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTagKey.asString()));
+            return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTag.RpgObjectTagKey.asString()));
         }else{ //assume its default itemstack
             try {
                 ItemMeta itemMeta = (ItemMeta) itemMetaField.get(itemstack);
@@ -58,10 +56,10 @@ public class RpgItemStack implements RpgItem{
                     itemstack.setItemMeta(itemMeta);
                 }
                 Map<String, Tag> tag = ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer()).getRaw();
-                if(!(tag.get(RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
-                    tag.put(RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTagKey.asString())));
+                if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
+                    tag.put(RpgObjectTag.RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
                 }
-                return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTagKey.asString()));
+                return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTag.RpgObjectTagKey.asString()));
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }

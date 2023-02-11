@@ -1,4 +1,4 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;

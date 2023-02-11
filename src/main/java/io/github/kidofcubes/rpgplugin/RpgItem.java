@@ -1,4 +1,4 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;

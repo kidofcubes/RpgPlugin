@@ -1,4 +1,4 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -6,7 +6,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import static io.github.kidofcubes.RpgRegistry.registerTypeConstructor;
+import static io.github.kidofcubes.rpgplugin.RpgRegistry.registerTypeConstructor;
 
 public class RpgPlugin extends JavaPlugin {
 

@@ -1,4 +1,4 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import com.google.gson.Gson;
 import net.minecraft.nbt.*;

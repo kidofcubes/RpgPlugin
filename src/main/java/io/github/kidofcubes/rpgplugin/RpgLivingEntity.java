@@ -1,4 +1,4 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
@@ -46,7 +46,7 @@ public class RpgLivingEntity implements RpgEntity {
             if(RpgRegistry.containsTypeConstructor(RpgEntity.class,type)){
                 holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class,type).apply(livingEntity));
             }else{ //didnt find type function then init default
-                holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class,RpgObject.defaultTypeKey).apply(livingEntity));
+                holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class, defaultTypeKey).apply(livingEntity));
             }
         }
         return (RpgEntity) holder.getObject();

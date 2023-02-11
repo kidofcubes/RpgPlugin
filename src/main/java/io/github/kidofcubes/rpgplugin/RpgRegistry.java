@@ -1,10 +1,8 @@
-package io.github.kidofcubes;
+package io.github.kidofcubes.rpgplugin;
 
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.NotNull;

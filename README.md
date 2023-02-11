@@ -62,7 +62,7 @@ name: ExampleAddon
 version: 0.0.1
 description: A example plugin
 api-version: 1.19
-depend: [RpgPlugin]
+depend: [rpgplugin]
 commands:
 ```
 
@@ -74,7 +74,7 @@ repositories {
     mavenLocal()
 }
 dependencies{
-    implementation "io.github.kidofcubes:RpgPlugin:VERSION"
+    implementation "io.github.kidofcubes:rpgplugin:VERSION"
 }
 ```
 
