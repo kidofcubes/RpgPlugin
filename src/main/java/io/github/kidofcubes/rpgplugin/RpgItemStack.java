@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
 
+
 public class RpgItemStack implements RpgItem{
 
     private static final Field itemMetaField;
@@ -43,13 +44,21 @@ public class RpgItemStack implements RpgItem{
             if(craftItemStack.handle.getTag()==null){
                 craftItemStack.handle.setTag(new CompoundTag());
             }
-            CompoundTag tag = craftItemStack.handle.getTag();
-            if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
-                tag.put(RpgObjectTag.RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
+            if(!craftItemStack.handle.getTag().contains("PublicBukkitValues")){ //persistentDataContainer
+                craftItemStack.handle.getTag().put("PublicBukkitValues",new CompoundTag());
             }
+            CompoundTag tag = (CompoundTag) craftItemStack.handle.getTag().get("PublicBukkitValues");
+            System.out.println("WE ARE PUTTING IT IN PUBLIC BUKKIT VALUES");
+            assert tag != null;
+            if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
+                System.out.println("IT WAS NOT A RPGOBJECTTAG");
+                tag.put(RpgObjectTag.RpgObjectTagKey.asString(), RpgObjectTag.fromCompoundTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
+            }
+//            System.out.println("THE TAGS NOW LOOK LIKE "+craftItemStack.handle.getTag().getAsString());
             return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTag.RpgObjectTagKey.asString()));
         }else{ //assume its default itemstack
             try {
+                System.out.println("IT WAS NOT A CRAFTITEMSTACK");
                 ItemMeta itemMeta = (ItemMeta) itemMetaField.get(itemstack);
                 if(itemMeta==null){
                     itemMeta=itemstack.getItemMeta();
@@ -57,7 +66,7 @@ public class RpgItemStack implements RpgItem{
                 }
                 Map<String, Tag> tag = ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer()).getRaw();
                 if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
-                    tag.put(RpgObjectTag.RpgObjectTagKey.asString(), new RpgObjectTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
+                    tag.put(RpgObjectTag.RpgObjectTagKey.asString(), RpgObjectTag.fromCompoundTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
                 }
                 return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTag.RpgObjectTagKey.asString()));
             } catch (IllegalAccessException e) {

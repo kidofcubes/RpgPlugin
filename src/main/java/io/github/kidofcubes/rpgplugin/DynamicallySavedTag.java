@@ -8,7 +8,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 public class DynamicallySavedTag<T> extends ByteArrayTag {
     public static final TagType<ByteArrayTag> TYPE = new DynamicallySavedTag.TypeThing();
@@ -27,6 +26,7 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
     static class TypeThing implements TagType.VariableSize<ByteArrayTag> {
         @Override
         public @NotNull DynamicallySavedTag load(DataInput input, int depth, NbtAccounter tracker) throws IOException {
+            System.out.println("WE ARE LOADING FROM THING");
             tracker.accountBytes(24L);
             int j = input.readInt();
             com.google.common.base.Preconditions.checkArgument( j < 1 << 24); // Spigot
@@ -42,9 +42,9 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
         public StreamTagVisitor.@NotNull ValueResult parse(DataInput input, StreamTagVisitor visitor) throws IOException {
             int i = input.readInt();
             byte[] abyte = new byte[i];
-
             input.readFully(abyte);
-            return visitor.visit(abyte);
+            System.out.println("WE ARE PARSING A THING "+new String(abyte,StandardCharsets.UTF_8));
+            return visitor.visit(new String(abyte,StandardCharsets.UTF_8));
         }
 
         @Override
@@ -63,7 +63,7 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
         }
     }
 
-    T reference;
+    T reference = null;
     String datum;
     public byte[] getAsBytes(){
         String dataz = getJsonData();
@@ -75,28 +75,32 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     public String getJsonData(){
         if(reference!=null){
+            System.out.println("REFERENCE IS NOT NULL "+reference);
             if(reference instanceof RpgObject rpgObject){
                 return gson.toJson(rpgObject.toJson());
             }
             return gson.toJson(reference);
         }else{
+            System.out.println("RETURNED DATUM");
             return datum;
         }
     }
 
-    public DynamicallySavedTag(ByteArrayTag orig){
-        this(new String(orig.getAsByteArray(),StandardCharsets.UTF_8));
-    }
+//    public DynamicallySavedTag(ByteArrayTag orig){
+//        this(new String(orig.getAsByteArray(),StandardCharsets.UTF_8));
+//    }
     public DynamicallySavedTag(byte[] json) {
         this(new String(json,StandardCharsets.UTF_8));
     }
     public DynamicallySavedTag(T reference) {
         super(new byte[]{});
         this.reference=reference;
+        datum=null;
 
     }
     public DynamicallySavedTag(String json) {
         super(new byte[]{});
+        reference=null;
         datum=json;
     }
 
@@ -113,11 +117,26 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     @Override
     public @NotNull Tag copy() {
-        return new DynamicallySavedTag<T>(getJsonData());
+//        throw new UnsupportedOperationException("wtf");
+        System.out.println("COPIED FROM "+getCallerMethodName());
+        DynamicallySavedTag<T> copy = new DynamicallySavedTag<T>(datum);
+        copy.setObject(reference);
+        return copy;
+    }
+    private static StackWalker.StackFrame getCallerMethodName()
+    {
+        return StackWalker.
+                getInstance().
+                walk(stream -> stream.skip(1).findFirst().get());
     }
     @Override
     public byte @NotNull [] getAsByteArray() {
-        return getAsBytes();
+        System.out.println("asked for byte array from "+getCallerMethodName().getDescriptor()+" "+getCallerMethodName().getMethodName()+" "+getCallerMethodName().getClassName()+" "+getCallerMethodName().getFileName()+" "+getCallerMethodName().getLineNumber());
+        if(reference!=null) {
+            return ("DyNaMiCaLlYsAvEdTaG<"+reference.getClass()+">").getBytes();
+        }else{
+            return ("DyNaMiCaLlYsAvEdTaG<?>").getBytes();
+        }
     }
 
     @Override
@@ -141,35 +160,61 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
         byte[] datad=getAsBytes();
         output.writeInt(datad.length);
         output.write(datad);
+        System.out.println("asked for write (save??)");
     }
 
     @Override
     public int sizeInBytes() {
+        System.out.println("asked for size");
         return 24 + getAsBytes().length;
     }
 
     @Override
+    public String getAsString() {
+        return "DYNAMICALLY_SAVED_TAG{"+reference+"}";
+    }
+
+    @Override
     public @NotNull String toString() {
-        return "DYNAMICALLY_SAVED_TAG {"+super.toString()+"}";
+        return getAsString();
     }
 
     @Override
     public boolean equals(Object object) {
-        return this == object ;
+//        System.out.println("checked my equality against "+"{"+object.getClass()+"}"+object);
+        if(object instanceof DynamicallySavedTag<?> other) {
+//            System.out.println("this is text");
+//            System.out.println("equality is "+this.reference == other.reference||this.hashCode()==other.hashCode());
+            return this.reference == other.reference||this.hashCode()==other.hashCode();
+
+        }
+//        System.out.println("false");
+        return false;
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(getAsBytes());
+//        System.out.println("asked for hash");
+        int hash=17;
+        if(datum!=null){
+            hash = 37*hash + datum.hashCode();
+        }
+        if(reference!=null){
+            hash = 37*hash + reference.hashCode();
+        }
+        return hash;
     }
 
     @Override
     public void accept(TagVisitor visitor) {
-        visitor.visitByteArray(this);
+//        System.out.println("got visited by tjhe other one at "+getCallerMethodName());
+//        visitor.visitByteArray(this);
+        visitor.visitString(StringTag.valueOf("dynamicallySAVEDtag{"+reference+"}"));
     }
 
     @Override
     public int size() {
+        System.out.println("asked for size");
         return getAsBytes().length;
     }
 
@@ -208,8 +253,12 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
         return super.getElementType();
     }
 
+
+    //this is like the this ones tostring?
     @Override
     public StreamTagVisitor.@NotNull ValueResult accept(StreamTagVisitor visitor) {
-        return visitor.visit(getAsBytes());
+        System.out.println("DYNAMICALLY SAVED TAG GOT VISITED AND RETURNED "+getJsonData());
+        return visitor.visit(getJsonData());
+//        return visitor.visit("DynamicallySavedTag<"+reference+">");
     }
 }

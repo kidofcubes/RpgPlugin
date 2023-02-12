@@ -56,7 +56,7 @@ tasks {
     reobfJar {
       // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
       // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
-      outputJar.set(layout.buildDirectory.file("/HDD2TB/Testing Version Servers/1.19.3Paper/plugins/rpgplugin-${project.version}.jar"))
+      outputJar.set(layout.buildDirectory.file("/HDD2TB/Testing Version Servers/1.19.3Paper/plugins/RpgPlugin-${project.version}.jar"))
     }
 
     jar {

@@ -4,7 +4,9 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.IllegalPluginAccessException;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,6 +18,9 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class RpgRegistry { //why?
+
+    private static Plugin instance;
+
     private final static Map<Class<? extends RpgObject>,Map<NamespacedKey, Function<?,? extends RpgObject>>> typeConstructors = new HashMap<>();
 
     public static boolean containsTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type){
@@ -150,13 +155,14 @@ public class RpgRegistry { //why?
 
     }
 
+
     static class RegisteredStatListener extends RegisteredListener {
 
         Stat stat;
         Set<Class<? extends Event>> listenEvents;
 
         public RegisteredStatListener(Stat stat, Set<Class<? extends Event>> listenEvents) throws InvalidClassException {
-            super(stat, null, stat.priority(),null, false);
+            super(stat, null, stat.priority(),instance, false);
             this.listenEvents = listenEvents;
             this.stat = stat;
         }

@@ -33,7 +33,7 @@ public class RpgLivingEntity implements RpgEntity {
             persistentDataContainer.getRaw().put(RpgObjectTag.RpgObjectTagKey.asString(),new CompoundTag());
         }
         if (!(persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString()) instanceof RpgObjectTag)) {
-            persistentDataContainer.getRaw().put(RpgObjectTag.RpgObjectTagKey.toString(), new RpgObjectTag((CompoundTag) persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString())));
+            persistentDataContainer.getRaw().put(RpgObjectTag.RpgObjectTagKey.toString(), RpgObjectTag.fromCompoundTag((CompoundTag) persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString())));
         }
         return (RpgObjectTag) persistentDataContainer.getRaw().get(RpgObjectTag.RpgObjectTagKey.toString());
     }

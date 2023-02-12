@@ -1,17 +1,20 @@
 package io.github.kidofcubes.rpgplugin;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.DataOutput;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public class RpgObjectTag extends CompoundTag {
 
     public static final NamespacedKey RpgObjectTagKey = new NamespacedKey("rpg_plugin", "rpg_object");
-    public static final NamespacedKey dataKey = new NamespacedKey("rpg_plugin", "data");
-    public static final NamespacedKey typeKey = new NamespacedKey("rpg_plugin", "type");
+    public static final String dataKey = ("data");
+    public static final String typeKey = ("type");
 
     public RpgObjectTag(RpgObject rpgObject){
         super();
@@ -19,6 +22,9 @@ public class RpgObjectTag extends CompoundTag {
         if(rpgObject.getRpgType()!=RpgObject.defaultTypeKey){
             setSavedType(rpgObject.getRpgType());
         }
+    }
+    private RpgObjectTag(){
+        super();
     }
     DynamicallySavedTag<RpgObject> rpgDataTag;
 
@@ -33,44 +39,77 @@ public class RpgObjectTag extends CompoundTag {
     public void setObject(RpgObject object){
         if(rpgDataTag==null){
             rpgDataTag = new DynamicallySavedTag<RpgObject>(object);
-            put(dataKey.asString(),rpgDataTag);
+            put(dataKey,rpgDataTag);
         }
         rpgDataTag.setObject(object);
     }
 
     public void unload(){
-        if(contains(dataKey.asString())){
-            ((DynamicallySavedTag<?>) Objects.requireNonNull(get(dataKey.asString()))).unload();
+        if(contains(dataKey)){
+            ((DynamicallySavedTag<?>) Objects.requireNonNull(get(dataKey))).unload();
         }
     }
 
 
     public String getJson(){
-        if(!contains(dataKey.asString())){
+        if(!contains(dataKey)){
             return "";
         }
-        return new String(getByteArray(dataKey.asString()), StandardCharsets.UTF_8);
+        return ((DynamicallySavedTag<?>)(Objects.requireNonNull(get(dataKey)))).getJsonData();
     }
 
     public void setSavedType(NamespacedKey key){
-        putString(typeKey.asString(),key.asString());
+        putString(typeKey,key.asString());
     }
     public NamespacedKey getSavedType(){
-        if(contains(typeKey.asString())){
-            return NamespacedKey.fromString(getString(typeKey.asString()));
+        if(contains(typeKey)){
+            return NamespacedKey.fromString(getString(typeKey));
         }
         return RpgObject.defaultTypeKey;
     }
 
-    public RpgObjectTag(@Nullable CompoundTag compoundTag){
-        super();
-        if(compoundTag!=null) {
-            if (compoundTag.contains(typeKey.asString())) {
-                putString(typeKey.asString(), compoundTag.getString(typeKey.asString()));
-            }
-            if (compoundTag.contains(dataKey.asString())) {
-                put(dataKey.asString(), new DynamicallySavedTag<RpgObject>(compoundTag.getByteArray(dataKey.asString())));
-            }
+    public static RpgObjectTag fromCompoundTag(@Nullable CompoundTag compoundTag){
+        System.out.println("CONSTRUCTING A NEW RPGOBJECT TAG FROM "+compoundTag);
+        if(compoundTag instanceof RpgObjectTag rpgObjectTag){
+            return rpgObjectTag;
         }
+        if(compoundTag!=null) {
+            RpgObjectTag instance = new RpgObjectTag();
+            if (compoundTag.contains(typeKey)) {
+                instance.putString(typeKey, compoundTag.getString(typeKey));
+            }
+            if (compoundTag.contains(dataKey)) {
+                if(compoundTag.get(dataKey) instanceof DynamicallySavedTag<?> dynamicallySavedTag) {
+                    instance.put(dataKey, dynamicallySavedTag);
+                }else {
+                    instance.put(dataKey, new DynamicallySavedTag<RpgObject>(compoundTag.getByteArray(dataKey)));
+                }
+            }
+            return instance;
+        }
+        return new RpgObjectTag();
+    }
+
+    @Override
+    public void write(DataOutput output) throws IOException {
+        for(String string : this.tags.keySet()) {
+            Tag tag = this.tags.get(string);
+            writeNamedTag(string, tag, output);
+        }
+
+        output.writeByte(0);
+    }
+
+    private static void writeNamedTag(String key, Tag element, DataOutput output) throws IOException {
+        output.writeByte(element.getId());
+        if (element.getId() != 0) {
+            output.writeUTF(key);
+            element.write(output);
+        }
+    }
+
+    @Override
+    public CompoundTag copy() {
+        return super.copy();
     }
 }

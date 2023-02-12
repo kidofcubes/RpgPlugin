@@ -6,6 +6,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.Field;
+
 import static io.github.kidofcubes.rpgplugin.RpgRegistry.registerTypeConstructor;
 
 public class RpgPlugin extends JavaPlugin {
@@ -13,6 +15,13 @@ public class RpgPlugin extends JavaPlugin {
 
     public RpgPlugin() {
         super();
+        try {
+            Field field = RpgRegistry.class.getDeclaredField("instance");
+            field.setAccessible(true);
+            field.set(null,this);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

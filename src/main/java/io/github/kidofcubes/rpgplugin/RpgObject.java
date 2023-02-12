@@ -180,16 +180,18 @@ public interface RpgObject {
         if(getStats().size()!=0) {
             Map<String, Stat.StatContainer> map = new HashMap<>();
             for (Stat stat : getStats()) {
-                map.put(stat.getClass().getName(), stat.asContainer());
+                map.put(stat.getIdentifier().asString(), stat.asContainer());
             }
 
             jsonObject.add("stats", gson.toJsonTree(map));
         }
+        System.out.println("TO JSONed something");
         return (jsonObject);
     }
 
     default RpgObject loadFromJson(String json) {
-        if(json.equals("")){
+        System.out.println("we are loading json "+json);
+        if(json.equals("")||json.equals("{}")){
             return this;
         }
         return loadFromJson(gson.fromJson(json,JsonObject.class));

@@ -1,11 +1,15 @@
 package io.github.kidofcubes.rpgplugin;
 
+import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
+import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.implementation.MethodCall;
+import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.pool.TypePool;
 import net.bytebuddy.utility.JavaModule;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -20,8 +24,7 @@ import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.jar.JarFile;
 
-import static net.bytebuddy.matcher.ElementMatchers.isDeclaredBy;
-import static net.bytebuddy.matcher.ElementMatchers.named;
+import static net.bytebuddy.matcher.ElementMatchers.*;
 
 public class RpgifierAgent {
     public static void premain(String arguments, Instrumentation instrumentation) {
@@ -46,7 +49,7 @@ public class RpgifierAgent {
                     //todo gooden this class injector stuff
                     Class<?>[] classes = new Class[0];
                     try {
-                        classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName("io.github.kidofcubes.RpgObject$1"), //y
+                        classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName(RpgObject.class.getName()+"$1"), //y
                                 Stat.class,Stat.StatContainer.class, RpgRegistry.RegisteredStatListener.class,
                                 RpgItem.class, RpgItemStack.class,
                                 RpgEntity.class, RpgLivingEntity.class,
@@ -94,9 +97,51 @@ public class RpgifierAgent {
                         }
                     }
                 })
+//                .type(named("net.minecraft.world.item.ItemStack"))
+//                .transform(new AgentBuilder.Transformer() {
+//                    @Override
+//                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
+//                        return new ByteBuddy()
+//                                .redefine(net.minecraft.world.item.ItemStack.class)
+//                                .visit(Advice.to(TestAdvice.class).on(isMethod().and(not(returns(void.class))).and(not(takesArguments(0))).and(takesArgument(0,named("net.minecraft.world.item.ItemStack")))));
+//                    }
+//                })
 
                 .installOn(instrumentation);
 
+    }
+
+    public class TestAdvice {
+        @Advice.OnMethodEnter(suppress = Throwable.class)
+        static long enter(@Advice.Origin String origin,
+                          @Advice.AllArguments Object[] ary){
+
+            System.out.print("RUNNING {"+origin+"} WITH ");
+
+            if(ary != null) {
+                System.out.print("[");
+                System.out.print("{"+((net.minecraft.world.item.ItemStack)ary[0]).getTag().getAsString()+"},");
+                if(ary.length>1){
+                    System.out.print("{"+((net.minecraft.world.item.ItemStack)ary[1]).getTag().getAsString()+"},");
+                }
+
+//                for (Object o : ary) {
+//                }
+                System.out.print("]");
+            }
+            System.out.print("\n");
+
+            return System.nanoTime();
+        }
+
+        @Advice.OnMethodExit(suppress = Throwable.class, onThrowable = Throwable.class)
+        static void exit(@Advice.Enter long time
+                , @Advice.Origin String origin
+                , @Advice.Return Object returnValue
+        ){
+            System.out.print("ENDING  {"+origin+"} RETURNING "+returnValue+"\n");
+//            System.out.println("Method Execution Time: " + (System.nanoTime() - time) + " nano seconds");
+        }
     }
 
     static class AgentBuilderListenerThing implements AgentBuilder.Listener{
