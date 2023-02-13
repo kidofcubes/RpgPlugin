@@ -26,7 +26,7 @@ public interface RpgObject {
 
     boolean isLoaded();
 
-    UUID getUUID();
+    UUID getRpgUUID();
 
     String getName();
 
@@ -115,23 +115,24 @@ public interface RpgObject {
 
 
     /**
-     * Gets this object's used stats (non-modifiable) (for example, an RpgEntity's effective stats include stats of items in their inventory)
+     * Gets this object's used stats
+     * non-persistent
      * @return This object's used stats
      */
     @NotNull
-    Map<NamespacedKey, List<Stat>> getUsedStats();
+    Map<NamespacedKey, List<Stat>> getUsedStatsMap();
 
     /**
-     * Gets this object's effective stats (for example, an RpgEntity's effective stats include stats of items in their inventory)
+     * Gets this object's effective stats
+     * non-persistent
      * @return This object's effective stats
      */
-    @NotNull
-    default List<Stat> getUsedStatsList() {
-        Map<NamespacedKey, List<Stat>> effectiveStatsMap = getUsedStats();
+    default @NotNull List<Stat> getUsedStats() {
+        Map<NamespacedKey, List<Stat>> effectiveStatsMap = getUsedStatsMap();
         List<Stat> returnStats = new ArrayList<>();
-        for (List<Stat> list :
+        for (Collection<Stat> statz :
                 effectiveStatsMap.values()) {
-            returnStats.addAll(list);
+            returnStats.addAll(statz);
         }
         return returnStats;
     }
@@ -185,7 +186,7 @@ public interface RpgObject {
 
             jsonObject.add("stats", gson.toJsonTree(map));
         }
-        System.out.println("TO JSONed something");
+        System.out.println("TO JSONed something "+this.getClass());
         return (jsonObject);
     }
 
@@ -214,6 +215,7 @@ public interface RpgObject {
                     assert key != null;
                     Stat stat = RpgRegistry.initStat(key);
                     stat.loadCustomData((entry.getValue().getAsJsonObject()).getAsJsonObject("customData"));
+                    stat.setLevel(entry.getValue().getAsJsonObject().get("level").getAsInt());
                     addStat(key, stat);
                 }
             }
@@ -222,7 +224,7 @@ public interface RpgObject {
         return this;
     }
     //endregion
-    default RpgObject self(){
+    default RpgObject getRpgInstance(){
         return this;
     }
 }

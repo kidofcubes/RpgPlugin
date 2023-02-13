@@ -126,7 +126,7 @@ public abstract class Stat implements Listener {
      *
      * @param event an event that's an instanceof one of the events you asked for
      */
-    public void run(Event event){}
+    public abstract void run(Event event);
 
     public void join(Stat stat){
         setLevel(stat.getLevel()+getLevel());

@@ -1,6 +1,7 @@
 package io.github.kidofcubes.rpgplugin;
 
 import com.google.gson.Gson;
+import io.netty.buffer.ByteBufOutputStream;
 import net.minecraft.nbt.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,8 +26,7 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     static class TypeThing implements TagType.VariableSize<ByteArrayTag> {
         @Override
-        public @NotNull DynamicallySavedTag load(DataInput input, int depth, NbtAccounter tracker) throws IOException {
-            System.out.println("WE ARE LOADING FROM THING");
+        public @NotNull DynamicallySavedTag<?> load(DataInput input, int depth, NbtAccounter tracker) throws IOException {
             tracker.accountBytes(24L);
             int j = input.readInt();
             com.google.common.base.Preconditions.checkArgument( j < 1 << 24); // Spigot
@@ -35,7 +35,7 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
             byte[] abyte = new byte[j];
 
             input.readFully(abyte);
-            return new DynamicallySavedTag(new String(abyte, StandardCharsets.UTF_8));
+            return new DynamicallySavedTag<>(new String(abyte, StandardCharsets.UTF_8));
         }
 
         @Override
@@ -43,7 +43,6 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
             int i = input.readInt();
             byte[] abyte = new byte[i];
             input.readFully(abyte);
-            System.out.println("WE ARE PARSING A THING "+new String(abyte,StandardCharsets.UTF_8));
             return visitor.visit(new String(abyte,StandardCharsets.UTF_8));
         }
 
@@ -59,7 +58,7 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
         @Override
         public @NotNull String getPrettyName() {
-            return "Dynamic Saved Tag";
+            return "Dynamically Saved Tag";
         }
     }
 
@@ -75,20 +74,14 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     public String getJsonData(){
         if(reference!=null){
-            System.out.println("REFERENCE IS NOT NULL "+reference);
             if(reference instanceof RpgObject rpgObject){
                 return gson.toJson(rpgObject.toJson());
             }
             return gson.toJson(reference);
         }else{
-            System.out.println("RETURNED DATUM");
             return datum;
         }
     }
-
-//    public DynamicallySavedTag(ByteArrayTag orig){
-//        this(new String(orig.getAsByteArray(),StandardCharsets.UTF_8));
-//    }
     public DynamicallySavedTag(byte[] json) {
         this(new String(json,StandardCharsets.UTF_8));
     }
@@ -96,12 +89,24 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
         super(new byte[]{});
         this.reference=reference;
         datum=null;
+        System.out.println("INITIATING NEW DYNAMICALLY SAVED TAG WITH REFERENCE "+reference);
+        try {
+            throw new NullPointerException();
+        }catch (NullPointerException exception){
+            exception.printStackTrace();
+        }
 
     }
     public DynamicallySavedTag(String json) {
         super(new byte[]{});
         reference=null;
         datum=json;
+        System.out.println("INITIATING NEW DYNAMICALLY SAVED TAG WITH JSON "+datum);
+        try {
+            throw new NullPointerException();
+        }catch (NullPointerException exception){
+            exception.printStackTrace();
+        }
     }
 
     public void unload(){
@@ -117,26 +122,19 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     @Override
     public @NotNull Tag copy() {
-//        throw new UnsupportedOperationException("wtf");
-        System.out.println("COPIED FROM "+getCallerMethodName());
         DynamicallySavedTag<T> copy = new DynamicallySavedTag<T>(datum);
         copy.setObject(reference);
         return copy;
     }
-    private static StackWalker.StackFrame getCallerMethodName()
+    public static StackWalker.StackFrame getCallerMethodName()
     {
         return StackWalker.
                 getInstance().
-                walk(stream -> stream.skip(1).findFirst().get());
+                walk(stream -> stream.skip(8).findFirst().get());
     }
     @Override
     public byte @NotNull [] getAsByteArray() {
-        System.out.println("asked for byte array from "+getCallerMethodName().getDescriptor()+" "+getCallerMethodName().getMethodName()+" "+getCallerMethodName().getClassName()+" "+getCallerMethodName().getFileName()+" "+getCallerMethodName().getLineNumber());
-        if(reference!=null) {
-            return ("DyNaMiCaLlYsAvEdTaG<"+reference.getClass()+">").getBytes();
-        }else{
-            return ("DyNaMiCaLlYsAvEdTaG<?>").getBytes();
-        }
+        return getAsString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
@@ -154,24 +152,35 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
     public byte getId() {
         return super.getId();
     }
-
     @Override
     public void write(DataOutput output) throws IOException {
-        byte[] datad=getAsBytes();
+//        System.out.println("CALLER METHODDDDDDDDDDDDDD IS "+getCallerMethodName().getClassName()+" "+getCallerMethodName().getMethodName()+" "
+//                +getCallerMethodName().getDescriptor()+" "+getCallerMethodName().getFileName()+" "+getCallerMethodName().getLineNumber());
+//        System.out.println("ASKED FOR WRITE ON A DATA OUTPUT OF TYPE "+output.getClass());
+//        (new NullPointerException()).printStackTrace();
+        byte[] datad;
+        if(output instanceof ByteBufOutputStream){ //for internet reasons probably
+            datad = ("DynamicallySavedTag@" + Integer.toHexString(hashCode())).getBytes();
+        }else{
+            datad = getAsBytes();
+        }
         output.writeInt(datad.length);
         output.write(datad);
-        System.out.println("asked for write (save??)");
     }
 
     @Override
     public int sizeInBytes() {
-        System.out.println("asked for size");
+//        System.out.println("ASKED FOR SIZE IN BYTES");
         return 24 + getAsBytes().length;
     }
 
     @Override
     public String getAsString() {
-        return "DYNAMICALLY_SAVED_TAG{"+reference+"}";
+        if(reference!=null) {
+            return ("DynamicallySavedTag<"+reference.getClass()+">");
+        }else{
+            return ("DynamicallySavedTag<?>");
+        }
     }
 
     @Override
@@ -181,14 +190,10 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     @Override
     public boolean equals(Object object) {
-//        System.out.println("checked my equality against "+"{"+object.getClass()+"}"+object);
         if(object instanceof DynamicallySavedTag<?> other) {
-//            System.out.println("this is text");
-//            System.out.println("equality is "+this.reference == other.reference||this.hashCode()==other.hashCode());
             return this.reference == other.reference||this.hashCode()==other.hashCode();
 
         }
-//        System.out.println("false");
         return false;
     }
 
@@ -207,14 +212,12 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
     @Override
     public void accept(TagVisitor visitor) {
-//        System.out.println("got visited by tjhe other one at "+getCallerMethodName());
-//        visitor.visitByteArray(this);
-        visitor.visitString(StringTag.valueOf("dynamicallySAVEDtag{"+reference+"}"));
+        visitor.visitString(StringTag.valueOf(getAsString()));
     }
 
     @Override
     public int size() {
-        System.out.println("asked for size");
+//        System.out.println("ASKED FOR SIZE");
         return getAsBytes().length;
     }
 
@@ -255,10 +258,10 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 
 
     //this is like the this ones tostring?
+    //not 100% sure what this even does
     @Override
     public StreamTagVisitor.@NotNull ValueResult accept(StreamTagVisitor visitor) {
-        System.out.println("DYNAMICALLY SAVED TAG GOT VISITED AND RETURNED "+getJsonData());
+//        System.out.println(" VISITED BY ACCEPT");
         return visitor.visit(getJsonData());
-//        return visitor.visit("DynamicallySavedTag<"+reference+">");
     }
 }

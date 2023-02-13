@@ -10,7 +10,7 @@ public interface RpgItem extends RpgObject{
     default RpgItem loadFromJson(@NotNull JsonObject json){
         return (RpgItem) RpgObject.super.loadFromJson(json);
     }
-    default RpgItem self(){
+    default RpgItem getRpgInstance(){
         return this;
     }
 }

@@ -8,10 +8,7 @@ import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 
 public class RpgLivingEntity implements RpgEntity {
@@ -56,18 +53,26 @@ public class RpgLivingEntity implements RpgEntity {
         getHolder(livingEntity).unload();
     }
 
+
+
+
+
+
+
+
+
     protected final LivingEntity livingEntity;
 
     public RpgLivingEntity(LivingEntity livingEntity){
         this.livingEntity=livingEntity;
     }
 
-    private int level=1;
-    private double mana=0;
+    protected int level=1;
+    protected double mana=0;
 
-    Map<String,RpgClass> rpgClasses = new HashMap<>();
+    protected Map<String,RpgClass> rpgClasses = new HashMap<>();
 
-    Map<NamespacedKey,Stat> stats = new HashMap<>();
+    protected Map<NamespacedKey,Stat> stats = new HashMap<>();
 
     @Override
     public String getName() {
@@ -80,7 +85,7 @@ public class RpgLivingEntity implements RpgEntity {
     }
 
     @Override
-    public UUID getUUID() {
+    public UUID getRpgUUID() {
         return livingEntity.getUniqueId();
     }
 
@@ -130,16 +135,6 @@ public class RpgLivingEntity implements RpgEntity {
     }
 
     @Override
-    public void use(RpgObject rpgObject) {
-
-    }
-
-    @Override
-    public void stopUsing(RpgObject rpgObject) {
-
-    }
-
-    @Override
     public boolean usedBy(RpgObject rpgObject) {
         return false;
     }
@@ -150,6 +145,10 @@ public class RpgLivingEntity implements RpgEntity {
         return null;
     }
 
+    /**
+     * unimplemented
+     * @param parent
+     */
     @Override
     public void setParent(RpgObject parent) {
 
@@ -179,6 +178,7 @@ public class RpgLivingEntity implements RpgEntity {
         return stats.values().stream().toList();
     }
 
+    protected Set<RpgObject> usedObjects = new HashSet<>();
     @Override
     public void removeStat(NamespacedKey key) {
         Stat statInstance = stats.remove(key);
@@ -189,12 +189,46 @@ public class RpgLivingEntity implements RpgEntity {
     }
 
     @Override
-    public @NotNull Map<NamespacedKey, List<Stat>> getUsedStats() {
-        return Map.of();
+    public void use(RpgObject rpgObject) {
+        if(!usedObjects.add(rpgObject)){
+            return;
+        }
+        for(Stat stat : rpgObject.getStats()){
+            stat.onStopUsingStat();
+            stat.onUseStat(this);
+        }
+    }
+
+
+    @Override
+    public void stopUsing(RpgObject rpgObject) {
+        if(!usedObjects.remove(rpgObject)){
+            return;
+        }
+        for(Stat stat : rpgObject.getStats()){
+            stat.onStopUsingStat();
+            stat.onUseStat(rpgObject);
+        }
     }
 
     @Override
-    public RpgEntity self() {
+    public @NotNull Map<NamespacedKey, List<Stat>> getUsedStatsMap() {
+        Map<NamespacedKey,List<Stat>> map = new HashMap<>();
+        for(RpgObject usedObject : usedObjects){
+            for(Stat stat : usedObject.getStats()){
+                map.putIfAbsent(stat.getIdentifier(),new ArrayList<>());
+                map.get(stat.getIdentifier()).add(stat);
+            }
+        }
+        for(Map.Entry<NamespacedKey,Stat> entry : stats.entrySet()){
+            map.putIfAbsent(entry.getValue().getIdentifier(),new ArrayList<>());
+            map.get(entry.getValue().getIdentifier()).add(entry.getValue());
+        }
+        return map;
+    }
+
+    @Override
+    public RpgEntity getRpgInstance() {
         return this;
     }
 

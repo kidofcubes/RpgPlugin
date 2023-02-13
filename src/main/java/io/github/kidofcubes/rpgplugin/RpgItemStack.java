@@ -48,17 +48,17 @@ public class RpgItemStack implements RpgItem{
                 craftItemStack.handle.getTag().put("PublicBukkitValues",new CompoundTag());
             }
             CompoundTag tag = (CompoundTag) craftItemStack.handle.getTag().get("PublicBukkitValues");
-            System.out.println("WE ARE PUTTING IT IN PUBLIC BUKKIT VALUES");
+//            System.out.println("WE ARE PUTTING IT IN PUBLIC BUKKIT VALUES");
             assert tag != null;
             if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
-                System.out.println("IT WAS NOT A RPGOBJECTTAG");
+//                System.out.println("IT WAS NOT A RPGOBJECTTAG");
                 tag.put(RpgObjectTag.RpgObjectTagKey.asString(), RpgObjectTag.fromCompoundTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
             }
 //            System.out.println("THE TAGS NOW LOOK LIKE "+craftItemStack.handle.getTag().getAsString());
             return (RpgObjectTag) Objects.requireNonNull(tag.get(RpgObjectTag.RpgObjectTagKey.asString()));
         }else{ //assume its default itemstack
             try {
-                System.out.println("IT WAS NOT A CRAFTITEMSTACK");
+//                System.out.println("IT WAS NOT A CRAFTITEMSTACK");
                 ItemMeta itemMeta = (ItemMeta) itemMetaField.get(itemstack);
                 if(itemMeta==null){
                     itemMeta=itemstack.getItemMeta();
@@ -77,6 +77,9 @@ public class RpgItemStack implements RpgItem{
 
     @NotNull
     public static RpgItem getInstance(ItemStack itemStack) throws ClassNotFoundException { //if livingentity has a type already, init that type instead, if not, init default
+        if(itemStack.getType().isEmpty()){
+            throw new RuntimeException("Cant attach a RpgItemStack on "+itemStack.getType());
+        }
         RpgObjectTag holder = getHolder(itemStack);
         if(holder.getObject()==null){ //init object if not found
             NamespacedKey type = holder.getSavedType();
@@ -93,19 +96,22 @@ public class RpgItemStack implements RpgItem{
         getHolder(itemstack).unload();
     }
 
-    private final ItemStack itemStack;
+    protected final ItemStack itemStack;
     private final UUID uuid;
     public RpgItemStack(ItemStack itemStack){
+        if(itemStack.getType().isEmpty()){
+            throw new RuntimeException("Cant init a RpgItemStack on "+itemStack.getType());
+        }
         this.itemStack=itemStack;
         uuid=UUID.randomUUID();
     }
 
-    private int level=0;
-    private double mana=0;
+    protected int level=0;
+    protected double mana=0;
 
-    Map<String,RpgClass> rpgClasses = new HashMap<>();
+    protected Map<String,RpgClass> rpgClasses = new HashMap<>();
 
-    Map<NamespacedKey,Stat> stats = new HashMap<>();
+    protected Map<NamespacedKey,Stat> stats = new HashMap<>();
 
     @Override
     public String getName() {
@@ -117,7 +123,7 @@ public class RpgItemStack implements RpgItem{
     }
 
     @Override
-    public UUID getUUID() {
+    public UUID getRpgUUID() {
         return uuid;
     }
 
@@ -166,14 +172,44 @@ public class RpgItemStack implements RpgItem{
         return rpgClasses.containsKey(rpgClass);
     }
 
+    protected Set<RpgObject> usedObjects = new HashSet<>();
     @Override
     public void use(RpgObject rpgObject) {
-
+        if(!usedObjects.add(rpgObject)){
+            return;
+        }
+        for(Stat stat : rpgObject.getStats()){
+            stat.onStopUsingStat();
+            stat.onUseStat(this);
+        }
     }
+
 
     @Override
     public void stopUsing(RpgObject rpgObject) {
+        if(!usedObjects.remove(rpgObject)){
+            return;
+        }
+        for(Stat stat : rpgObject.getStats()){
+            stat.onStopUsingStat();
+            stat.onUseStat(rpgObject);
+        }
+    }
 
+    @Override
+    public @NotNull Map<NamespacedKey, List<Stat>> getUsedStatsMap() {
+        Map<NamespacedKey,List<Stat>> map = new HashMap<>();
+        for(RpgObject usedObject : usedObjects){
+            for(Stat stat : usedObject.getStats()){
+                map.putIfAbsent(stat.getIdentifier(),new ArrayList<>());
+                map.get(stat.getIdentifier()).add(stat);
+            }
+        }
+        for(Map.Entry<NamespacedKey,Stat> entry : stats.entrySet()){
+            map.putIfAbsent(entry.getValue().getIdentifier(),new ArrayList<>());
+            map.get(entry.getValue().getIdentifier()).add(entry.getValue());
+        }
+        return map;
     }
 
     @Override
@@ -225,11 +261,6 @@ public class RpgItemStack implements RpgItem{
         }
     }
 
-    @Override
-    public @NotNull Map<NamespacedKey, List<Stat>> getUsedStats() {
-        return Map.of();
-    }
-
 
     @Override
     public JsonObject toJson() {
@@ -251,7 +282,7 @@ public class RpgItemStack implements RpgItem{
     }
 
     @Override
-    public RpgItem self() {
+    public RpgItem getRpgInstance() {
         return this;
     }
 }
