@@ -228,6 +228,10 @@ public class RpgItemStack implements RpgItem{
 
     }
 
+    public ItemStack getItemStack(){
+        return itemStack;
+    }
+
 
 
     @Override

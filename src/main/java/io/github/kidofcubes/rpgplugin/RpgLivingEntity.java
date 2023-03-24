@@ -67,7 +67,11 @@ public class RpgLivingEntity implements RpgEntity {
         this.livingEntity=livingEntity;
     }
 
-    protected int level=1;
+    public LivingEntity getLivingEntity(){
+        return livingEntity;
+    }
+
+    protected int level=0;
     protected double mana=0;
 
     protected Map<String,RpgClass> rpgClasses = new HashMap<>();
@@ -221,8 +225,8 @@ public class RpgLivingEntity implements RpgEntity {
             }
         }
         for(Map.Entry<NamespacedKey,Stat> entry : stats.entrySet()){
-            map.putIfAbsent(entry.getValue().getIdentifier(),new ArrayList<>());
-            map.get(entry.getValue().getIdentifier()).add(entry.getValue());
+            map.putIfAbsent(entry.getKey(),new ArrayList<>());
+            map.get(entry.getKey()).add(entry.getValue());
         }
         return map;
     }

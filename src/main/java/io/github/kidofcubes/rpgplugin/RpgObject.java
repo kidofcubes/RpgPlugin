@@ -170,6 +170,7 @@ public interface RpgObject {
 
     //region saveloadingjson
 
+    //todo save as CompoundTag instead of json string
 
     default JsonObject toJson() {
         JsonObject jsonObject = new JsonObject();
@@ -186,7 +187,7 @@ public interface RpgObject {
 
             jsonObject.add("stats", gson.toJsonTree(map));
         }
-        System.out.println("TO JSONed something "+this.getClass());
+        System.out.println("TO JSONed something "+this.getClass()+" into "+jsonObject.toString());
         return (jsonObject);
     }
 
@@ -217,6 +218,8 @@ public interface RpgObject {
                     stat.loadCustomData((entry.getValue().getAsJsonObject()).getAsJsonObject("customData"));
                     stat.setLevel(entry.getValue().getAsJsonObject().get("level").getAsInt());
                     addStat(key, stat);
+                }else{
+                    System.out.println("KEY "+key.asString()+" WAS NOT IN REGISTERY, IGNORINGG");
                 }
             }
         }

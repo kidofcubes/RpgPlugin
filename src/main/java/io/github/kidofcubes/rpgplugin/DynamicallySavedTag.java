@@ -89,24 +89,24 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
         super(new byte[]{});
         this.reference=reference;
         datum=null;
-        System.out.println("INITIATING NEW DYNAMICALLY SAVED TAG WITH REFERENCE "+reference);
-        try {
-            throw new NullPointerException();
-        }catch (NullPointerException exception){
-            exception.printStackTrace();
-        }
+//        System.out.println("INITIATING NEW DYNAMICALLY SAVED TAG WITH REFERENCE "+reference);
+//        try {
+//            throw new NullPointerException();
+//        }catch (NullPointerException exception){
+//            exception.printStackTrace();
+//        }
 
     }
     public DynamicallySavedTag(String json) {
         super(new byte[]{});
         reference=null;
         datum=json;
-        System.out.println("INITIATING NEW DYNAMICALLY SAVED TAG WITH JSON "+datum);
-        try {
-            throw new NullPointerException();
-        }catch (NullPointerException exception){
-            exception.printStackTrace();
-        }
+//        System.out.println("INITIATING NEW DYNAMICALLY SAVED TAG WITH JSON "+datum);
+//        try {
+//            throw new NullPointerException();
+//        }catch (NullPointerException exception){
+//            exception.printStackTrace();
+//        }
     }
 
     public void unload(){
@@ -159,11 +159,11 @@ public class DynamicallySavedTag<T> extends ByteArrayTag {
 //        System.out.println("ASKED FOR WRITE ON A DATA OUTPUT OF TYPE "+output.getClass());
 //        (new NullPointerException()).printStackTrace();
         byte[] datad;
-        if(output instanceof ByteBufOutputStream){ //for internet reasons probably
-            datad = ("DynamicallySavedTag@" + Integer.toHexString(hashCode())).getBytes();
-        }else{
+//        if(output instanceof ByteBufOutputStream){ //for internet reasons probably
+//            datad = ("DynamicallySavedTag@" + Integer.toHexString(hashCode())).getBytes();
+//        }else{
             datad = getAsBytes();
-        }
+//        }
         output.writeInt(datad.length);
         output.write(datad);
     }

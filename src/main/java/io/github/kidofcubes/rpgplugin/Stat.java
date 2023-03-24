@@ -8,6 +8,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class Stat implements Listener {
@@ -70,7 +71,7 @@ public abstract class Stat implements Listener {
     }
 
     public void onUseStat(RpgObject object){
-        user = object;
+        setUser(object);
     }
     public void onStopUsingStat(){
         user=null;
@@ -91,24 +92,26 @@ public abstract class Stat implements Listener {
      * @param event Event that was passed in
      */
     public void trigger(Event event) {
-        RpgObject toCheck = getParent(event);
+        RpgObject toCheck = this.getParent(event);
         if (toCheck != null) {
-            if(toCheck.hasStat(getIdentifier())){
-                //check if we can activate the stat
-                Stat stat = toCheck.getStat(getIdentifier());
+            Map<NamespacedKey, List<Stat>> map = toCheck.getUsedStatsMap();
+            if(map.get(getIdentifier())!=null){
+                for(Stat stat: map.get(getIdentifier())){
+                    double cost = stat.getManaCost();
+                    if (cost != 0.0) {
+                        if (stat.getParent().getMana() + (toCheck == stat.getUser() ? 0.0 : stat.getUser().getMana()) < cost) {
+                            return;
+                        }
 
-                double cost=stat.getManaCost();
-                if(cost!=0) {
-                    if (stat.getParent().getMana() + (toCheck == stat.getUser() ? 0 : stat.getUser().getMana()) < cost) {
-                        return;
+                        cost -= stat.getParent().getMana();
+                        toCheck.setMana(Math.max(toCheck.getMana() - stat.getManaCost(), 0.0));
+                        if (cost > 0.0) {
+                            stat.getUser().setMana(stat.getUser().getMana() - cost);
+                        }
                     }
-                    cost -= stat.getParent().getMana();
-                    toCheck.setMana(Math.max(toCheck.getMana() - stat.getManaCost(), 0));
-                    if (cost > 0) {
-                        stat.getUser().setMana(stat.getUser().getMana() - cost);
-                    }
+
+                    stat.activateStat(event);
                 }
-                stat.activateStat(event);
             }
         }
     }
@@ -133,6 +136,10 @@ public abstract class Stat implements Listener {
     }
     public void remove(Stat stat){
         setLevel(getLevel()-stat.getLevel());
+    }
+
+    public void setUser(RpgObject rpgObject){
+        user=rpgObject;
     }
 
 
