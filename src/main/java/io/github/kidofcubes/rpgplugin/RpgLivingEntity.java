@@ -9,17 +9,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 
 public class RpgLivingEntity implements RpgEntity {
+
+    private NamespacedKey type = RpgObject.defaultTypeKey;
+
     @Override
-    public void setRpgType(NamespacedKey namespacedKey) {
-        getHolder(livingEntity).setSavedType(namespacedKey);
+    public void setRpgType(@NotNull NamespacedKey namespacedKey) {
+        type=namespacedKey;
     }
 
     @Override
     public @NotNull NamespacedKey getRpgType() {
-        return getHolder(livingEntity).getSavedType();
+        return type;
     }
 
     @NotNull
@@ -38,15 +42,15 @@ public class RpgLivingEntity implements RpgEntity {
     @NotNull
     public static RpgEntity getInstance(LivingEntity livingEntity) { //if livingentity has a type already, init that type instead, if not, init default
         RpgObjectTag holder = getHolder(livingEntity);
-        if(holder.getObject()==null){ //init object if not found
-            NamespacedKey type = holder.getSavedType();
-            if(RpgRegistry.containsTypeConstructor(RpgEntity.class,type)){
-                holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class,type).apply(livingEntity));
-            }else{ //didnt find type function then init default
-                holder.setObject(RpgRegistry.getTypeConstructor(RpgEntity.class, defaultTypeKey).apply(livingEntity));
-            }
+
+        if (holder.getRpgObject() == null) {
+            //init object if not found
+            NamespacedKey type = RpgObject.defaultTypeKey;
+            if(!holder.getString(typeKey).equals("")&&NamespacedKey.fromString(holder.getString(typeKey))!=null) type=NamespacedKey.fromString(holder.getString(typeKey));
+            if (!RpgRegistry.containsTypeConstructor(RpgEntity.class, type)) type = RpgObject.defaultTypeKey;
+            holder.setRpgObject(RpgRegistry.getTypeConstructor(RpgEntity.class, type).apply(livingEntity));
         }
-        return (RpgEntity) holder.getObject();
+        return (RpgEntity) holder.getRpgObject();
     }
 
     public static void unloadInstance(LivingEntity livingEntity) {
@@ -236,22 +240,22 @@ public class RpgLivingEntity implements RpgEntity {
         return this;
     }
 
-    @Override
-    public JsonObject toJson() {
-        JsonObject jsonObject = RpgEntity.super.toJson();
-        jsonObject.remove("type");
-        if(getLevel()==0){
-            jsonObject.remove("level");
-        }
-        if(getMana()==0){
-            jsonObject.remove("mana");
-        }
-        return jsonObject;
-    }
-
-    @Override
-    public RpgEntity loadFromJson(@NotNull JsonObject jsonObject) {
-        jsonObject.remove("type");
-        return RpgEntity.super.loadFromJson(jsonObject);
-    }
+//    @Override
+//    public JsonObject toJson() {
+//        JsonObject jsonObject = RpgEntity.super.toJson();
+//        jsonObject.remove("type");
+//        if(getLevel()==0){
+//            jsonObject.remove("level");
+//        }
+//        if(getMana()==0){
+//            jsonObject.remove("mana");
+//        }
+//        return jsonObject;
+//    }
+//
+//    @Override
+//    public RpgEntity loadFromJson(@NotNull JsonObject jsonObject) {
+//        jsonObject.remove("type");
+//        return RpgEntity.super.loadFromJson(jsonObject);
+//    }
 }

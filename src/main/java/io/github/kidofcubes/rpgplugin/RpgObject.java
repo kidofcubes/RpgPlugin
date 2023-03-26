@@ -4,6 +4,7 @@ package io.github.kidofcubes.rpgplugin;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,6 +16,7 @@ import java.util.*;
 public interface RpgObject {
 
     public static final NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
+    public static final String typeKey = ("type");
 
 
     public static final Gson gson = new Gson();
@@ -172,58 +174,56 @@ public interface RpgObject {
 
     //todo save as CompoundTag instead of json string
 
-    default JsonObject toJson() {
-        JsonObject jsonObject = new JsonObject();
+    default CompoundTag toTag(){
+        CompoundTag compoundTag = new CompoundTag();
         if(getRpgType()!=defaultTypeKey) {
-            jsonObject.addProperty("type", getRpgType().asString());
+            compoundTag.putString("type", getRpgType().asString());
         }
-        jsonObject.addProperty("level",getLevel());
-        jsonObject.addProperty("mana",getMana());
+        compoundTag.putInt("level",getLevel());
+        compoundTag.putDouble("mana",getMana());
         if(getStats().size()!=0) {
-            Map<String, Stat.StatContainer> map = new HashMap<>();
+//            Map<String, Stat.StatContainer> map = new HashMap<>();
+            CompoundTag stats = new CompoundTag();
             for (Stat stat : getStats()) {
-                map.put(stat.getIdentifier().asString(), stat.asContainer());
+                stats.put(stat.getIdentifier().asString(), stat.asTag());
             }
 
-            jsonObject.add("stats", gson.toJsonTree(map));
+            compoundTag.put("stats", stats);
         }
-        System.out.println("TO JSONed something "+this.getClass()+" into "+jsonObject.toString());
-        return (jsonObject);
+        System.out.println("TO JSONed something "+this.getClass()+" into "+compoundTag.toString());
+
+        try {
+            throw new NullPointerException();
+        }catch (NullPointerException exception){
+            exception.printStackTrace();
+        }
+        return (compoundTag);
     }
 
-    default RpgObject loadFromJson(String json) {
-        System.out.println("we are loading json "+json);
-        if(json.equals("")||json.equals("{}")){
-            return this;
+    default RpgObject loadTag(CompoundTag compoundTag) {
+        if(compoundTag.contains("type")){
+            setRpgType(NamespacedKey.fromString(compoundTag.getString("type")));
         }
-        return loadFromJson(gson.fromJson(json,JsonObject.class));
-    }
-    default RpgObject loadFromJson(@NotNull JsonObject jsonObject) {
-        if(jsonObject.has("type")){
-            setRpgType(NamespacedKey.fromString(jsonObject.get("type").getAsString()));
+        if(compoundTag.contains("level")){
+            setLevel(compoundTag.getInt("level"));
         }
-        if(jsonObject.has("level")){
-            setLevel(jsonObject.get("level").getAsInt());
+        if(compoundTag.contains("mana")){
+            setMana(compoundTag.getDouble("mana"));
         }
-        if(jsonObject.has("mana")){
-            setMana(jsonObject.get("mana").getAsDouble());
-        }
-        if(jsonObject.has("stats")){
-            Map<String,JsonElement> map = jsonObject.get("stats").getAsJsonObject().asMap();
-            for (Map.Entry<String,JsonElement> entry : map.entrySet()) {
-                NamespacedKey key = NamespacedKey.fromString(entry.getKey());
+        if(compoundTag.contains("stats")){
+            CompoundTag stats = compoundTag.getCompound("stats");
+            for (String keyy : stats.getAllKeys()) {
+                NamespacedKey key = NamespacedKey.fromString(keyy);
                 if(RpgRegistry.isRegisteredStat(key)) {
                     assert key != null;
                     Stat stat = RpgRegistry.initStat(key);
-                    stat.loadCustomData((entry.getValue().getAsJsonObject()).getAsJsonObject("customData"));
-                    stat.setLevel(entry.getValue().getAsJsonObject().get("level").getAsInt());
+                    stat.loadTag(stats.getCompound(keyy));
                     addStat(key, stat);
                 }else{
                     System.out.println("KEY "+key.asString()+" WAS NOT IN REGISTERY, IGNORINGG");
                 }
             }
         }
-
         return this;
     }
     //endregion

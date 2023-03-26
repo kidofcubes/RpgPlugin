@@ -2,6 +2,7 @@ package io.github.kidofcubes.rpgplugin;
 
 
 import com.google.gson.JsonObject;
+import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -97,16 +98,13 @@ public abstract class Stat implements Listener {
             Map<NamespacedKey, List<Stat>> map = toCheck.getUsedStatsMap();
             if(map.get(getIdentifier())!=null){
                 for(Stat stat: map.get(getIdentifier())){
+                    //todo new mana thing sometime
                     double cost = stat.getManaCost();
                     if (cost != 0.0) {
-                        if (stat.getParent().getMana() + (toCheck == stat.getUser() ? 0.0 : stat.getUser().getMana()) < cost) {
+                        if (stat.getUser().getMana()  < cost) {
                             return;
-                        }
-
-                        cost -= stat.getParent().getMana();
-                        toCheck.setMana(Math.max(toCheck.getMana() - stat.getManaCost(), 0.0));
-                        if (cost > 0.0) {
-                            stat.getUser().setMana(stat.getUser().getMana() - cost);
+                        }else{
+                            stat.getUser().setMana(stat.getUser().getMana()-cost);
                         }
                     }
 
@@ -145,27 +143,16 @@ public abstract class Stat implements Listener {
 
     /**
      * Override this to save things
-     * @return The data to save
+     * @return a tag
      */
-    public JsonObject serialize() {return new JsonObject();}
+    public CompoundTag asTag() {return new CompoundTag();}
 
     /**
      * Override this to load stat json
-     * @param savedData
+     * @param data
      */
-    public void loadCustomData(JsonObject savedData) {}
+    public void loadTag(CompoundTag data) {level = data.getInt("lvl");}
 
-
-    public StatContainer asContainer(){
-        StatContainer container = new StatContainer();
-        container.level = level;
-        container.customData = serialize();
-        return (container);
-    }
-    public static class StatContainer{
-        public int level;
-        public JsonObject customData;
-    }
 
 
 }

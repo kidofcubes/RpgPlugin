@@ -50,10 +50,10 @@ public class RpgifierAgent {
                     Class<?>[] classes = new Class[0];
                     try {
                         classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName(RpgObject.class.getName()+"$1"), //y
-                                Stat.class,Stat.StatContainer.class, RpgRegistry.RegisteredStatListener.class,
+                                Stat.class, RpgRegistry.RegisteredStatListener.class,
                                 RpgItem.class, RpgItemStack.class,
                                 RpgEntity.class, RpgLivingEntity.class,
-                                DynamicallySavedTag.class, DynamicallySavedTag.TypeThing.class,RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class};
+                                RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class};
                     } catch (ClassNotFoundException e) {
                         throw new RuntimeException(e);
                     }

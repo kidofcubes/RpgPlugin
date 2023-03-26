@@ -1,9 +1,9 @@
 plugins {
 
     `java-library`
-    id("io.papermc.paperweight.userdev") version "1.4.0"
+    id("io.papermc.paperweight.userdev") version "1.5.3"
     id("xyz.jpenilla.run-paper") version "2.0.1" // Adds runServer and runMojangMappedServer tasks for testing
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.2" // Generates plugin.yml
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
     `maven-publish`
 }
 
@@ -27,7 +27,7 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 dependencies {
-    paperDevBundle("1.19.3-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.19.3-R0.1-SNAPSHOT")
     implementation("net.bytebuddy:byte-buddy:1.12.21")
     implementation("net.bytebuddy:byte-buddy-agent:1.12.21")
 }
@@ -56,7 +56,7 @@ tasks {
     reobfJar {
       // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
       // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
-      outputJar.set(layout.buildDirectory.file("/HDD2TB/Testing Version Servers/1.19.3Paper/plugins/RpgPlugin-${project.version}.jar"))
+      outputJar.set(layout.buildDirectory.file("/SSD128GB/ModTestingServer/plugins/RpgPlugin-${project.version}.jar"))
     }
 
     jar {

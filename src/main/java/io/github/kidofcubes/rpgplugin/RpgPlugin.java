@@ -26,8 +26,8 @@ public class RpgPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        registerTypeConstructor(RpgEntity.class,RpgObject.defaultTypeKey,(LivingEntity thing) -> new RpgLivingEntity(thing).loadFromJson(RpgLivingEntity.getHolder(thing).getJson()));
-        registerTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey,(ItemStack thing) -> new RpgItemStack(thing).loadFromJson(RpgItemStack.getHolder(thing).getJson()));
+        registerTypeConstructor(RpgEntity.class,RpgObject.defaultTypeKey,(LivingEntity thing) -> new RpgLivingEntity(thing).loadTag(RpgLivingEntity.getHolder(thing)));
+        registerTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey,(ItemStack thing) -> new RpgItemStack(thing).loadTag(RpgItemStack.getHolder(thing)));
         Bukkit.getScheduler().runTaskLater(this, () -> {
             saveDefaultConfig();
             FileConfiguration config = this.getConfig();

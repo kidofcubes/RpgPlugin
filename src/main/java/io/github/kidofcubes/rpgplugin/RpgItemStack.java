@@ -28,14 +28,16 @@ public class RpgItemStack implements RpgItem{
         }
     }
 
+    private NamespacedKey type = RpgObject.defaultTypeKey;
+
     @Override
-    public void setRpgType(NamespacedKey namespacedKey) {
-        getHolder(itemStack).setSavedType(namespacedKey);
+    public void setRpgType(@NotNull NamespacedKey namespacedKey) {
+        type=namespacedKey;
     }
 
     @Override
     public @NotNull NamespacedKey getRpgType() {
-        return getHolder(itemStack).getSavedType();
+        return type;
     }
 
     @NotNull
@@ -51,7 +53,7 @@ public class RpgItemStack implements RpgItem{
 //            System.out.println("WE ARE PUTTING IT IN PUBLIC BUKKIT VALUES");
             assert tag != null;
             if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
-//                System.out.println("IT WAS NOT A RPGOBJECTTAG");
+                System.out.println("IT WAS NOT A RPGOBJECTTAG");
                 tag.put(RpgObjectTag.RpgObjectTagKey.asString(), RpgObjectTag.fromCompoundTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
             }
 //            System.out.println("THE TAGS NOW LOOK LIKE "+craftItemStack.handle.getTag().getAsString());
@@ -65,6 +67,9 @@ public class RpgItemStack implements RpgItem{
                     itemstack.setItemMeta(itemMeta);
                 }
                 Map<String, Tag> tag = ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer()).getRaw();
+                if(!tag.containsKey(RpgObjectTag.RpgObjectTagKey.asString())){
+                    tag.put(RpgObjectTag.RpgObjectTagKey.asString(), new CompoundTag());
+                }
                 if(!(tag.get(RpgObjectTag.RpgObjectTagKey.asString()) instanceof RpgObjectTag)){
                     tag.put(RpgObjectTag.RpgObjectTagKey.asString(), RpgObjectTag.fromCompoundTag((CompoundTag) tag.get(RpgObjectTag.RpgObjectTagKey.asString())));
                 }
@@ -81,15 +86,14 @@ public class RpgItemStack implements RpgItem{
             throw new RuntimeException("Cant attach a RpgItemStack on "+itemStack.getType());
         }
         RpgObjectTag holder = getHolder(itemStack);
-        if(holder.getObject()==null){ //init object if not found
-            NamespacedKey type = holder.getSavedType();
-            if(RpgRegistry.containsTypeConstructor(RpgItem.class,type)){
-                holder.setObject(RpgRegistry.getTypeConstructor(RpgItem.class,type).apply(itemStack));
-            }else{ //didnt find type function then init default
-                holder.setObject(RpgRegistry.getTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey).apply(itemStack));
-            }
+        if(holder.getRpgObject()==null){ //init object if not found
+            NamespacedKey type = RpgObject.defaultTypeKey;
+            if(!holder.getString(typeKey).equals("")&&NamespacedKey.fromString(holder.getString(typeKey))!=null) type=NamespacedKey.fromString(holder.getString(typeKey));
+            if (!RpgRegistry.containsTypeConstructor(RpgItem.class, type)) type = RpgObject.defaultTypeKey;
+
+            holder.setRpgObject(RpgRegistry.getTypeConstructor(RpgItem.class,type).apply(itemStack));
         }
-        return (RpgItem) holder.getObject();
+        return (RpgItem) holder.getRpgObject();
     }
 
     public static void unloadInstance(ItemStack itemstack) {
@@ -266,24 +270,24 @@ public class RpgItemStack implements RpgItem{
     }
 
 
-    @Override
-    public JsonObject toJson() {
-        JsonObject jsonObject = RpgItem.super.toJson();
-        jsonObject.remove("type");
-        if(getLevel()==0){
-            jsonObject.remove("level");
-        }
-        if(getMana()==0){
-            jsonObject.remove("mana");
-        }
-        return jsonObject;
-    }
-
-    @Override
-    public RpgItem loadFromJson(@NotNull JsonObject jsonObject) {
-        jsonObject.remove("type");
-        return RpgItem.super.loadFromJson(jsonObject);
-    }
+//    @Override
+//    public JsonObject toJson() {
+//        JsonObject jsonObject = RpgItem.super.toJson();
+//        jsonObject.remove("type");
+//        if(getLevel()==0){
+//            jsonObject.remove("level");
+//        }
+//        if(getMana()==0){
+//            jsonObject.remove("mana");
+//        }
+//        return jsonObject;
+//    }
+//
+//    @Override
+//    public RpgItem loadFromJson(@NotNull JsonObject jsonObject) {
+//        jsonObject.remove("type");
+//        return RpgItem.super.loadFromJson(jsonObject);
+//    }
 
     @Override
     public RpgItem getRpgInstance() {
