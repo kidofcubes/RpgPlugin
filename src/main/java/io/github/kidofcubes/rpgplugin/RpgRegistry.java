@@ -6,7 +6,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,7 +44,8 @@ public class RpgRegistry { //why?
 
 
     private static final Map<NamespacedKey,Supplier<? extends Stat>> registeredStats = new HashMap<>();
-    private static final Map<NamespacedKey,Map<Class<? extends Event>, RegisteredStatListener>> registeredStatEvents = new HashMap<>();
+    private static final Map<NamespacedKey,EnumMap<Stat.StatModifierType,NamespacedKey[]>> registeredStatModifiers = new HashMap<>(); //somebody once told me that arrays were pretty fast
+    private static final Map<NamespacedKey,Stat> registeredStatInstances = new HashMap<>();
 
     //do this l8r
 //    private static final List<TimedStat> timedStats = new ArrayList<>();
@@ -59,25 +59,32 @@ public class RpgRegistry { //why?
 //
 //
 //    }
-
-
-    /**
-     * Registers a stat to listen for events
-     * @param listenEvents A list of events it will listen for
-     */
-    public static <T extends Stat> void register(T stat, Supplier<T> supplier, List<Class<? extends Event>> listenEvents) {
-        register(stat.getIdentifier(),stat,supplier,listenEvents);
+//    private static final NamespacedKey[] emptyArray = new NamespacedKey[0];
+    @Nullable
+    public static NamespacedKey[] getStatModifiers(NamespacedKey key, Stat.StatModifierType type){
+        EnumMap<Stat.StatModifierType,NamespacedKey[]> map = registeredStatModifiers.get(key);
+        return map==null ? null : map.getOrDefault(type,null);
     }
+
+    static Stat getStatInstance(NamespacedKey key){
+        return Objects.requireNonNull(registeredStatInstances.get(key),"Couldn't get the instance for stat "+key);
+    }
+
+
     /**
      * Registers a stat to listen for events
      * @param listenEvents A list of events it will listen for
      */
-    private static <T extends Stat> void register(NamespacedKey key, T stat, Supplier<T> supplier, List<Class<? extends Event>> listenEvents) {
+    public static <T extends Stat> void register(T stat, Supplier<T> supplier, List<Class<? extends Event>> listenEvents, Plugin plugin) {
+        NamespacedKey key = stat.getIdentifier();
         if (!registeredStats.containsKey(key)) {
 //            if(stat instanceof TimedStat timedStat){
 //                timedStats.add(timedStat);
 //                timedStats.sort(Comparator.comparing(Stat::priority));
 //            }
+
+//            instance.getServer().getPluginManager().registerEvents(stat,instance);
+
 
             Map<Class<? extends Event>, RegisteredStatListener> listeners = new HashMap<>();
             Set<Class<? extends Event>> events = new HashSet<>(listenEvents);
@@ -101,7 +108,7 @@ public class RpgRegistry { //why?
 
 
             registeredStats.put(key, supplier);
-            registeredStatEvents.put(key, listeners);
+            registeredStatInstances.put(key,stat);
         }
     }
     
@@ -138,20 +145,21 @@ public class RpgRegistry { //why?
         if(!registeredStats.containsKey(key)){
             return;
         }
-        for (Map.Entry<Class<? extends Event>, RegisteredStatListener> entry: registeredStatEvents.get(key).entrySet()) {
-            try {
-                Method method = getRegistrationClass(entry.getKey()).getDeclaredMethod("getHandlerList");
-                method.setAccessible(true);
-                HandlerList handlerList = ((HandlerList) method.invoke(null));
-                handlerList.unregister(entry.getValue());
-
-
-            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                e.printStackTrace();
-            }
-        }
+//        for (Map.Entry<Class<? extends Event>, RegisteredStatListener> entry: registeredStatEvents.get(key).entrySet()) {
+//            try {
+//                Method method = getRegistrationClass(entry.getKey()).getDeclaredMethod("getHandlerList");
+//                method.setAccessible(true);
+//                HandlerList handlerList = ((HandlerList) method.invoke(null));
+//                handlerList.unregister(entry.getValue());
+//
+//
+//            } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+//                e.printStackTrace();
+//            }
+//        }
+        HandlerList.unregisterAll(registeredStatInstances.get(key));
         registeredStats.remove(key);
-        registeredStatEvents.remove(key);
+        registeredStatInstances.remove(key);
 
     }
 
@@ -174,7 +182,7 @@ public class RpgRegistry { //why?
             //????????
             for (Class<? extends Event> listenEvent : listenEvents) {
                 if (listenEvent.isAssignableFrom(event.getClass())) {
-                    stat.trigger(event);
+                    stat.passEvent(event);
                     return;
                 }
             }

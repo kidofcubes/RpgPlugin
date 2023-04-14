@@ -13,20 +13,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.DataOutput;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Objects;
 
 
-//less for performance, more for actually getting it saved
+//todo actually check the impact of calling .totag every time we .copy
 public class RpgObjectTag extends CompoundTag{
     public static final NamespacedKey RpgObjectTagKey = new NamespacedKey("rpg_plugin", "rpg_object");
 
     @Nullable
     private RpgObject rpgObject;
-    public RpgObjectTag(@Nullable RpgObject rpgObject){
-        this.rpgObject=rpgObject;
-    }
+
+    private boolean isClone=false;
     private RpgObjectTag(){}
     private RpgObjectTag(CompoundTag compoundTag){
         super(compoundTag.copy().tags);
@@ -34,6 +31,10 @@ public class RpgObjectTag extends CompoundTag{
     private RpgObjectTag(CompoundTag compoundTag, RpgObject rpgObject){
         this(compoundTag);
         setRpgObject(rpgObject);
+    }
+    private RpgObjectTag(CompoundTag compoundTag, RpgObject rpgObject, boolean isClone){
+        this(compoundTag,rpgObject);
+        this.isClone=isClone;
     }
 
     public static RpgObjectTag fromCompoundTag(@Nullable CompoundTag compoundTag){
@@ -46,17 +47,21 @@ public class RpgObjectTag extends CompoundTag{
 
     @Override
     public void write(DataOutput output) throws IOException {
-        System.out.println("GOT TOTAGGED WRITTEN");
-        try {
-            throw new NullPointerException();
-        }catch (NullPointerException exception){
-            exception.printStackTrace();
-        }
         if(rpgObject!=null) {
+            System.out.println("GOT TOTAGGED WRITTEN ON IS CLONE???? "+isClone);
+            try {
+                throw new NullPointerException();
+            }catch (NullPointerException exception){
+                exception.printStackTrace();
+            }
             rpgObject.toTag().write(output);
         }else{
             super.write(output);
         }
+    }
+
+    public boolean isClone(){
+        return isClone;
     }
 
     @Override
@@ -67,7 +72,7 @@ public class RpgObjectTag extends CompoundTag{
 //        }catch (NullPointerException exception){
 //            exception.printStackTrace();
 //        }
-        return new RpgObjectTag(super.copy(),getRpgObject());
+        return new RpgObjectTag(super.copy(),rpgObject,true);
 
 //        return rpgObject.toTag().copy(); //i die of death on copy
     }
@@ -103,12 +108,25 @@ public class RpgObjectTag extends CompoundTag{
         }
     }
 
+    //when this called, this clone is actually going to be used i think
     public RpgObject getRpgObject(){
+        if(isClone){
+            if(rpgObject!=null) {
+                merge(rpgObject.toTag());
+            }
+            rpgObject=null;
+            isClone=false;
+        }
+        return rpgObject;
+    }
+
+    private RpgObject rpgObject(){
         return rpgObject;
     }
 
     public void setRpgObject(RpgObject rpgObject){
         this.rpgObject=rpgObject;
+        isClone=false;
     }
 
     public void unload(){
@@ -123,7 +141,7 @@ public class RpgObjectTag extends CompoundTag{
         if (this == object) {
             return true;
         } else {
-            return object instanceof RpgObjectTag && Objects.equals(getRpgObject(), ((RpgObjectTag)object).getRpgObject());
+            return object instanceof RpgObjectTag && Objects.equals(rpgObject, ((RpgObjectTag)object).rpgObject());
         }
     }
 
@@ -132,8 +150,8 @@ public class RpgObjectTag extends CompoundTag{
 //        System.out.println("asked for hash");
         int hash=17;
         hash = 37 * hash + tags.hashCode();
-        if(getRpgObject()!=null){
-            hash = 37*hash + getRpgObject().hashCode();
+        if(rpgObject!=null){
+            hash = 37*hash + rpgObject.hashCode();
         }
         return hash;
     }

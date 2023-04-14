@@ -15,22 +15,16 @@ import java.util.*;
 //dodgy code
 public interface RpgObject {
 
-    public static final NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
-    public static final String typeKey = ("type");
+    NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
+    String typeKey = ("type");
 
-
-    public static final Gson gson = new Gson();
 
     void setRpgType(NamespacedKey namespacedKey);
 
     @NotNull
     NamespacedKey getRpgType();
 
-    boolean isLoaded();
-
-    UUID getRpgUUID();
-
-    String getName();
+    default String getName(){ return "RPG_OBJECT";};
 
 
     int getLevel();
@@ -190,13 +184,13 @@ public interface RpgObject {
 
             compoundTag.put("stats", stats);
         }
-        System.out.println("TO JSONed something "+this.getClass()+" into "+compoundTag.toString());
-
-        try {
-            throw new NullPointerException();
-        }catch (NullPointerException exception){
-            exception.printStackTrace();
-        }
+//        System.out.println("TO JSONed something "+this.getClass()+" into "+compoundTag.toString());
+//
+//        try {
+//            throw new NullPointerException();
+//        }catch (NullPointerException exception){
+//            exception.printStackTrace();
+//        }
         return (compoundTag);
     }
 
