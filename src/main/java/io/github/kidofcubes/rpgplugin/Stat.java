@@ -1,17 +1,23 @@
 package io.github.kidofcubes.rpgplugin;
 
 
+import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.nbt.CompoundTag;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.function.ToBooleanBiFunction;
+import org.apache.commons.lang3.function.TriFunction;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import oshi.util.tuples.Triplet;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.*;
 
 public abstract class Stat implements Listener {
 
@@ -44,6 +50,30 @@ public abstract class Stat implements Listener {
     public NamespacedKey overrides(){
         return null;
     }
+
+    /**
+     *
+     * @param <T> argument type
+     * @param <R> return type
+     */
+    public static class ModifiableFunction<T,R>{
+        public ModifiableFunction(BiFunction<T,R,Pair<R,Boolean>> original){
+            overrides.add(original);
+        }
+        private final ArrayList<BiFunction<T,R,Pair<R,Boolean>>> overrides = new ArrayList<>();
+        public R run(T arg){
+            R returnValue = null;
+            for(int i = overrides.size()-1;i>-1;i--){
+                Pair<R,Boolean> out = overrides.get(i).apply(arg,returnValue);
+                returnValue = out.left();
+                if(out.second()) break;
+            }
+            return returnValue;
+        }
+    }
+
+
+
 
 
 
@@ -92,6 +122,26 @@ public abstract class Stat implements Listener {
      */
     public RpgObject getObject(Event event){throw new NotImplementedException();}
 
+
+    public final ModifiableFunction<Event,Boolean> onEventOverrides = new ModifiableFunction<>(
+            (event, aBoolean) -> {
+                return Pair.of(onEvent(event), false);
+            }
+    );
+    public final ModifiableFunction<Triplet<Event,RpgObject,List<Stat>>,Boolean> onTriggerOverrides = new ModifiableFunction<>(
+            (triple, aBoolean) -> {
+
+                return Pair.of(onTrigger(triple.getA(),triple.getB(),triple.getC()), false);
+            }
+    );
+    public final ModifiableFunction<Event,Boolean> onActivateOverrides = new ModifiableFunction<>( //activate doesnt return any boolean
+            (event, aBoolean) -> {
+                onActivate(event);
+                return Pair.of(true, false);
+            }
+    );
+
+
     /**
      * Runs checks for event, and runs stat if passes
      * Checks are:
@@ -103,12 +153,12 @@ public abstract class Stat implements Listener {
         NamespacedKey identifier = getIdentifier();
         RpgObject toCheck = this.getObject(event);
         //get stats that depend this stat
-        onEvent(event);
+        if(onEventOverrides.run(event)) return;
         if (toCheck == null) return;
         List<Stat> instances = toCheck.getUsedStatsMap().get(identifier);
         if(instances==null) return;
         if(instances.size()==0) return;
-        if(!onTrigger(event,toCheck,instances)) return;
+        if(onTriggerOverrides.run(new Triplet<>(event,toCheck,instances))) return;
 
         for(Stat stat: instances){
             //todo new mana thing sometime
@@ -120,97 +170,9 @@ public abstract class Stat implements Listener {
                     stat.getUser().setMana(stat.getUser().getMana()-cost);
                 }
             }
-            stat.onActivate(event);
+//            stat.onActivate(event);
+            stat.onActivateOverrides.run(event);
         }
-
-
-    }
-
-    private boolean triggerEvent(Event event, @Nullable Stat caller){
-        NamespacedKey[] toRun = RpgRegistry.getStatModifiers(getIdentifier(),StatModifierType.RUN_BEFORE);
-
-        boolean cancelled = false;
-        if(toRun!=null){
-            for(int i=0;i<toRun.length;i++) {
-                cancelled|=RpgRegistry.getStatInstance(toRun[i]).triggerEvent(event, this);
-            }
-        }
-        if(cancelled) return true;
-
-        toRun = RpgRegistry.getStatModifiers(getIdentifier(),StatModifierType.OVERRIDE);
-        if(toRun!=null){
-            if(toRun.length>0) cancelled|=RpgRegistry.getStatInstance(toRun[0]).triggerEvent(event,this);
-            else onEvent(event);
-        }else onEvent(event);
-
-        if(cancelled) return true;
-        toRun = RpgRegistry.getStatModifiers(getIdentifier(),StatModifierType.RUN_AFTER);
-        if(toRun!=null){
-            for(int i=0;i<toRun.length;i++) {
-                cancelled|=RpgRegistry.getStatInstance(toRun[i]).triggerEvent(event, this);
-            }
-        }
-        if(cancelled) return true;
-        return false;
-    }
-
-    private boolean triggerTriggers(@NotNull Event event, @NotNull RpgObject toCheck, @NotNull Map<NamespacedKey,List<Stat>> usedStats, @Nullable Stat caller){
-        if (toCheck == null) return false;
-        NamespacedKey identifier = getIdentifier();
-        List<Stat> instances = usedStats.get(identifier);
-        if(instances==null||instances.size()==0) return false;
-
-        boolean cancelled = false;
-
-        NamespacedKey[] toRun = RpgRegistry.getStatModifiers(getIdentifier(),StatModifierType.RUN_BEFORE);
-        if(toRun!=null){
-            for(int i=0;i<toRun.length;i++) {
-                if(usedStats.get(identifier)==null||usedStats.get(identifier).size()==0) continue;
-                cancelled|=RpgRegistry.getStatInstance(toRun[i]).triggerTriggers(event,toCheck,usedStats,this);
-            }
-        }
-        if(cancelled) return true;
-
-        toRun = RpgRegistry.getStatModifiers(getIdentifier(),StatModifierType.OVERRIDE);
-        if(toRun!=null){
-            boolean found=false;
-            for(int i=0;i<toRun.length;i++) {
-                if(usedStats.get(identifier)==null||usedStats.get(identifier).size()==0) continue; //search thru overrides for one that is on the tocheck
-                cancelled|=RpgRegistry.getStatInstance(toRun[i]).triggerTriggers(event,toCheck,usedStats,this);
-                found=true;
-                break;
-            }
-            if(!found) onTrigger(event, toCheck, instances);
-        }else onTrigger(event, toCheck, instances);
-        if(cancelled) return true;
-
-        toRun = RpgRegistry.getStatModifiers(getIdentifier(),StatModifierType.RUN_AFTER);
-        if(toRun!=null){
-            for(int i=0;i<toRun.length;i++) {
-                if(usedStats.get(identifier)==null||usedStats.get(identifier).size()==0) continue;
-                cancelled|=RpgRegistry.getStatInstance(toRun[i]).triggerTriggers(event,toCheck,usedStats,this);
-            }
-        }
-        if(!cancelled) return true;
-        return false;
-    }
-
-    private boolean triggerRun(Event event, RpgObject toCheck, Map<NamespacedKey,List<Stat>> usedStats, @Nullable Stat caller){
-        if (toCheck == null) return false;
-        NamespacedKey identifier = getIdentifier();
-        List<Stat> instances = usedStats.get(identifier);
-        if(instances==null||instances.size()==0) return false;
-        for(Stat stat : instances) {
-            double cost = stat.getManaCost();
-            if (cost != 0.0) {
-                if (stat.getUser().getMana() >= cost) stat.getUser().setMana(stat.getUser().getMana() - cost);
-                else continue;
-            }
-
-            stat.onActivate(event);
-        }
-
-        return false;
     }
     public enum StatModifierType{
         RUN_BEFORE,

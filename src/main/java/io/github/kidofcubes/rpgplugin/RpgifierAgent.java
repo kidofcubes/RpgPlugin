@@ -50,7 +50,7 @@ public class RpgifierAgent {
                     Class<?>[] classes = new Class[0];
                     try {
                         classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName(RpgObject.class.getName()+"$1"), //y
-                                Stat.class, RpgRegistry.RegisteredStatListener.class,
+                                Stat.class, RpgRegistry.RegisteredStatListener.class, Stat.ModifiableFunction.class,
                                 RpgObjectImpl.class,
                                 RpgItem.class, RpgItemStack.class,
                                 RpgEntity.class, RpgLivingEntity.class,
