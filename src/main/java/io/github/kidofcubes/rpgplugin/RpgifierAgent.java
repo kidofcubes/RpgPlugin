@@ -1,6 +1,5 @@
 package io.github.kidofcubes.rpgplugin;
 
-import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.type.TypeDescription;
@@ -8,8 +7,6 @@ import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.implementation.MethodCall;
-import net.bytebuddy.matcher.ElementMatchers;
-import net.bytebuddy.pool.TypePool;
 import net.bytebuddy.utility.JavaModule;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -50,7 +47,7 @@ public class RpgifierAgent {
                     Class<?>[] classes = new Class[0];
                     try {
                         classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName(RpgObject.class.getName()+"$1"), //y
-                                Stat.class, RpgRegistry.RegisteredStatListener.class, Stat.ModifiableFunction.class,
+                                Stat.class, RpgRegistry.RegisteredStatListener.class,
                                 RpgObjectImpl.class,
                                 RpgItem.class, RpgItemStack.class,
                                 RpgEntity.class, RpgLivingEntity.class,

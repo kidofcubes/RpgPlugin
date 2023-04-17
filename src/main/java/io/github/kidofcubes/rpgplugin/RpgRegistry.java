@@ -44,7 +44,6 @@ public class RpgRegistry { //why?
 
 
     private static final Map<NamespacedKey,Supplier<? extends Stat>> registeredStats = new HashMap<>();
-    private static final Map<NamespacedKey,EnumMap<Stat.StatModifierType,NamespacedKey[]>> registeredStatModifiers = new HashMap<>(); //somebody once told me that arrays were pretty fast
     private static final Map<NamespacedKey,Stat> registeredStatInstances = new HashMap<>();
 
     //do this l8r
@@ -60,13 +59,8 @@ public class RpgRegistry { //why?
 //
 //    }
 //    private static final NamespacedKey[] emptyArray = new NamespacedKey[0];
-    @Nullable
-    public static NamespacedKey[] getStatModifiers(NamespacedKey key, Stat.StatModifierType type){
-        EnumMap<Stat.StatModifierType,NamespacedKey[]> map = registeredStatModifiers.get(key);
-        return map==null ? null : map.getOrDefault(type,null);
-    }
 
-    static Stat getStatInstance(NamespacedKey key){
+    public static Stat getStatInstance(NamespacedKey key){
         return Objects.requireNonNull(registeredStatInstances.get(key),"Couldn't get the instance for stat "+key);
     }
 

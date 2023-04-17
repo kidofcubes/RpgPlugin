@@ -17,6 +17,7 @@ import oshi.util.tuples.Triplet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.*;
 
 public abstract class Stat implements Listener {
@@ -36,8 +37,6 @@ public abstract class Stat implements Listener {
         return 0;
     }
 
-
-
     public String getName() {
         return this.getClass().getName();
     }
@@ -46,31 +45,28 @@ public abstract class Stat implements Listener {
         return "Default description";
     }
 
-    @Nullable
-    public NamespacedKey overrides(){
-        return null;
-    }
+//    /**
+//     *
+//     * @param <T> argument type
+//     * @param <R> return type
+//     */
+//    public static class ModifiableFunction<T,R>{
+//        public ModifiableFunction(BiFunction<T,R,Pair<R,Boolean>> original){
+//            overrides.add(original);
+//        }
+//        private final ArrayList<BiFunction<T,R,Pair<R,Boolean>>> overrides = new ArrayList<>();
+//        public R run(T arg){
+//            R returnValue = null;
+//            for(int i = overrides.size()-1;i>-1;i--){
+//                Pair<R,Boolean> out = overrides.get(i).apply(arg,returnValue);
+//                returnValue = out.left();
+//                if(out.second()) break;
+//            }
+//            return returnValue;
+//        }
+//    }
 
-    /**
-     *
-     * @param <T> argument type
-     * @param <R> return type
-     */
-    public static class ModifiableFunction<T,R>{
-        public ModifiableFunction(BiFunction<T,R,Pair<R,Boolean>> original){
-            overrides.add(original);
-        }
-        private final ArrayList<BiFunction<T,R,Pair<R,Boolean>>> overrides = new ArrayList<>();
-        public R run(T arg){
-            R returnValue = null;
-            for(int i = overrides.size()-1;i>-1;i--){
-                Pair<R,Boolean> out = overrides.get(i).apply(arg,returnValue);
-                returnValue = out.left();
-                if(out.second()) break;
-            }
-            return returnValue;
-        }
-    }
+
 
 
 
@@ -123,24 +119,6 @@ public abstract class Stat implements Listener {
     public RpgObject getObject(Event event){throw new NotImplementedException();}
 
 
-    public final ModifiableFunction<Event,Boolean> onEventOverrides = new ModifiableFunction<>(
-            (event, aBoolean) -> {
-                return Pair.of(onEvent(event), false);
-            }
-    );
-    public final ModifiableFunction<Triplet<Event,RpgObject,List<Stat>>,Boolean> onTriggerOverrides = new ModifiableFunction<>(
-            (triple, aBoolean) -> {
-
-                return Pair.of(onTrigger(triple.getA(),triple.getB(),triple.getC()), false);
-            }
-    );
-    public final ModifiableFunction<Event,Boolean> onActivateOverrides = new ModifiableFunction<>( //activate doesnt return any boolean
-            (event, aBoolean) -> {
-                onActivate(event);
-                return Pair.of(true, false);
-            }
-    );
-
 
     /**
      * Runs checks for event, and runs stat if passes
@@ -153,12 +131,12 @@ public abstract class Stat implements Listener {
         NamespacedKey identifier = getIdentifier();
         RpgObject toCheck = this.getObject(event);
         //get stats that depend this stat
-        if(onEventOverrides.run(event)) return;
+        if(onEvent(event)) return;
         if (toCheck == null) return;
         List<Stat> instances = toCheck.getUsedStatsMap().get(identifier);
         if(instances==null) return;
         if(instances.size()==0) return;
-        if(onTriggerOverrides.run(new Triplet<>(event,toCheck,instances))) return;
+        if(onTrigger(event,toCheck,instances)) return;
 
         for(Stat stat: instances){
             //todo new mana thing sometime
@@ -171,13 +149,8 @@ public abstract class Stat implements Listener {
                 }
             }
 //            stat.onActivate(event);
-            stat.onActivateOverrides.run(event);
+            onActivate(event);
         }
-    }
-    public enum StatModifierType{
-        RUN_BEFORE,
-        OVERRIDE,
-        RUN_AFTER
     }
 
     /**
