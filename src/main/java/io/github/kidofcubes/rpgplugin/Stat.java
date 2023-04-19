@@ -148,8 +148,7 @@ public abstract class Stat implements Listener {
                     stat.getUser().setMana(stat.getUser().getMana()-cost);
                 }
             }
-//            stat.onActivate(event);
-            onActivate(event);
+            stat.onActivate(event);
         }
     }
 
@@ -168,11 +167,6 @@ public abstract class Stat implements Listener {
      */
 
     public boolean onTrigger(Event event, @NotNull RpgObject checkObject, List<Stat> instances){return false;}
-
-
-    public EventPriority priority(){
-        return EventPriority.NORMAL;
-    }
 
     /**
      * Override this to run code when your stat is successfully activated

@@ -1,9 +1,8 @@
 package io.github.kidofcubes.rpgplugin;
 
-import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
 import org.bukkit.entity.LivingEntity;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,15 +1,13 @@
 package io.github.kidofcubes.rpgplugin;
 
-import com.google.gson.JsonObject;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_19_R2.persistence.CraftPersistentDataContainer;
+import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;

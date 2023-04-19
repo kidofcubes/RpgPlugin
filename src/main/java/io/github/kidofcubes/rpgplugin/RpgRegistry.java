@@ -2,6 +2,7 @@ package io.github.kidofcubes.rpgplugin;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
@@ -69,7 +70,7 @@ public class RpgRegistry { //why?
      * Registers a stat to listen for events
      * @param listenEvents A list of events it will listen for
      */
-    public static <T extends Stat> void register(T stat, Supplier<T> supplier, List<Class<? extends Event>> listenEvents, Plugin plugin) {
+    public static <T extends Stat> void register(T stat, Supplier<T> supplier, Map<Class<? extends Event>, EventPriority> listenEvents, Plugin plugin) {
         NamespacedKey key = stat.getIdentifier();
         if (!registeredStats.containsKey(key)) {
 //            if(stat instanceof TimedStat timedStat){
@@ -81,18 +82,16 @@ public class RpgRegistry { //why?
 
 
             Map<Class<? extends Event>, RegisteredStatListener> listeners = new HashMap<>();
-            Set<Class<? extends Event>> events = new HashSet<>(listenEvents);
+//            Set<Class<? extends Event>> events = new HashSet<>(listenEvents.g);
 
-            for (Class<? extends Event> event : listenEvents) {
+            for (Map.Entry<Class<? extends Event>,EventPriority> entry : listenEvents.entrySet()) {
                 try {
-                    Method method = getRegistrationClass(event).getDeclaredMethod("getHandlerList");
+                    Method method = getRegistrationClass(entry.getKey()).getDeclaredMethod("getHandlerList");
                     method.setAccessible(true);
                     HandlerList handlerList = ((HandlerList) method.invoke(null));
-                    RegisteredStatListener listener = new RegisteredStatListener(stat,events);
+                    RegisteredStatListener listener = new RegisteredStatListener(stat,entry.getKey(),entry.getValue());
                     handlerList.register(listener);
-                    listeners.put(event,listener);
-
-
+                    listeners.put(entry.getKey(),listener);
                 } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException |
                          InvalidClassException e) {
                     e.printStackTrace();
@@ -161,26 +160,20 @@ public class RpgRegistry { //why?
     static class RegisteredStatListener extends RegisteredListener {
 
         Stat stat;
-        Set<Class<? extends Event>> listenEvents;
+        Class<? extends Event> listenEvent;
 
-        public RegisteredStatListener(Stat stat, Set<Class<? extends Event>> listenEvents) throws InvalidClassException {
-            super(stat, null, stat.priority(),instance, false);
-            this.listenEvents = listenEvents;
+        public RegisteredStatListener(Stat stat, Class<? extends Event> listenEvent, EventPriority priority) throws InvalidClassException {
+            super(stat, null, priority,instance, false);
+            this.listenEvent = listenEvent;
             this.stat = stat;
         }
 
 
         @Override
         public void callEvent(@NotNull Event event) {
-
-            //????????
-            for (Class<? extends Event> listenEvent : listenEvents) {
-                if (listenEvent.isAssignableFrom(event.getClass())) {
-                    stat.passEvent(event);
-                    return;
-                }
+            if (listenEvent.isAssignableFrom(event.getClass())) {
+                stat.passEvent(event);
             }
-
         }
 
     }

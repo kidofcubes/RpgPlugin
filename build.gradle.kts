@@ -1,7 +1,7 @@
 plugins {
 
     `java-library`
-    id("io.papermc.paperweight.userdev") version "1.5.3"
+    id("io.papermc.paperweight.userdev") version "1.5.4"
     id("xyz.jpenilla.run-paper") version "2.0.1" // Adds runServer and runMojangMappedServer tasks for testing
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
     `maven-publish`
@@ -27,7 +27,7 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 dependencies {
-    paperweight.paperDevBundle("1.19.3-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.19.4-R0.1-SNAPSHOT")
     implementation("net.bytebuddy:byte-buddy:1.12.21")
     implementation("net.bytebuddy:byte-buddy-agent:1.12.21")
 }
