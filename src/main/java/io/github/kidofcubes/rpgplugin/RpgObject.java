@@ -14,6 +14,7 @@ import java.util.*;
 
 //dodgy code
 public interface RpgObject {
+    //todo always loaded boolean thing
 
     NamespacedKey defaultTypeKey = new NamespacedKey("rpg_plugin","default_type");
     String typeKey = ("type");

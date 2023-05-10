@@ -1,6 +1,7 @@
 package io.github.kidofcubes.rpgplugin;
 
 import org.bukkit.Bukkit;
+import org.bukkit.block.TileState;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
@@ -28,6 +29,8 @@ public class RpgPlugin extends JavaPlugin {
     public void onEnable() {
         registerTypeConstructor(RpgEntity.class,RpgObject.defaultTypeKey,(LivingEntity thing) -> new RpgLivingEntity(thing).loadTag(RpgLivingEntity.getHolder(thing)));
         registerTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey,(ItemStack thing) -> new RpgItemStack(thing).loadTag(RpgItemStack.getHolder(thing)));
+        registerTypeConstructor(RpgTile.class,RpgObject.defaultTypeKey,(TileState thing) -> new RpgTileImpl(thing).loadTag(RpgTileImpl.getHolder(thing)));
+
         Bukkit.getScheduler().runTaskLater(this, () -> {
             saveDefaultConfig();
             FileConfiguration config = this.getConfig();
@@ -40,7 +43,5 @@ public class RpgPlugin extends JavaPlugin {
 
 
     @Override
-    public void onDisable() {
-//        RpgManager.close();
-    }
+    public void onDisable() {}
 }

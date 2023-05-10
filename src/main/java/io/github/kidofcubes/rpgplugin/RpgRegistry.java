@@ -157,6 +157,7 @@ public class RpgRegistry { //why?
     }
 
 
+    //implement numeric event priority?
     static class RegisteredStatListener extends RegisteredListener {
 
         Stat stat;

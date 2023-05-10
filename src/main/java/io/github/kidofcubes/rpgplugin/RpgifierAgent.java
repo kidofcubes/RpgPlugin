@@ -8,6 +8,7 @@ import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.utility.JavaModule;
+import org.bukkit.block.TileState;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
@@ -51,6 +52,7 @@ public class RpgifierAgent {
                                 RpgObjectImpl.class,
                                 RpgItem.class, RpgItemStack.class,
                                 RpgEntity.class, RpgLivingEntity.class,
+                                RpgTile.class, RpgTileImpl.class,
                                 RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class};
                     } catch (ClassNotFoundException e) {
                         throw new RuntimeException(e);
@@ -76,7 +78,7 @@ public class RpgifierAgent {
                         throw new RuntimeException(e);
                     }
                 })
-                .type(named("org.bukkit.craftbukkit.v1_19_R2.entity.CraftLivingEntity"))
+                .type(named("org.bukkit.entity.LivingEntity"))
                 .transform(new AgentBuilder.Transformer() {
                     @Override
                     public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
@@ -95,16 +97,25 @@ public class RpgifierAgent {
                         }
                     }
                 })
-//                .type(named("net.minecraft.world.item.ItemStack"))
-//                .transform(new AgentBuilder.Transformer() {
-//                    @Override
-//                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
-//                        return new ByteBuddy()
-//                                .redefine(net.minecraft.world.item.ItemStack.class)
-//                                .visit(Advice.to(TestAdvice.class).on(isMethod().and(not(returns(void.class))).and(not(takesArguments(0))).and(takesArgument(0,named("net.minecraft.world.item.ItemStack")))));
-//                    }
-//                })
+                .type(named("org.bukkit.block.TileState"))
+                .transform(new AgentBuilder.Transformer() {
+                    @Override
+                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
+                        try {
+                            return
+                                    builder
+                                            .implement(RpgTile.class)
+                                            .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgTile.class)))
+                                            .intercept(MethodCall.invokeSelf()
+                                                    .onMethodCall(MethodCall.invoke(RpgTileImpl.class.getMethod("getInstance", TileState.class)).withThis()).withAllArguments()
+                                            )
 
+                                    ;
+                        } catch (NoSuchMethodException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                })
                 .installOn(instrumentation);
 
     }

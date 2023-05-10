@@ -1,8 +1,9 @@
 # RpgPlugin
-Minecraft [Paper](https://papermc.io) server RPG library for 1.19
-(Paper only probably)
+an opinionated slow minecraft paper rpg plugin (named RpgPlugin) for 1.19.4
 
-# Usage
+(i am looking for a new name for this thing)
+
+## Usage
 
 drop the jar into your plugins folder, and run it as a javaagent when starting the server with the flag
 
@@ -10,7 +11,7 @@ drop the jar into your plugins folder, and run it as a javaagent when starting t
 
 
 
-# Example plugin
+## Example plugin
 
 ExampleAddon.java
 ```java
@@ -18,7 +19,7 @@ public class ExampleAddon extends JavaPlugin {
     @Override
     public void onEnable(){
         // needs to be registered sorta like a listener
-        RpgRegistry.register(new SmiteStat(), SmiteStat::new, List.of(EntityDamageByEntityEvent.class));
+        RpgRegistry.register(new SmiteStat(), SmiteStat::new, Map.of(EntityDamageByEntityEvent.class,EventPriority.NORMAL));
     }
 }
 ```
@@ -33,16 +34,16 @@ public class SmiteStat extends Stat {
     }
 
     @Override
-    public RpgObject getParent(Event event){
+    public RpgObject getObject(Event event){
         if(((EntityDamageByEntityEvent)event).getDamager() instanceof LivingEntity livingEntity){
-            return (RpgObject) livingEntity;
+            return (RpgEntity) livingEntity; //the object on which to search for the stat to activate
         }else{
-            return null;
+            return null; //cancels
         }
     }
 
     @Override
-    public void run(Event event){ //the code to be run when the stat is eligible to run
+    public void onActivate(Event event){ //gets called when the stat gets activated
         EntityDamageByEntityEvent attackEvent = (EntityDamageByEntityEvent) event;
         attackEvent.getEntity().getLocation().getWorld().strikeLightning(attackEvent.getEntity().getLocation());
     }
@@ -54,37 +55,14 @@ public class SmiteStat extends Stat {
 }
 ```
 
-
-plugin.yml
-```yml
-main: io.github.kidofcubes.ExampleAddon
-name: ExampleAddon
-version: 0.0.1
-description: A example plugin
-api-version: 1.19
-depend: [rpgplugin]
-commands:
-```
-
-Gradle:
-
-```groovy
-repositories {
-    //you will have to clone the repo and run publishToMavenLocal to get it in your local repo
-    mavenLocal()
-}
-dependencies{
-    implementation "io.github.kidofcubes:rpgplugin:VERSION"
-}
-```
-
 Now to add the SmiteStat to something, you use the addStat function on any LivingEntity or ItemStack
+
 `((RpgEntity)livingEntity).addStat(new SmiteStat());`
 
 
 `((RpgItem)itemStack).addStat(new SmiteStat());`
 
-# Things
+## information
 
 Stat:
     
@@ -99,21 +77,14 @@ Stat:
 
 
 
-# Other section
+## Other section
 
-Alpha
+in development
 
-<br>
-<br>
-<br>
+todo:
 
-Future plans: 
-
-    Custom hit detection (custom range, attack hitbox size, etc)
+    Custom hit detection (custom range, attack hitbox size, etc) //code already made, just havent put it in yet
     Less bugs
-
-Other ideas:
-    
     Custom world generation things
     Custom mob spawning
     
