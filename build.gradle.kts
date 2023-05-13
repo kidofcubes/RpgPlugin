@@ -4,16 +4,18 @@ plugins {
     id("io.papermc.paperweight.userdev") version "1.5.4"
     id("xyz.jpenilla.run-paper") version "2.0.1" // Adds runServer and runMojangMappedServer tasks for testing
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     `maven-publish`
 }
 
 group = "io.github.kidofcubes"
-version = "1.1-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenLocal()
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://maven.enginehub.org/repo/")
 
 }
 
@@ -28,8 +30,8 @@ tasks.withType<JavaCompile> {
 }
 dependencies {
     paperweight.paperDevBundle("1.19.4-R0.1-SNAPSHOT")
-    implementation("net.bytebuddy:byte-buddy:1.12.21")
-    implementation("net.bytebuddy:byte-buddy-agent:1.12.21")
+    implementation("net.bytebuddy:byte-buddy:1.14.4")
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.7")
 }
 
 tasks {
@@ -59,9 +61,20 @@ tasks {
       outputJar.set(layout.buildDirectory.file("/SSD128GB/ModTestingServer/plugins/RpgPlugin-${project.version}.jar"))
     }
 
-    jar {
-        from (configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+//    jar {
+//        from (configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+//        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+//        manifest {
+//            attributes["Agent-Class"] = "io.github.kidofcubes.rpgplugin.RpgifierAgent"
+//            attributes["Can-Redefine-Classes"] = true
+//            attributes["Premain-Class"] = "io.github.kidofcubes.rpgplugin.RpgifierAgent"
+//            attributes["Can-Retransform-Classes"] = true
+//        }
+//    }
+    shadowJar {
+
+        relocate("net.bytebuddy", "io.github.kidofcubes.dependencies.net.bytebuddy")
+
         manifest {
             attributes["Agent-Class"] = "io.github.kidofcubes.rpgplugin.RpgifierAgent"
             attributes["Can-Redefine-Classes"] = true
@@ -69,14 +82,6 @@ tasks {
             attributes["Can-Retransform-Classes"] = true
         }
     }
-
-//    runServer {
-//        // Configure the Minecraft version for our task.
-//        // This is the only required configuration besides applying the plugin.
-//        // Your plugin's jar (or shadowJar if present) will be used automatically.
-//        minecraftVersion("1.19.3")
-//
-//    }
 }
 
 // Configure plugin.yml generation
@@ -88,6 +93,7 @@ bukkit {
     commands {
         // ...
     }
+    softDepend = listOf("WorldGuard")
 }
 publishing {
     publications {
