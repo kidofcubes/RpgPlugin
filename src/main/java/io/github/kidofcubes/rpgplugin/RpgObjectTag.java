@@ -24,23 +24,29 @@ public class RpgObjectTag extends CompoundTag{
     private RpgObject rpgObject;
 
     private boolean isClone=false;
-    private RpgObjectTag(){}
+    private RpgObjectTag(){
+        putBoolean("placeholder",true);
+    }
     private RpgObjectTag(CompoundTag compoundTag){
         super(compoundTag.copy().tags);
+        putBoolean("placeholder",true);
     }
     private RpgObjectTag(CompoundTag compoundTag, RpgObject rpgObject){
         this(compoundTag);
-        setRpgObject(rpgObject);
+        this.rpgObject=rpgObject;
     }
     private RpgObjectTag(CompoundTag compoundTag, RpgObject rpgObject, boolean isClone){
         this(compoundTag,rpgObject);
+//        System.out.println("A CLONE HAS BEEN MADE A CLONE HAS BEEN MADE ALERT=-=--=_+_+!_+_=-++++++++++_________+++++++============");
         this.isClone=isClone;
     }
 
     public static RpgObjectTag fromCompoundTag(@Nullable CompoundTag compoundTag){
         if(compoundTag!=null){
+            System.out.println("LOADED NEW OBJECT TAG FROM "+compoundTag);
             return new RpgObjectTag(compoundTag);
         }else{
+            System.out.println("MADE NEW OBJECT TAG FROM NULL WTF");
             return new RpgObjectTag();
         }
     }
@@ -48,12 +54,8 @@ public class RpgObjectTag extends CompoundTag{
     @Override
     public void write(DataOutput output) throws IOException {
         if(rpgObject!=null) {
-            System.out.println("GOT TOTAGGED WRITTEN ON IS CLONE???? "+isClone);
-            try {
-                throw new NullPointerException();
-            }catch (NullPointerException exception){
-                exception.printStackTrace();
-            }
+            System.out.println("GOT TOOTAGGED WRITTEN ON IS CLONE???? "+isClone);
+//            try {throw new NullPointerException();}catch(NullPointerException exception){exception.printStackTrace();}
             rpgObject.toTag().write(output);
         }else{
             super.write(output);
@@ -65,24 +67,35 @@ public class RpgObjectTag extends CompoundTag{
     }
 
     @Override
-    public CompoundTag copy() {
-//        System.out.println("GOT TOOTAGGED COPY");
-//        try {
-//            throw new NullPointerException();
-//        }catch (NullPointerException exception){
-//            exception.printStackTrace();
-//        }
-        return new RpgObjectTag(super.copy(),rpgObject,true);
+    public @NotNull CompoundTag copy() {
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        System.out.println("WE HAVE BEEN COPIED ALERT WE HAVE BEEN COPIED=============================================================");
+//        try {throw new NullPointerException();}catch (NullPointerException exception){exception.printStackTrace();}
+        return new RpgObjectTag(new CompoundTag(),rpgObject,true);
 
 //        return rpgObject.toTag().copy(); //i die of death on copy
     }
 
     @Override
     public void accept(TagVisitor visitor) {
-        System.out.println("GOT TOOTAGGED ACCEPTED");
+//        System.out.println("GOT TOOTAGGED ACCEPTED ON A CLONE??? "+isClone);
+//        try {
+//            throw new NullPointerException();
+//        }catch (NullPointerException exception){
+//            exception.printStackTrace();
+//        }
         if(rpgObject!=null) {
+            System.out.println("visiting RpgObjectTag@"+hashCode()+" was "+rpgObject+isClone);
             visitor.visitCompound(rpgObject.toTag());
         }else{
+            System.out.println("visiting RpgObjectTag@"+hashCode()+" was null, am i clone? "+isClone);
             visitor.visitCompound(this);
         }
     }
@@ -111,12 +124,18 @@ public class RpgObjectTag extends CompoundTag{
     //when this called, this clone is actually going to be used i think
     public RpgObject getRpgObject(){
         if(isClone){
-            if(rpgObject!=null) {
-                merge(rpgObject.toTag());
-            }
-            rpgObject=null;
-            isClone=false;
+//            System.out.println("was clone, merging now cause smth");
+//            System.out.println("WE ARE NOW MERGING===========================================!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//            try {throw new NullPointerException();}catch (NullPointerException exception){exception.printStackTrace();}
+//            System.out.println("RETURNING "+rpgObject+" AS A CLONE FROM RPGOBJECTTAG#"+hashCode());
+            return rpgObject;
+//            if(rpgObject!=null) {
+//                merge(rpgObject.toTag());
+//            }
+//            rpgObject=null;
+//            isClone=false;
         }
+//        System.out.println("RETURNING "+rpgObject+" AS A ORIGINAL FROM RPGOBJECTTAG#"+hashCode());
         return rpgObject;
     }
 
@@ -125,6 +144,8 @@ public class RpgObjectTag extends CompoundTag{
     }
 
     public void setRpgObject(RpgObject rpgObject){
+//        System.out.println("set the rpgobject of RpgObjectTag@"+hashCode()+" to "+rpgObject);
+//        try {throw new NullPointerException();}catch (NullPointerException exception){exception.printStackTrace();}
         this.rpgObject=rpgObject;
         isClone=false;
     }
@@ -140,22 +161,56 @@ public class RpgObjectTag extends CompoundTag{
     public boolean equals(Object object) {
         if (this == object) {
             return true;
-        } else {
-            return object instanceof RpgObjectTag && Objects.equals(rpgObject, ((RpgObjectTag)object).rpgObject());
+        } else if(object instanceof RpgObjectTag rpgObjectTag){
+            if(hashCode() == rpgObjectTag.hashCode()) return true;
+//            System.out.println("checking equals");
+//            try {
+//                throw new NullPointerException();
+//            }catch (NullPointerException exception){
+//                exception.printStackTrace();
+//            }
+//            return object instanceof RpgObjectTag && Objects.equals(rpgObject, ((RpgObjectTag)object).rpgObject());
+            if(rpgObjectTag.isClone){
+//                System.out.println("other is clone, i am "+isClone+" clone, the objects are "+this.rpgObject+" and "+rpgObjectTag.getRpgObject());
+                if(this.rpgObject==rpgObjectTag.rpgObject){
+//                    System.out.println("was equal");
+                    return true;
+                }
+            };
         }
+        return false;
     }
 
     @Override
     public int hashCode() {
-//        System.out.println("asked for hash");
         int hash=17;
-        hash = 37 * hash + tags.hashCode();
         if(rpgObject!=null){
             hash = 37*hash + rpgObject.hashCode();
+        }else{
+            hash = 37 * hash + tags.hashCode();
         }
+//        System.out.println("my "+isClone+"tags are: ");
+//        tags.forEach((key,tag)->{
+//            System.out.println(key+": "+tag.getAsString());
+//        });
+//        System.out.println("tags hash: "+hash);
+//        if(rpgObject!=null){
+////            System.out.println("rpg hash: "+rpgObject.hashCode());
+//        }
+//        System.out.println("asked for hash, result was "+hash);
         return hash;
     }
 
+    @Override
+    public String getAsString() {
+        System.out.println("GOT A RPGOBJECTTAG AS STRING");
+        return super.getAsString();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return false;
+    }
 }
 
 
