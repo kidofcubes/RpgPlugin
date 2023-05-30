@@ -1,5 +1,5 @@
 # RpgPlugin
-an opinionated slow minecraft paper rpg plugin (named RpgPlugin) for 1.19.4
+an opinionated (hopefully not slow) minecraft paper rpg plugin (named RpgPlugin) for 1.19.4
 
 (i am looking for a new name for this thing)
 
@@ -85,6 +85,6 @@ todo:
 
     Custom hit detection (custom range, attack hitbox size, etc) //code already made, just havent put it in yet
     Less bugs
-    Custom world generation things
     Custom mob spawning
+    packet entities
     

@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 
 public class RpgRegistry { //why?
 
-    private static Plugin instance;
+    private static Plugin pluginInstance;
 
     private final static Map<Class<? extends RpgObject>,Map<NamespacedKey, Function<?,? extends RpgObject>>> typeConstructors = new HashMap<>();
 
@@ -164,7 +164,7 @@ public class RpgRegistry { //why?
         Class<? extends Event> listenEvent;
 
         public RegisteredStatListener(Stat stat, Class<? extends Event> listenEvent, EventPriority priority) throws InvalidClassException {
-            super(stat, null, priority,instance, false);
+            super(stat, null, priority,pluginInstance, false);
             this.listenEvent = listenEvent;
             this.stat = stat;
         }

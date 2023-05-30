@@ -60,4 +60,9 @@ public class RpgTileImpl extends RpgObjectImpl implements RpgTile {
     public TileState getTileState(){
         return tileState;
     }
+
+    @Override
+    public boolean isValid() {
+        return tileState.isPlaced();
+    }
 }

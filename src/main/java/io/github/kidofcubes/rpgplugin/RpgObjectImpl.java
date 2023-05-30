@@ -158,4 +158,9 @@ public abstract class RpgObjectImpl implements RpgObject{
             statInstance.onRemoveStat();
         }
     }
+
+    @Override
+    public boolean alwaysLoaded() {
+        return false;
+    }
 }

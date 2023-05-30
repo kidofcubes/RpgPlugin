@@ -27,6 +27,11 @@ public interface RpgObject {
 
     default String getName(){ return "RPG_OBJECT";};
 
+    default boolean isValid(){
+        return true;
+    }
+
+    boolean alwaysLoaded();
 
     int getLevel();
 
