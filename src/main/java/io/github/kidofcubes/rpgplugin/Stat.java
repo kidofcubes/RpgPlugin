@@ -1,38 +1,48 @@
 package io.github.kidofcubes.rpgplugin;
 
 
-import it.unimi.dsi.fastutil.Pair;
 import net.minecraft.nbt.CompoundTag;
 import org.apache.commons.lang3.NotImplementedException;
-import org.apache.commons.lang3.function.ToBooleanBiFunction;
-import org.apache.commons.lang3.function.TriFunction;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import oshi.util.tuples.Triplet;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.function.*;
 
 public abstract class Stat implements Listener {
 
-    private int level = 0;
-
-    public RpgObject getParent() {
+    static final String LEVEL_KEY="lvl";
+    final StatInst data;
+    private final RPG parent;
+    private RPG user;
+    public RPG getParent() {
         return parent;
     }
-    public RpgObject getUser() {
-        return user;
+
+    public Stat(RPG parent, StatInst data) {
+        this.parent = parent;
+        this.data = data;
+    }
+    public StatInst getData(){
+        return data;
+    }
+    public Stat setUser(RPG rpgObject){
+        user=rpgObject;
+        return this;
+    }
+    
+    /**
+     * Default user is self
+     * @return
+     */
+    public RPG getUser(){
+        return user==null ? parent : user;
     }
 
-    private RpgObject parent;
-    private RpgObject user;
+
     public double getManaCost(){
         return 0;
     }
@@ -45,26 +55,6 @@ public abstract class Stat implements Listener {
         return "Default description";
     }
 
-//    /**
-//     *
-//     * @param <T> argument type
-//     * @param <R> return type
-//     */
-//    public static class ModifiableFunction<T,R>{
-//        public ModifiableFunction(BiFunction<T,R,Pair<R,Boolean>> original){
-//            overrides.add(original);
-//        }
-//        private final ArrayList<BiFunction<T,R,Pair<R,Boolean>>> overrides = new ArrayList<>();
-//        public R run(T arg){
-//            R returnValue = null;
-//            for(int i = overrides.size()-1;i>-1;i--){
-//                Pair<R,Boolean> out = overrides.get(i).apply(arg,returnValue);
-//                returnValue = out.left();
-//                if(out.second()) break;
-//            }
-//            return returnValue;
-//        }
-//    }
 
 
 
@@ -88,35 +78,26 @@ public abstract class Stat implements Listener {
      * @return
      */
     public int getLevel() {
-        return level;
+        return data.getTag().getInt(LEVEL_KEY);
     }
 
 
     public Stat setLevel(int level) {
-        this.level = level;
+        data.getTag().putInt(LEVEL_KEY,level);
         return this;
     }
 
-    public void onAddStat(RpgObject object){
-        parent = object;
-    }
-    public void onRemoveStat(){
-        parent=null;
-    }
-
-    public void onUseStat(RpgObject object){
-        setUser(object);
-    }
-    public void onStopUsingStat(){
-        user=null;
-    }
+    public void onAddStat(RPG object){}
+    public void onRemoveStat(){}
+    public void onUseStat(RPG object){}
+    public void onStopUsingStat(){}
 
     /**
      * Returns the RpgObject which will have its stat instance activated
      * @param event
      * @return
      */
-    public RpgObject getObject(Event event){throw new NotImplementedException();}
+    public RPG getObject(Event event){throw new NotImplementedException();}
 
 
 
@@ -129,23 +110,25 @@ public abstract class Stat implements Listener {
      */
     public void passEvent(Event event) {
         NamespacedKey identifier = getIdentifier();
-        RpgObject toCheck = this.getObject(event);
+        RPG toCheck = this.getObject(event);
         //get stats that depend this stat
         if(onEvent(event)) return;
         if (toCheck == null) return;
-        List<Stat> instances = toCheck.getUsedStatsMap().get(identifier);
-        if(instances==null) return;
-        if(instances.size()==0) return;
-        if(onTrigger(event,toCheck,instances)) return;
+        Map<RPG,CompoundTag> stats = new HashMap<>();
+        toCheck.addUsedStats(identifier,stats);
+        if(stats.size()==0) return;
+        if(onTrigger(event,toCheck,stats)) return;
+        for(Map.Entry<RPG,CompoundTag> entry : stats.entrySet()){
+            Stat stat = RpgRegistry.initStat(identifier, entry.getKey(),new StatInst(entry.getValue()));
+            stat.setUser(toCheck);
 
-        for(Stat stat: instances){
             //todo new mana thing sometime
             double cost = stat.getManaCost();
             if (cost != 0.0) {
-                if (stat.getUser().getMana()  < cost) {
+                if (toCheck.getMana() < cost) {
                     continue;
                 }else{
-                    stat.getUser().setMana(stat.getUser().getMana()-cost);
+                    toCheck.setMana(toCheck.getMana()-cost);
                 }
             }
             stat.onActivate(event);
@@ -166,7 +149,7 @@ public abstract class Stat implements Listener {
      * @return Whether to cancel
      */
 
-    public boolean onTrigger(Event event, @NotNull RpgObject checkObject, List<Stat> instances){return false;}
+    public boolean onTrigger(Event event, @NotNull RPG checkObject, Map<RPG,CompoundTag> instances){return false;}
 
     /**
      * Override this to run code when your stat is successfully activated
@@ -174,34 +157,6 @@ public abstract class Stat implements Listener {
      * @param event an event that's an instanceof one of the events you asked for
      */
     public void onActivate(Event event){};
-
-    public void join(Stat stat){
-        setLevel(stat.getLevel()+getLevel());
-    }
-    public void remove(Stat stat){
-        setLevel(getLevel()-stat.getLevel());
-    }
-
-    public void setUser(RpgObject rpgObject){
-        user=rpgObject;
-    }
-
-
-    /**
-     * Override this to save things
-     * @return a tag
-     */
-    public CompoundTag asTag() {
-        CompoundTag tag = new CompoundTag();
-        tag.putInt("lvl",getLevel());
-        return tag;
-    }
-
-    /**
-     * Override this to load stat json
-     * @param data
-     */
-    public void loadTag(CompoundTag data) {level = data.getInt("lvl");}
 
 
 

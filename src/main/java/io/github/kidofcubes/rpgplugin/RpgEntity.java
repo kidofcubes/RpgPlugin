@@ -4,8 +4,10 @@ package io.github.kidofcubes.rpgplugin;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
+
 //add entity specific stuff here later
-public interface RpgEntity extends RpgObject {
+public interface RpgEntity extends RPG {
 
 //    default RpgEntity loadFromJson(String json){
 //        return (RpgEntity) RpgObject.super.loadFromJson(json);
@@ -14,7 +16,10 @@ public interface RpgEntity extends RpgObject {
 //        return (RpgEntity) RpgObject.super.loadFromJson(json);
 //    }
 
-    default RpgEntity getRpgInstance(){
-        return this;
-    }
+//    default RpgEntity getRpgInstance(){
+//        return this;
+//    }
+
+
+
 }

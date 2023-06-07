@@ -11,7 +11,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 
-import static io.github.kidofcubes.rpgplugin.RpgRegistry.registerTypeConstructor;
 
 public class RpgPlugin extends JavaPlugin {
 
@@ -29,9 +28,9 @@ public class RpgPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        registerTypeConstructor(RpgEntity.class,RpgObject.defaultTypeKey,(LivingEntity thing) -> new RpgLivingEntity(thing).loadTag(RpgLivingEntity.getHolder(thing)));
-        registerTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey,(ItemStack thing) -> new RpgItemStack(thing).loadTag(RpgItemStack.getHolder(thing)));
-        registerTypeConstructor(RpgTile.class,RpgObject.defaultTypeKey,(TileState thing) -> new RpgTileImpl(thing).loadTag(RpgTileImpl.getHolder(thing)));
+//        registerTypeConstructor(RpgEntity.class,RPG.defaultTypeKey,(LivingEntity thing) -> new RpgLivingEntity(thing).loadTag(RpgLivingEntity.getHolder(thing)));
+//        registerTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey,(ItemStack thing) -> new RpgItemStack(thing).loadTag(RpgItemStack.getHolder(thing)));
+//        registerTypeConstructor(RpgTile.class,RpgObject.defaultTypeKey,(TileState thing) -> new RpgTileImpl(thing).loadTag(RpgTileImpl.getHolder(thing)));
 
         Bukkit.getScheduler().runTaskLater(this, () -> { //?????????
             saveDefaultConfig();

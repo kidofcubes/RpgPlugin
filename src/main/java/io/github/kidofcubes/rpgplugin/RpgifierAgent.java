@@ -54,17 +54,13 @@ public class RpgifierAgent {
 
                     //todo gooden this class injector stuff
                     Class<?>[] classes = new Class[0];
-                    try {
-                        classes = new Class[]{RpgObject.class, RpgClass.class, Class.forName(RpgObject.class.getName()+"$1"), //y
-                                Stat.class, RpgRegistry.RegisteredStatListener.class,
-                                RpgObjectImpl.class,
-                                RpgItem.class, RpgItemStack.class,
-                                RpgEntity.class, RpgLivingEntity.class,
-                                RpgTile.class, RpgTileImpl.class,
-                                RpgRegistry.class, RpgObjectTag.class,RpgObjectTag.class};
-                    } catch (ClassNotFoundException e) {
-                        throw new RuntimeException(e);
-                    }
+                    classes = new Class[]{RPG.class, RpgClass.class, //y
+                            Stat.class, RpgRegistry.RegisteredStatListener.class, StatInst.class,
+                            RPGImpl.class,
+                            RpgItem.class, RpgItemStack.class,
+                            RpgEntity.class, RpgLivingEntity.class,
+//                                RpgTile.class, RpgTileImpl.class,
+                            RpgRegistry.class};
                     for (Class<?> clazz : classes) {
                         new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(clazz), ClassFileLocator.ForClassLoader.read(clazz)));
                     }
@@ -77,9 +73,9 @@ public class RpgifierAgent {
                         return
                                 builder
                                         .implement(RpgItem.class)
-                                        .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgItem.class)))
+                                        .method((isDeclaredBy(RPG.class)).or(isDeclaredBy(RpgItem.class)))
                                         .intercept(MethodCall.invokeSelf()
-                                                .onMethodCall(MethodCall.invoke(RpgItemStack.class.getMethod("getInstance", ItemStack.class)).withThis()).withAllArguments()
+                                                .onMethodCall(MethodCall.invoke(RpgItemStack.class.getMethod("getRpg", ItemStack.class)).withThis()).withAllArguments()
                                         )
                                 ;
                     } catch (NoSuchMethodException e) {
@@ -94,9 +90,9 @@ public class RpgifierAgent {
                             return
                                     builder
                                             .implement(RpgEntity.class)
-                                            .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgEntity.class)))
+                                            .method((isDeclaredBy(RPG.class)).or(isDeclaredBy(RpgEntity.class)))
                                             .intercept(MethodCall.invokeSelf()
-                                                    .onMethodCall(MethodCall.invoke(RpgLivingEntity.class.getMethod("getInstance", LivingEntity.class)).withThis()).withAllArguments()
+                                                    .onMethodCall(MethodCall.invoke(RpgLivingEntity.class.getMethod("getRpg", LivingEntity.class)).withThis()).withAllArguments()
                                             )
 
                                     ;
@@ -105,25 +101,25 @@ public class RpgifierAgent {
                         }
                     }
                 })
-                .type(named("org.bukkit.block.TileState"))
-                .transform(new AgentBuilder.Transformer() {
-                    @Override
-                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
-                        try {
-                            return
-                                    builder
-                                            .implement(RpgTile.class)
-                                            .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgTile.class)))
-                                            .intercept(MethodCall.invokeSelf()
-                                                    .onMethodCall(MethodCall.invoke(RpgTileImpl.class.getMethod("getInstance", TileState.class)).withThis()).withAllArguments()
-                                            )
-
-                                    ;
-                        } catch (NoSuchMethodException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                })
+//                .type(named("org.bukkit.block.TileState"))
+//                .transform(new AgentBuilder.Transformer() {
+//                    @Override
+//                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
+//                        try {
+//                            return
+//                                    builder
+//                                            .implement(RpgTile.class)
+//                                            .method((isDeclaredBy(RpgObject.class)).or(isDeclaredBy(RpgTile.class)))
+//                                            .intercept(MethodCall.invokeSelf()
+//                                                    .onMethodCall(MethodCall.invoke(RpgTileImpl.class.getMethod("getInstance", TileState.class)).withThis()).withAllArguments()
+//                                            )
+//
+//                                    ;
+//                        } catch (NoSuchMethodException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//                    }
+//                })
 //                .type(named("org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemFactory"))
 //                .transform(new AgentBuilder.Transformer() {
 //                    @Override
