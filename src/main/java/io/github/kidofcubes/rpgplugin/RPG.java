@@ -44,28 +44,39 @@ public interface RPG {
      */
     public double getMana();
     public void setMana(double mana);
-    public void addStat(NamespacedKey key, CompoundTag stat);
     public void addStat(Stat stat);
     public boolean hasStat(NamespacedKey key);
 
+
     /**
-     * Returns the stat if found, else returns new empty CompoundTag
+     * Returns the stat if found and registered, else throws error
      * @param key
      * @return
      */
-    public CompoundTag getStat(NamespacedKey key);
+    public Stat getStat(NamespacedKey key);
 
     /**
      * Removes a stat (if the stat is not found, won't do anything)
      * @param key The stat key
      */
     public void removeStat(NamespacedKey key);
+    public Map<NamespacedKey, Stat> getStats();
+    public void addUsedStats(NamespacedKey key, Map<RPG,Stat> map);
 
-    public Map<NamespacedKey, CompoundTag> getStats();
-    public List<RPG> usedThings();
-    public void addUsedStats(NamespacedKey key, Map<RPG,CompoundTag> map);
-    public void use(RPG rpg);
-    public void stopUsing(RPG rpg);
+    /**
+     * Convenience method for using addUsedStats
+     * @param key
+     * @return
+     */
+    default Map<RPG,Stat> getUsedStats(NamespacedKey key){
+        Map<RPG,Stat> map = new HashMap<>();
+        addUsedStats(key,map);
+        return map;
+    }
+
+    default RPG getRpgInstance(){
+        return this;
+    }
 
 
 

@@ -2,17 +2,16 @@ package io.github.kidofcubes.rpgplugin;
 
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
-import net.bytebuddy.asm.AsmVisitorWrapper;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.dynamic.ClassFileLocator;
 import net.bytebuddy.dynamic.DynamicType;
 import net.bytebuddy.dynamic.loading.ClassInjector;
+import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.utility.JavaModule;
 import net.minecraft.nbt.Tag;
-import org.bukkit.block.TileState;
 import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
@@ -25,7 +24,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
-import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.jar.JarFile;
@@ -55,11 +53,12 @@ public class RpgifierAgent {
                     //todo gooden this class injector stuff
                     Class<?>[] classes = new Class[0];
                     classes = new Class[]{RPG.class, RpgClass.class, //y
-                            Stat.class, RpgRegistry.RegisteredStatListener.class, StatInst.class,
+                            Stat.class, RpgRegistry.RegisteredStatListener.class,
                             RPGImpl.class,
-                            RpgItem.class, RpgItemStack.class,
-                            RpgEntity.class, RpgLivingEntity.class,
+                            RpgItem.class, RpgItemImpl.class,
+                            RpgEntity.class, RpgEntityImpl.class,
 //                                RpgTile.class, RpgTileImpl.class,
+                            EntityHolder.class,
                             RpgRegistry.class};
                     for (Class<?> clazz : classes) {
                         new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(clazz), ClassFileLocator.ForClassLoader.read(clazz)));
@@ -75,14 +74,14 @@ public class RpgifierAgent {
                                         .implement(RpgItem.class)
                                         .method((isDeclaredBy(RPG.class)).or(isDeclaredBy(RpgItem.class)))
                                         .intercept(MethodCall.invokeSelf()
-                                                .onMethodCall(MethodCall.invoke(RpgItemStack.class.getMethod("getRpg", ItemStack.class)).withThis()).withAllArguments()
+                                                .onMethodCall(MethodCall.invoke(RpgItemImpl.class.getMethod("getRpg", ItemStack.class)).withThis()).withAllArguments()
                                         )
                                 ;
                     } catch (NoSuchMethodException e) {
                         throw new RuntimeException(e);
                     }
                 })
-                .type(named("org.bukkit.entity.LivingEntity"))
+                .type(named("org.bukkit.entity.Entity"))
                 .transform(new AgentBuilder.Transformer() {
                     @Override
                     public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
@@ -92,13 +91,25 @@ public class RpgifierAgent {
                                             .implement(RpgEntity.class)
                                             .method((isDeclaredBy(RPG.class)).or(isDeclaredBy(RpgEntity.class)))
                                             .intercept(MethodCall.invokeSelf()
-                                                    .onMethodCall(MethodCall.invoke(RpgLivingEntity.class.getMethod("getRpg", LivingEntity.class)).withThis()).withAllArguments()
+//                                                    .onMethodCall(MethodCall.invoke(RpgEntityImpl.class.getMethod("getRpg", LivingEntity.class)).withThis()).withAllArguments()
+                                                    .onMethodCall(MethodCall.invoke(RpgEntityImpl.class.getMethod("getRpg", Entity.class)).withThis()).withAllArguments()
                                             )
 
                                     ;
                         } catch (NoSuchMethodException e) {
                             throw new RuntimeException(e);
                         }
+                    }
+                })
+                .type(named("org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer"))
+
+                .transform(new AgentBuilder.Transformer() {
+                    @Override
+                    public DynamicType.Builder<?> transform(DynamicType.Builder<?> builder, TypeDescription typeDescription, ClassLoader classLoader, JavaModule module, ProtectionDomain protectionDomain) {
+                        return builder.implement(EntityHolder.class)
+                                .defineField("rpg",RpgEntity.class)
+                                .method(named("getRpg")).intercept(FieldAccessor.ofField("rpg"))
+                                .method(named("setRpg")).intercept(FieldAccessor.ofField("rpg"));
                     }
                 })
 //                .type(named("org.bukkit.block.TileState"))

@@ -23,31 +23,31 @@ public class RpgRegistry { //why?
 
     private static Plugin pluginInstance;
 
-//    private final static Map<Class<? extends RpgObject>,Map<NamespacedKey, Function<?,? extends RpgObject>>> typeConstructors = new HashMap<>();
-//
-//    public static boolean containsTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type){
-//        if(type==null){
-//            return false;
-//        }
-//        if(!typeConstructors.containsKey(clazz)){
-//            return false;
-//        }
-//        return typeConstructors.get(clazz).containsKey(type);
-//    }
-//
-//    @SuppressWarnings("unchecked")
-//    public static <T,Z extends RpgObject> Function<T, Z> getTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type){
-//        return (Function<T, Z>) Objects.requireNonNull(typeConstructors.get(clazz).get(type), "Specified type doesn't exist in map");
-//    }
-//    public static <T,Z extends RpgObject> void registerTypeConstructor(Class<? extends RpgObject> clazz, NamespacedKey type, Function<T,Z> constructor){
-//        typeConstructors.putIfAbsent(clazz,new HashMap<>());
-//        typeConstructors.get(clazz).put(type,constructor);
-//    }
+    private final static Map<Class<? extends RPG>,Map<NamespacedKey, Function<?,? extends RPG>>> typeConstructors = new HashMap<>();
+
+    public static boolean containsTypeConstructor(Class<? extends RPG> clazz, NamespacedKey type){
+        if(type==null){
+            return false;
+        }
+        if(!typeConstructors.containsKey(clazz)){
+            return false;
+        }
+        return typeConstructors.get(clazz).containsKey(type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T,Z extends RPG> Function<T, Z> getTypeConstructor(Class<? extends Z> clazz, NamespacedKey type){
+        return (Function<T, Z>) Objects.requireNonNull(typeConstructors.get(clazz).get(type), "Specified type doesn't exist in map");
+    }
+    public static <T,Z extends RPG> void registerTypeConstructor(Class<? extends RPG> clazz, NamespacedKey type, Function<T,Z> constructor){
+        typeConstructors.putIfAbsent(clazz,new HashMap<>());
+        typeConstructors.get(clazz).put(type,constructor);
+    }
 
 
 
 //    private static final Map<NamespacedKey,Supplier<? extends Stat>> registeredStats = new HashMap<>();
-    private static final Map<NamespacedKey,BiFunction<RPG,StatInst,? extends Stat>> registeredStats = new HashMap<>();
+    private static final Map<NamespacedKey,BiFunction<RPG,CompoundTag,? extends Stat>> registeredStats = new HashMap<>();
     private static final Map<NamespacedKey,Stat> registeredStatInstances = new HashMap<>();
 
     //do this l8r
@@ -73,7 +73,7 @@ public class RpgRegistry { //why?
      * Registers a stat to listen for events
      * @param listenEvents A list of events it will listen for
      */
-    public static <T extends Stat> void register(T stat, BiFunction<RPG,StatInst,T> supplier, Map<Class<? extends Event>, EventPriority> listenEvents, Plugin plugin) {
+    public static <T extends Stat> void register(T stat, BiFunction<RPG,CompoundTag,T> supplier, Map<Class<? extends Event>, EventPriority> listenEvents, Plugin plugin) {
         NamespacedKey key = stat.getIdentifier();
         if (!registeredStats.containsKey(key)) {
 //            if(stat instanceof TimedStat timedStat){
@@ -129,7 +129,7 @@ public class RpgRegistry { //why?
     }
 
     @NotNull
-    public static Stat initStat(@NotNull NamespacedKey statKey, RPG parent, StatInst statInst) {
+    public static Stat initStat(@NotNull NamespacedKey statKey, RPG parent, CompoundTag statInst) {
         return Objects.requireNonNull(registeredStats.get(statKey),"No stat registered under "+statKey.asString()).apply(parent,statInst);
     }
 

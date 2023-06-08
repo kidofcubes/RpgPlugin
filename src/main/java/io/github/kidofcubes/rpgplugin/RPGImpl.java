@@ -4,25 +4,22 @@ import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class RPGImpl implements RPG{
+public abstract class RPGImpl implements RPG{
 
     @Override
     public CompoundTag getTag() {
         return base;
     }
 
-    private final CompoundTag base;
+    protected final CompoundTag base;
     public RPGImpl(CompoundTag base){
         this.base=base;
     }
 
 
-    private CompoundTag data(){
+    protected CompoundTag dataTag(){
         if(!base.contains("data")) base.put("data", new CompoundTag());
         return base.getCompound("data");
     }
@@ -42,38 +39,38 @@ public class RPGImpl implements RPG{
      * Defaults to 0.
      * @return
      */
-    public int getLevel(){ return data().getInt(LVL_KEY); }
-    public void setLevel(int level){ data().putInt(LVL_KEY,level); }
+    public int getLevel(){ return dataTag().getInt(LVL_KEY); }
+    public void setLevel(int level){ dataTag().putInt(LVL_KEY,level); }
 
     /**
      * Defaults to 0.
      * @return
      */
-    public double getMana(){ return data().getDouble(MANA_KEY); }
-    public void setMana(double mana){ data().putDouble(MANA_KEY,mana); }
+    public double getMana(){ return dataTag().getDouble(MANA_KEY); }
+    public void setMana(double mana){ dataTag().putDouble(MANA_KEY,mana); }
 
 
-    private CompoundTag stats(){
+    protected CompoundTag statsTag(){
         if(!base.contains("stats")) base.put("stats", new CompoundTag());
         return base.getCompound("stats");
     }
-    public void addStat(NamespacedKey key, CompoundTag stat){
-        stats().put(key.asString(),stat);
-    }
     public void addStat(Stat stat){
-        stats().put(stat.getIdentifier().asString(),stat.getData().getTag());
+        statsTag().put(stat.getIdentifier().asString(),stat.getData());
     }
     public boolean hasStat(NamespacedKey key){
-        return stats().contains(key.asString());
+        if(key==null) return false;
+        return RpgRegistry.isRegisteredStat(key) && statsTag().contains(key.asString());
     }
 
     /**
-     * Returns the stat if found, else returns new empty CompoundTag
+     * Returns the stat if found and registered, else throws error
      * @param key
      * @return
      */
-    public CompoundTag getStat(NamespacedKey key){
-        return stats().getCompound(key.asString());
+    @NotNull
+    public Stat getStat(NamespacedKey key){
+        if(!hasStat(key)) throw new RuntimeException("Stat "+key+" was not found and/or registered");
+        return RpgRegistry.initStat(key,this,(Objects.requireNonNull((CompoundTag) statsTag().get(key.asString()))));
     }
 
     /**
@@ -81,47 +78,23 @@ public class RPGImpl implements RPG{
      * @param key The stat key
      */
     public void removeStat(NamespacedKey key){
-        stats().remove(key.asString());
+        statsTag().remove(key.asString());
     }
 
-    public List<RPG> usedThings(){ //override with your own
-        return List.of(this);
-    }
-
-    public Map<NamespacedKey, CompoundTag> getStats() {
-        Map<NamespacedKey, CompoundTag> stats = new HashMap<>();
-        stats().tags.forEach((key, tag)->{
+    public Map<NamespacedKey, Stat> getStats() {
+        Map<NamespacedKey, Stat> stats = new HashMap<>();
+        statsTag().tags.forEach((key, tag)->{
             NamespacedKey namespacedKey = NamespacedKey.fromString(key);
             if(namespacedKey!=null&&tag instanceof CompoundTag compoundTag){
-                stats.put(namespacedKey,compoundTag);
+                stats.put(namespacedKey,RpgRegistry.initStat(namespacedKey,this,compoundTag));
             }
         });
         return stats;
     }
 
-    public void addUsedStats(NamespacedKey key, Map<RPG,CompoundTag> map){
-        if(stats().contains(key.asString())) map.put(this,getStat(key));
-        usedThings().forEach(rpg -> {
-            if(rpg!=this) addUsedStats(key,map);
-        });
+    public void addUsedStats(NamespacedKey key, Map<RPG,Stat> map){
+        if(hasStat(key)) map.put(this,getStat(key));
     }
 
-    public void use(RPG rpg){
-        for(Map.Entry<NamespacedKey,CompoundTag> entry : rpg.getStats().entrySet()){
-            if(RpgRegistry.isRegisteredStat(entry.getKey())){
-                Stat stat = RpgRegistry.initStat(entry.getKey(),rpg,new StatInst(entry.getValue()));
-                stat.onStopUsingStat();
-                stat.onUseStat(this);
-            }
-        }
-    }
-    public void stopUsing(RPG rpg){
-        for(Map.Entry<NamespacedKey,CompoundTag> entry : rpg.getStats().entrySet()){
-            if(RpgRegistry.isRegisteredStat(entry.getKey())){
-                Stat stat = RpgRegistry.initStat(entry.getKey(),rpg,new StatInst(entry.getValue()));
-                stat.onStopUsingStat();
-            }
-        }
-    }
 
 }

@@ -15,18 +15,18 @@ import java.util.Map;
 public abstract class Stat implements Listener {
 
     static final String LEVEL_KEY="lvl";
-    final StatInst data;
+    final CompoundTag data;
     private final RPG parent;
     private RPG user;
     public RPG getParent() {
         return parent;
     }
 
-    public Stat(RPG parent, StatInst data) {
+    public Stat(RPG parent, CompoundTag data) {
         this.parent = parent;
         this.data = data;
     }
-    public StatInst getData(){
+    public CompoundTag getData(){
         return data;
     }
     public Stat setUser(RPG rpgObject){
@@ -78,19 +78,19 @@ public abstract class Stat implements Listener {
      * @return
      */
     public int getLevel() {
-        return data.getTag().getInt(LEVEL_KEY);
+        return data.getInt(LEVEL_KEY);
     }
 
 
     public Stat setLevel(int level) {
-        data.getTag().putInt(LEVEL_KEY,level);
+        data.putInt(LEVEL_KEY,level);
         return this;
     }
 
     public void onAddStat(RPG object){}
-    public void onRemoveStat(){}
-    public void onUseStat(RPG object){}
-    public void onStopUsingStat(){}
+    public void onRemoveStat(RPG object){}
+    public void onUseStat(RpgEntity entity){}
+    public void onStopUsingStat(RpgEntity entity){}
 
     /**
      * Returns the RpgObject which will have its stat instance activated
@@ -114,16 +114,15 @@ public abstract class Stat implements Listener {
         //get stats that depend this stat
         if(onEvent(event)) return;
         if (toCheck == null) return;
-        Map<RPG,CompoundTag> stats = new HashMap<>();
+        Map<RPG,Stat> stats = new HashMap<>();
         toCheck.addUsedStats(identifier,stats);
         if(stats.size()==0) return;
         if(onTrigger(event,toCheck,stats)) return;
-        for(Map.Entry<RPG,CompoundTag> entry : stats.entrySet()){
-            Stat stat = RpgRegistry.initStat(identifier, entry.getKey(),new StatInst(entry.getValue()));
-            stat.setUser(toCheck);
+        for(Map.Entry<RPG,Stat> entry : stats.entrySet()){
+            entry.getValue().setUser(toCheck);
 
             //todo new mana thing sometime
-            double cost = stat.getManaCost();
+            double cost = entry.getValue().getManaCost();
             if (cost != 0.0) {
                 if (toCheck.getMana() < cost) {
                     continue;
@@ -131,7 +130,7 @@ public abstract class Stat implements Listener {
                     toCheck.setMana(toCheck.getMana()-cost);
                 }
             }
-            stat.onActivate(event);
+            entry.getValue().onActivate(event);
         }
     }
 
@@ -149,7 +148,7 @@ public abstract class Stat implements Listener {
      * @return Whether to cancel
      */
 
-    public boolean onTrigger(Event event, @NotNull RPG checkObject, Map<RPG,CompoundTag> instances){return false;}
+    public boolean onTrigger(Event event, @NotNull RPG checkObject, Map<RPG,Stat> instances){return false;}
 
     /**
      * Override this to run code when your stat is successfully activated

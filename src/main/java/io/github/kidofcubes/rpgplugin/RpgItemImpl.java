@@ -5,14 +5,16 @@ import net.minecraft.nbt.Tag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
 
-public class RpgItemStack extends RPGImpl implements RpgItem{
+public class RpgItemImpl extends RPGImpl implements RpgItem{
 
     private static final Field itemMetaField;
 
@@ -25,12 +27,8 @@ public class RpgItemStack extends RPGImpl implements RpgItem{
         }
     }
 
-    public RpgItemStack(CompoundTag base) {
-        super(base);
-    }
-
-    public static RpgItemStack getRpg(ItemStack itemstack){
-
+    @NotNull
+    public static CompoundTag getHolder(ItemStack itemstack){
         if(itemstack instanceof CraftItemStack craftItemStack){
             if(craftItemStack.handle.getTag()==null){
                 craftItemStack.handle.setTag(new CompoundTag());
@@ -41,31 +39,40 @@ public class RpgItemStack extends RPGImpl implements RpgItem{
             CompoundTag tag = (CompoundTag) craftItemStack.handle.getTag().get("PublicBukkitValues");
 //            System.out.println("WE ARE PUTTING IT IN PUBLIC BUKKIT VALUES");
             assert tag != null;
-            if(tag.get(RPG_TAG_KEY.asString())==null){
-                tag.put(RPG_TAG_KEY.asString(),new CompoundTag());
-            }
-
-            System.out.println("GETTING THE THING FROM craftITEMSTACK IS "+tag.get(RPG.RPG_TAG_KEY.asString()).getAsString());
-            return new RpgItemStack((CompoundTag) tag.get(RPG_TAG_KEY.asString()));
+            if(!tag.contains(RPG.RPG_TAG_KEY.asString())) tag.put(RPG.RPG_TAG_KEY.asString(), new CompoundTag());
+//            System.out.println("THE TAGS NOW LOOK LIKE "+craftItemStack.handle.getTag().getAsString());
+            return (CompoundTag) Objects.requireNonNull(tag.get(RPG.RPG_TAG_KEY.asString()));
         }else{ //assume its default itemstack
             try {
-//                System.out.println("THERE IS A ITEMSTACK WTF");
+//                System.out.println("IT WAS NOT A CRAFTITEMSTACK");
                 ItemMeta itemMeta = (ItemMeta) itemMetaField.get(itemstack);
                 if(itemMeta==null){
-//                    System.out.println("IT HAD NO ITEMMETA OH SHIT");
                     itemMeta=itemstack.getItemMeta();
                     itemstack.setItemMeta(itemMeta);
                 }
                 Map<String, Tag> tag = ((CraftPersistentDataContainer)itemMeta.getPersistentDataContainer()).getRaw();
-
-                if(tag.get(RPG.RPG_TAG_KEY.asString())==null){
-                    tag.put(RPG.RPG_TAG_KEY.asString(),new CompoundTag());
+                if(!tag.containsKey(RPG.RPG_TAG_KEY.asString())){
+                    tag.put(RPG.RPG_TAG_KEY.asString(), new CompoundTag());
                 }
-                System.out.println("GETTING THE THING FROM ITEMSTACK IS "+tag.get(RPG.RPG_TAG_KEY.asString()).getAsString());
-                return new RpgItemStack((CompoundTag) tag.get(RPG.RPG_TAG_KEY.asString()));
+                return (CompoundTag) Objects.requireNonNull(tag.get(RPG.RPG_TAG_KEY.asString()));
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+
+    public RpgItemImpl(ItemStack itemStack) {
+        super(getHolder(itemStack));
+    }
+
+    public static RpgItem getRpg(ItemStack itemstack){
+        CompoundTag tag = getHolder(itemstack);
+        NamespacedKey type = RPG.DEFAULT_TYPE_KEY;
+        String possibleKey = tag.getString(RPG.TYPE_KEY);
+        if(NamespacedKey.fromString(possibleKey)!=null) type=NamespacedKey.fromString(possibleKey);
+
+        return RpgRegistry.getTypeConstructor(RpgItem.class, RpgRegistry.containsTypeConstructor(RpgItem.class, type) ? type : RPG.DEFAULT_TYPE_KEY).apply(itemstack);
+
     }
 }

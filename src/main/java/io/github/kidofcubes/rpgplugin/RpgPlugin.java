@@ -4,12 +4,15 @@ import io.github.kidofcubes.rpgplugin.world.RegionSpawning;
 import org.bukkit.Bukkit;
 import org.bukkit.block.TileState;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
+
+import static io.github.kidofcubes.rpgplugin.RpgRegistry.registerTypeConstructor;
 
 
 public class RpgPlugin extends JavaPlugin {
@@ -28,8 +31,8 @@ public class RpgPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-//        registerTypeConstructor(RpgEntity.class,RPG.defaultTypeKey,(LivingEntity thing) -> new RpgLivingEntity(thing).loadTag(RpgLivingEntity.getHolder(thing)));
-//        registerTypeConstructor(RpgItem.class,RpgObject.defaultTypeKey,(ItemStack thing) -> new RpgItemStack(thing).loadTag(RpgItemStack.getHolder(thing)));
+        registerTypeConstructor(RpgEntity.class,RPG.DEFAULT_TYPE_KEY, RpgEntityImpl::new);
+        registerTypeConstructor(RpgItem.class,RPG.DEFAULT_TYPE_KEY,RpgItemImpl::new);
 //        registerTypeConstructor(RpgTile.class,RpgObject.defaultTypeKey,(TileState thing) -> new RpgTileImpl(thing).loadTag(RpgTileImpl.getHolder(thing)));
 
         Bukkit.getScheduler().runTaskLater(this, () -> { //?????????
