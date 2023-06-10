@@ -9,17 +9,17 @@ import java.util.*;
 public abstract class RPGImpl implements RPG{
 
     @Override
-    public CompoundTag getTag() {
+    public TagWrapper getTag() {
         return base;
     }
 
-    protected final CompoundTag base;
-    public RPGImpl(CompoundTag base){
+    protected final TagWrapper base;
+    public RPGImpl(TagWrapper base){
         this.base=base;
     }
 
 
-    protected CompoundTag dataTag(){
+    protected TagWrapper dataTag(){
         if(!base.contains("data")) base.put("data", new CompoundTag());
         return base.getCompound("data");
     }
@@ -50,12 +50,17 @@ public abstract class RPGImpl implements RPG{
     public void setMana(double mana){ dataTag().putDouble(MANA_KEY,mana); }
 
 
-    protected CompoundTag statsTag(){
-        if(!base.contains("stats")) base.put("stats", new CompoundTag());
+    protected TagWrapper statsTag(){
+        if(!base.contains("stats")) base.put("stats", new TagWrapper());
         return base.getCompound("stats");
     }
     public void addStat(Stat stat){
+        if(!RpgRegistry.isRegisteredStat(stat.getIdentifier())) throw new IllegalArgumentException("Stat "+stat.getIdentifier()+" is not registered!");
         statsTag().put(stat.getIdentifier().asString(),stat.getData());
+    }
+    public void addStat(NamespacedKey key){
+        if(!RpgRegistry.isRegisteredStat(key)) throw new IllegalArgumentException("Stat "+key+" is not registered!");
+        statsTag().put(key.asString(),new TagWrapper());
     }
     public boolean hasStat(NamespacedKey key){
         if(key==null) return false;
@@ -70,7 +75,7 @@ public abstract class RPGImpl implements RPG{
     @NotNull
     public Stat getStat(NamespacedKey key){
         if(!hasStat(key)) throw new RuntimeException("Stat "+key+" was not found and/or registered");
-        return RpgRegistry.initStat(key,this,(Objects.requireNonNull((CompoundTag) statsTag().get(key.asString()))));
+        return RpgRegistry.initStat(key,this,(Objects.requireNonNull(statsTag().getCompound(key.asString()))));
     }
 
     /**
@@ -83,17 +88,18 @@ public abstract class RPGImpl implements RPG{
 
     public Map<NamespacedKey, Stat> getStats() {
         Map<NamespacedKey, Stat> stats = new HashMap<>();
-        statsTag().tags.forEach((key, tag)->{
+        statsTag().getAllKeys().forEach((key)->{
             NamespacedKey namespacedKey = NamespacedKey.fromString(key);
-            if(namespacedKey!=null&&tag instanceof CompoundTag compoundTag){
-                stats.put(namespacedKey,RpgRegistry.initStat(namespacedKey,this,compoundTag));
+            TagWrapper tag = statsTag().getCompound(key);
+            if(namespacedKey!=null&&tag!=null){
+                stats.put(namespacedKey,RpgRegistry.initStat(namespacedKey,this,tag));
             }
         });
         return stats;
     }
 
     public void addUsedStats(NamespacedKey key, Map<RPG,Stat> map){
-        if(hasStat(key)) map.put(this,getStat(key));
+        if(hasStat(key)) map.put(this,getStat(key).setUser(this));
     }
 
 

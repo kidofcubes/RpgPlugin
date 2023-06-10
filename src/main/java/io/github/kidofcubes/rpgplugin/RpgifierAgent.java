@@ -58,7 +58,7 @@ public class RpgifierAgent {
                             RpgItem.class, RpgItemImpl.class,
                             RpgEntity.class, RpgEntityImpl.class,
 //                                RpgTile.class, RpgTileImpl.class,
-                            EntityHolder.class,
+                            EntityHolder.class, TagWrapper.class,
                             RpgRegistry.class};
                     for (Class<?> clazz : classes) {
                         new ClassInjector.UsingUnsafe(classLoader).inject(Collections.singletonMap(TypeDescription.ForLoadedType.of(clazz), ClassFileLocator.ForClassLoader.read(clazz)));

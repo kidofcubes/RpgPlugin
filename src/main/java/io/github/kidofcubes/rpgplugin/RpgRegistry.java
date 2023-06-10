@@ -1,6 +1,5 @@
 package io.github.kidofcubes.rpgplugin;
 
-import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -47,7 +46,7 @@ public class RpgRegistry { //why?
 
 
 //    private static final Map<NamespacedKey,Supplier<? extends Stat>> registeredStats = new HashMap<>();
-    private static final Map<NamespacedKey,BiFunction<RPG,CompoundTag,? extends Stat>> registeredStats = new HashMap<>();
+    private static final Map<NamespacedKey,BiFunction<RPG,TagWrapper,? extends Stat>> registeredStats = new HashMap<>();
     private static final Map<NamespacedKey,Stat> registeredStatInstances = new HashMap<>();
 
     //do this l8r
@@ -73,7 +72,7 @@ public class RpgRegistry { //why?
      * Registers a stat to listen for events
      * @param listenEvents A list of events it will listen for
      */
-    public static <T extends Stat> void register(T stat, BiFunction<RPG,CompoundTag,T> supplier, Map<Class<? extends Event>, EventPriority> listenEvents, Plugin plugin) {
+    public static <T extends Stat> void register(T stat, BiFunction<RPG,TagWrapper,T> supplier, Map<Class<? extends Event>, EventPriority> listenEvents, Plugin plugin) {
         NamespacedKey key = stat.getIdentifier();
         if (!registeredStats.containsKey(key)) {
 //            if(stat instanceof TimedStat timedStat){
@@ -129,7 +128,7 @@ public class RpgRegistry { //why?
     }
 
     @NotNull
-    public static Stat initStat(@NotNull NamespacedKey statKey, RPG parent, CompoundTag statInst) {
+    public static Stat initStat(@NotNull NamespacedKey statKey, RPG parent, TagWrapper statInst) {
         return Objects.requireNonNull(registeredStats.get(statKey),"No stat registered under "+statKey.asString()).apply(parent,statInst);
     }
 

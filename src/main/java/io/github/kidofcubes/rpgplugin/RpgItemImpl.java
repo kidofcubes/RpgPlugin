@@ -5,7 +5,6 @@ import net.minecraft.nbt.Tag;
 import org.bukkit.NamespacedKey;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
-import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +27,8 @@ public class RpgItemImpl extends RPGImpl implements RpgItem{
     }
 
     @NotNull
-    public static CompoundTag getHolder(ItemStack itemstack){
+    public static TagWrapper getHolder(ItemStack itemstack){
+        if(itemstack.getType().isEmpty()) throw new IllegalArgumentException("Itemstack type cannot be empty");
         if(itemstack instanceof CraftItemStack craftItemStack){
             if(craftItemStack.handle.getTag()==null){
                 craftItemStack.handle.setTag(new CompoundTag());
@@ -41,7 +41,7 @@ public class RpgItemImpl extends RPGImpl implements RpgItem{
             assert tag != null;
             if(!tag.contains(RPG.RPG_TAG_KEY.asString())) tag.put(RPG.RPG_TAG_KEY.asString(), new CompoundTag());
 //            System.out.println("THE TAGS NOW LOOK LIKE "+craftItemStack.handle.getTag().getAsString());
-            return (CompoundTag) Objects.requireNonNull(tag.get(RPG.RPG_TAG_KEY.asString()));
+            return new TagWrapper((CompoundTag) Objects.requireNonNull(tag.get(RPG.RPG_TAG_KEY.asString())));
         }else{ //assume its default itemstack
             try {
 //                System.out.println("IT WAS NOT A CRAFTITEMSTACK");
@@ -54,7 +54,7 @@ public class RpgItemImpl extends RPGImpl implements RpgItem{
                 if(!tag.containsKey(RPG.RPG_TAG_KEY.asString())){
                     tag.put(RPG.RPG_TAG_KEY.asString(), new CompoundTag());
                 }
-                return (CompoundTag) Objects.requireNonNull(tag.get(RPG.RPG_TAG_KEY.asString()));
+                return new TagWrapper((CompoundTag) Objects.requireNonNull(tag.get(RPG.RPG_TAG_KEY.asString())));
             } catch (IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
@@ -67,10 +67,10 @@ public class RpgItemImpl extends RPGImpl implements RpgItem{
     }
 
     public static RpgItem getRpg(ItemStack itemstack){
-        CompoundTag tag = getHolder(itemstack);
+        TagWrapper tag = getHolder(itemstack);
         NamespacedKey type = RPG.DEFAULT_TYPE_KEY;
         String possibleKey = tag.getString(RPG.TYPE_KEY);
-        if(NamespacedKey.fromString(possibleKey)!=null) type=NamespacedKey.fromString(possibleKey);
+        if(!possibleKey.equalsIgnoreCase("")&&NamespacedKey.fromString(possibleKey)!=null) type=NamespacedKey.fromString(possibleKey);
 
         return RpgRegistry.getTypeConstructor(RpgItem.class, RpgRegistry.containsTypeConstructor(RpgItem.class, type) ? type : RPG.DEFAULT_TYPE_KEY).apply(itemstack);
 

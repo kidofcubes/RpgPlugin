@@ -1,7 +1,6 @@
 package io.github.kidofcubes.rpgplugin;
 
 
-import net.minecraft.nbt.CompoundTag;
 import org.apache.commons.lang3.NotImplementedException;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Event;
@@ -15,18 +14,18 @@ import java.util.Map;
 public abstract class Stat implements Listener {
 
     static final String LEVEL_KEY="lvl";
-    final CompoundTag data;
+    final TagWrapper data;
     private final RPG parent;
     private RPG user;
     public RPG getParent() {
         return parent;
     }
 
-    public Stat(RPG parent, CompoundTag data) {
+    public Stat(RPG parent, TagWrapper data) {
         this.parent = parent;
         this.data = data;
     }
-    public CompoundTag getData(){
+    public TagWrapper getData(){
         return data;
     }
     public Stat setUser(RPG rpgObject){
@@ -89,7 +88,9 @@ public abstract class Stat implements Listener {
 
     public void onAddStat(RPG object){}
     public void onRemoveStat(RPG object){}
-    public void onUseStat(RpgEntity entity){}
+    public void onUseStat(RpgEntity entity){
+        user=entity;
+    }
     public void onStopUsingStat(RpgEntity entity){}
 
     /**

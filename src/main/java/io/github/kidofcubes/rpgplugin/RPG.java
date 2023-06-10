@@ -1,13 +1,10 @@
 package io.github.kidofcubes.rpgplugin;
 
 
-import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import java.util.List;
 import java.util.Map;
 
 
@@ -17,7 +14,7 @@ import java.util.Map;
  * Immutable Wrapper for CompoundTag of rpg things
  */
 public interface RPG {
-    public CompoundTag getTag();
+    public TagWrapper getTag();
     public static final NamespacedKey RPG_TAG_KEY = new NamespacedKey("rpg_plugin", "rpg");
     static final NamespacedKey DEFAULT_TYPE_KEY = new NamespacedKey("rpg_plugin","default_type");
     static final String TYPE_KEY = "type";
@@ -45,6 +42,7 @@ public interface RPG {
     public double getMana();
     public void setMana(double mana);
     public void addStat(Stat stat);
+    public void addStat(NamespacedKey key);
     public boolean hasStat(NamespacedKey key);
 
 

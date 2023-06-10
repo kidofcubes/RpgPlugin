@@ -17,26 +17,28 @@ public class RpgEntityImpl extends RPGImpl implements RpgEntity {
         super(getHolder(entity));
     }
 
-    public static CompoundTag getHolder(Entity entity){
+    public static TagWrapper getHolder(Entity entity){
         CraftPersistentDataContainer persistentDataContainer = (CraftPersistentDataContainer) entity.getPersistentDataContainer();
         if(!persistentDataContainer.getRaw().containsKey(RPG.RPG_TAG_KEY.asString())){
             persistentDataContainer.getRaw().put(RPG.RPG_TAG_KEY.asString(),new CompoundTag());
         }
-        return (CompoundTag) persistentDataContainer.getRaw().get(RPG.RPG_TAG_KEY.asString());
+        return new TagWrapper((CompoundTag) persistentDataContainer.getRaw().get(RPG.RPG_TAG_KEY.asString()));
     }
 
     @NotNull
     public static RpgEntity getRpg(Entity entity) { //if livingentity has a type already, init that type instead, if not, init default
 
-        CompoundTag tag = getHolder(entity);
+        TagWrapper tag = getHolder(entity);
         NamespacedKey type = RPG.DEFAULT_TYPE_KEY;
         String possibleKey = tag.getString(RPG.TYPE_KEY);
-        if(NamespacedKey.fromString(possibleKey)!=null) type=NamespacedKey.fromString(possibleKey);
+        if(!possibleKey.equalsIgnoreCase("")&&NamespacedKey.fromString(possibleKey)!=null) type=NamespacedKey.fromString(possibleKey);
 
-        ((EntityHolder) entity.getPersistentDataContainer()).setRpg(
-                RpgRegistry.getTypeConstructor(RpgEntity.class, RpgRegistry.containsTypeConstructor(RpgEntity.class, type) ? type : RPG.DEFAULT_TYPE_KEY).apply(entity)
-        );
-//        return new RpgEntityImpl((CompoundTag) persistentDataContainer.getRaw().get(RPG.RPG_TAG_KEY.asString()));
+        if(((EntityHolder) entity.getPersistentDataContainer()).getRpg()==null) {
+            ((EntityHolder) entity.getPersistentDataContainer()).setRpg(
+                    RpgRegistry.getTypeConstructor(RpgEntity.class, RpgRegistry.containsTypeConstructor(RpgEntity.class, type) ? type : RPG.DEFAULT_TYPE_KEY).apply(entity)
+            );
+        }
+//        return new RpgEntityImpl((TagWrapper) persistentDataContainer.getRaw().get(RPG.RPG_TAG_KEY.asString()));
         return ((EntityHolder) entity.getPersistentDataContainer()).getRpg();
     }
 
@@ -48,7 +50,7 @@ public class RpgEntityImpl extends RPGImpl implements RpgEntity {
     public void addUsedStats(NamespacedKey key, Map<RPG,Stat> map){
         super.addUsedStats(key,map);
         usedThings().forEach(rpg -> {
-            if(rpg!=this) addUsedStats(key,map);
+            if(rpg!=this) rpg.addUsedStats(key,map);
         });
     }
 

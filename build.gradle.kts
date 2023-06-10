@@ -6,6 +6,7 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
     id("com.github.johnrengelman.shadow") version "7.1.2"
     `maven-publish`
+    signing
 }
 
 group = "io.github.kidofcubes"
@@ -56,9 +57,9 @@ tasks {
 
 
     reobfJar {
-      // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
-      // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
-      outputJar.set(layout.buildDirectory.file("/SSD128GB/ModTestingServer/plugins/RpgPlugin-${project.version}.jar"))
+        // This is an example of how you might change the output location for reobfJar. It's recommended not to do this
+        // for a variety of reasons, however it's asked frequently enough that an example of how to do it is included here.
+        outputJar.set(layout.buildDirectory.file("/SSD128GB/ModTestingServer/plugins/RpgPlugin-${project.version}.jar"))
     }
 
 //    jar {
@@ -102,3 +103,10 @@ publishing {
         }
     }
 }
+
+
+tasks.withType<AbstractArchiveTask>().configureEach {
+    isPreserveFileTimestamps = false
+    isReproducibleFileOrder = true
+}
+
