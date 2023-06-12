@@ -197,7 +197,8 @@ public class TagWrapper {
     }
 
     public TagWrapper merge(TagWrapper source) {
-        return new TagWrapper(tag.merge(source.tag));
+        tag.merge(source.tag);
+        return this;
     }
 
     public void accept(TagVisitor visitor) {
@@ -214,5 +215,22 @@ public class TagWrapper {
 
     public void acceptAsRoot(StreamTagVisitor visitor) {
         tag.acceptAsRoot(visitor);
+    }
+
+    @Override
+    public String toString() {
+        return tag.toString();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if(object instanceof TagWrapper tagWrapper){
+            return tag.equals(tagWrapper.tag);
+        }else return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return tag.hashCode();
     }
 }

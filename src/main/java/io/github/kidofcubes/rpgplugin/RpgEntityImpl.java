@@ -2,7 +2,7 @@ package io.github.kidofcubes.rpgplugin;
 
 import net.minecraft.nbt.CompoundTag;
 import org.bukkit.NamespacedKey;
-import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
+import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 

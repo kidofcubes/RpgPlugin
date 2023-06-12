@@ -1,5 +1,6 @@
 package io.github.kidofcubes.rpgplugin;
 
+import io.github.kidofcubes.rpgplugin.world.BlockSaving;
 import io.github.kidofcubes.rpgplugin.world.RegionSpawning;
 import org.bukkit.Bukkit;
 import org.bukkit.block.TileState;
@@ -27,14 +28,18 @@ public class RpgPlugin extends JavaPlugin {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     @Override
     public void onEnable() {
         registerTypeConstructor(RpgEntity.class,RPG.DEFAULT_TYPE_KEY, RpgEntityImpl::new);
         registerTypeConstructor(RpgItem.class,RPG.DEFAULT_TYPE_KEY,RpgItemImpl::new);
+        registerTypeConstructor(RpgBlock.class,RPG.DEFAULT_TYPE_KEY,RpgBlockImpl::new);
 //        registerTypeConstructor(RpgTile.class,RpgObject.defaultTypeKey,(TileState thing) -> new RpgTileImpl(thing).loadTag(RpgTileImpl.getHolder(thing)));
 
+        BlockSaving blockSaving = new BlockSaving(this);
+        getServer().getPluginManager().registerEvents(blockSaving,this);
         Bukkit.getScheduler().runTaskLater(this, () -> { //?????????
             saveDefaultConfig();
             FileConfiguration config = this.getConfig();

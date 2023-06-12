@@ -20,7 +20,7 @@ import java.util.function.Supplier;
 
 public class RpgRegistry { //why?
 
-    private static Plugin pluginInstance;
+    static Plugin pluginInstance;
 
     private final static Map<Class<? extends RPG>,Map<NamespacedKey, Function<?,? extends RPG>>> typeConstructors = new HashMap<>();
 

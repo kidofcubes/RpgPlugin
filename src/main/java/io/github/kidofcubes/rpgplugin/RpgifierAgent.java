@@ -10,9 +10,10 @@ import net.bytebuddy.implementation.FieldAccessor;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.utility.JavaModule;
 import net.minecraft.nbt.Tag;
-import org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +58,7 @@ public class RpgifierAgent {
                             RPGImpl.class,
                             RpgItem.class, RpgItemImpl.class,
                             RpgEntity.class, RpgEntityImpl.class,
-//                                RpgTile.class, RpgTileImpl.class,
+                            RpgBlock.class, RpgBlockImpl.class,
                             EntityHolder.class, TagWrapper.class,
                             RpgRegistry.class};
                     for (Class<?> clazz : classes) {
@@ -101,7 +102,7 @@ public class RpgifierAgent {
                         }
                     }
                 })
-                .type(named("org.bukkit.craftbukkit.v1_19_R3.persistence.CraftPersistentDataContainer"))
+                .type(named("org.bukkit.craftbukkit.v1_20_R1.persistence.CraftPersistentDataContainer"))
 
                 .transform(new AgentBuilder.Transformer() {
                     @Override
@@ -110,6 +111,21 @@ public class RpgifierAgent {
                                 .defineField("rpg",RpgEntity.class)
                                 .method(named("getRpg")).intercept(FieldAccessor.ofField("rpg"))
                                 .method(named("setRpg")).intercept(FieldAccessor.ofField("rpg"));
+                    }
+                })
+                .type(named("org.bukkit.block.Block"))
+                .transform((builder, typeDescription, classLoader, module, protectionDomain) -> {
+                    try {
+                        return
+                                builder
+                                        .implement(RpgBlock.class)
+                                        .method((isDeclaredBy(RPG.class)).or(isDeclaredBy(RpgBlock.class)))
+                                        .intercept(MethodCall.invokeSelf()
+                                                .onMethodCall(MethodCall.invoke(RpgBlockImpl.class.getMethod("getRpg", Block.class)).withThis()).withAllArguments()
+                                        )
+                                ;
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
                     }
                 })
 //                .type(named("org.bukkit.block.TileState"))

@@ -30,7 +30,7 @@ tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
 dependencies {
-    paperweight.paperDevBundle("1.19.4-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20-R0.1-SNAPSHOT")
     implementation("net.bytebuddy:byte-buddy:1.14.4")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.7")
 }
